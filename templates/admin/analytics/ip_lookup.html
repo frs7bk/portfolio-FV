@@ -1,0 +1,186 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}البحث عن عنوان IP | لوحة التحكم{% endblock %}
+{% block page_title %}البحث عن عنوان IP{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+  <div class="btn-toolbar mb-2 mb-md-0">
+    <div class="btn-group me-2">
+      <a href="{{ url_for('analytics.visitors_dashboard') }}" class="btn btn-sm btn-outline-secondary">
+        <i class="fas fa-arrow-right"></i> العودة إلى إحصائيات الزوار
+      </a>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-6 mb-4">
+    <div class="card shadow">
+      <div class="card-header">
+        <h5 class="card-title mb-0">البحث عن عنوان IP</h5>
+      </div>
+      <div class="card-body">
+        <div class="alert alert-info">
+          <i class="fas fa-info-circle me-2"></i>
+          أدخل عنوان IP للبحث عن معلوماته في قاعدة البيانات
+        </div>
+        
+        <form method="get" action="{{ url_for('analytics.ip_lookup') }}">
+          <div class="input-group mb-3">
+            <input type="text" class="form-control" name="ip" value="{{ ip }}" placeholder="أدخل عنوان IP (مثال: 192.168.1.1)" required>
+            <button class="btn btn-primary" type="submit">
+              <i class="fas fa-search me-1"></i> بحث
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-6 mb-4">
+    {% if result %}
+    <div class="card shadow">
+      <div class="card-header bg-primary text-white">
+        <h5 class="card-title mb-0">معلومات العنوان: {{ result.ip }}</h5>
+      </div>
+      <div class="card-body">
+        {% if result.visitors and result.visitors|length > 0 %}
+          <div class="mb-3">
+            <strong>عدد الزيارات المسجلة:</strong>
+            <span class="badge bg-primary ms-2">{{ result.count }}</span>
+          </div>
+          
+          <div class="table-responsive">
+            <table class="table table-striped table-sm">
+              <thead>
+                <tr>
+                  <th>رقم الزائر</th>
+                  <th>أول زيارة</th>
+                  <th>آخر زيارة</th>
+                  <th>التفاصيل</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for visitor in result.visitors %}
+                <tr>
+                  <td>{{ visitor.id }}</td>
+                  <td>{{ visitor.first_visit.strftime('%Y-%m-%d %H:%M') }}</td>
+                  <td>{{ visitor.last_visit.strftime('%Y-%m-%d %H:%M') }}</td>
+                  <td>
+                    <a href="{{ url_for('analytics.visitor_detail', visitor_id=visitor.id) }}" class="btn btn-sm btn-outline-primary">
+                      <i class="fas fa-info-circle"></i> التفاصيل
+                    </a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            لم يتم العثور على زيارات مسجلة من هذا العنوان.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row">
+  {% if result and result.visitors and result.visitors|length > 0 %}
+  <div class="col-12">
+    <div class="card shadow">
+      <div class="card-header bg-light">
+        <h5 class="card-title mb-0">سجل زيارات الصفحات</h5>
+      </div>
+      <div class="card-body">
+        <div id="pageVisits">
+          <!-- سيتم تحميل البيانات عن طريق AJAX -->
+          <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">جاري التحميل...</span>
+            </div>
+            <p class="mt-2">جاري تحميل سجل الزيارات...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  {% if result and result.visitors and result.visitors|length > 0 %}
+  // تحميل سجل زيارات الصفحات لهذا العنوان
+  const visitorIds = [{% for visitor in result.visitors %}{{ visitor.id }}{% if not loop.last %},{% endif %}{% endfor %}];
+  
+  // دالة لتحميل سجل الزيارات
+  function loadPageVisits() {
+    fetch(`/analytics/api/page-visits?visitor_ids=${visitorIds.join(',')}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.visits && data.visits.length > 0) {
+          displayPageVisits(data.visits);
+        } else {
+          document.getElementById('pageVisits').innerHTML = `
+            <div class="alert alert-secondary">
+              <i class="fas fa-info-circle me-2"></i>
+              لا توجد زيارات صفحات مسجلة.
+            </div>
+          `;
+        }
+      })
+      .catch(error => {
+        console.error('Error loading page visits:', error);
+        document.getElementById('pageVisits').innerHTML = `
+          <div class="alert alert-danger">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            حدث خطأ أثناء تحميل سجل الزيارات.
+          </div>
+        `;
+      });
+  }
+  
+  // دالة لعرض سجل الزيارات
+  function displayPageVisits(visits) {
+    const table = `
+      <div class="table-responsive">
+        <table class="table table-striped table-hover table-sm">
+          <thead>
+            <tr>
+              <th>الصفحة</th>
+              <th>العنوان</th>
+              <th>وقت الزيارة</th>
+              <th>الزائر</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${visits.map(visit => `
+              <tr>
+                <td class="text-truncate" style="max-width: 200px;">${visit.url}</td>
+                <td class="text-truncate" style="max-width: 300px;">${visit.title || '(بدون عنوان)'}</td>
+                <td>${visit.time}</td>
+                <td>
+                  <a href="/analytics/visitors/${visit.visitor_id}" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-user"></i> ${visit.visitor_id}
+                  </a>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+    
+    document.getElementById('pageVisits').innerHTML = table;
+  }
+  
+  // تحميل البيانات
+  loadPageVisits();
+  {% endif %}
+});
+</script>
+{% endblock %}

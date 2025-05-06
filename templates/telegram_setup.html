@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container min-vh-100 my-5">
+  <div class="row">
+    <div class="col-md-8 mx-auto">
+      <div class="card bg-dark border border-2 border-secondary text-white shadow-lg">
+        <div class="card-header border-0 bg-gradient-dark">
+          <h3 class="text-center mb-0">
+            <i class="fab fa-telegram text-info me-2"></i>
+            إعداد إشعارات تلغرام
+          </h3>
+        </div>
+        <div class="card-body">
+          {% for category, message in get_flashed_messages(with_categories=true) %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+          {% endfor %}
+
+          <form method="POST" action="{{ url_for('save_telegram_settings') }}" class="needs-validation" novalidate>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            
+            <div class="alert alert-info">
+              <h5 class="alert-heading"><i class="fas fa-info-circle me-2"></i>كيفية إعداد إشعارات التلغرام</h5>
+              <ol class="mb-0">
+                <li class="mb-2">قم بإنشاء بوت تلغرام جديد من خلال محادثة <a href="https://t.me/BotFather" target="_blank" class="alert-link">@BotFather</a></li>
+                <li class="mb-2">احصل على رمز التوكن (API Token) للبوت الذي أنشأته</li>
+                <li class="mb-2">قم بفتح محادثة مع البوت الذي أنشأته</li>
+                <li class="mb-2">للحصول على معرف المحادثة، قم بزيارة: <br>
+                  <code>https://api.telegram.org/bot<span class="text-danger">TOKEN</span>/getUpdates</code><br>
+                  (استبدل <span class="text-danger">TOKEN</span> برمز التوكن الخاص بك)</li>
+                <li class="mb-0">ابحث عن قيمة <code>chat_id</code> في الاستجابة</li>
+              </ol>
+            </div>
+
+            <div class="mb-4">
+              <label for="bot_token" class="form-label">توكن البوت (Bot Token):</label>
+              <div class="input-group">
+                <span class="input-group-text bg-dark text-light"><i class="fas fa-key"></i></span>
+                <input type="text" class="form-control bg-dark text-light border-secondary" id="bot_token" name="bot_token" 
+                       placeholder="أدخل توكن البوت من BotFather" required>
+              </div>
+              <div class="form-text text-light-50 small">مثال: 1234567890:ABCDEFGHIJKLMNOPQRSTUVWXYZ</div>
+            </div>
+
+            <div class="mb-4">
+              <label for="chat_id" class="form-label">معرف المحادثة (Chat ID):</label>
+              <div class="input-group">
+                <span class="input-group-text bg-dark text-light"><i class="fas fa-comment"></i></span>
+                <input type="text" class="form-control bg-dark text-light border-secondary" id="chat_id" name="chat_id" 
+                       placeholder="أدخل معرف المحادثة" required>
+              </div>
+              <div class="form-text text-light-50 small">مثال: 123456789 أو -100123456789</div>
+            </div>
+
+            <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
+              <button type="submit" class="btn btn-primary btn-lg px-5">
+                <i class="fas fa-save me-2"></i> حفظ الإعدادات
+              </button>
+              <button type="button" id="testButton" class="btn btn-info btn-lg px-5" style="display: none;">
+                <i class="fas fa-paper-plane me-2"></i> اختبار الاتصال
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    
+    form.addEventListener('submit', function(event) {
+      if (!form.checkValidity()) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      form.classList.add('was-validated');
+    });
+    
+    // إظهار زر الاختبار إذا كانت حقول الإدخال مملوءة
+    const botTokenInput = document.getElementById('bot_token');
+    const chatIdInput = document.getElementById('chat_id');
+    const testButton = document.getElementById('testButton');
+    
+    function checkInputs() {
+      if (botTokenInput.value.trim() !== '' && chatIdInput.value.trim() !== '') {
+        testButton.style.display = 'inline-block';
+      } else {
+        testButton.style.display = 'none';
+      }
+    }
+    
+    botTokenInput.addEventListener('input', checkInputs);
+    chatIdInput.addEventListener('input', checkInputs);
+    
+    // اختبار الاتصال
+    testButton.addEventListener('click', function() {
+      const botToken = botTokenInput.value.trim();
+      const chatId = chatIdInput.value.trim();
+      
+      if (botToken === '' || chatId === '') {
+        alert('يرجى ملء جميع الحقول المطلوبة');
+        return;
+      }
+      
+      this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> جاري الاختبار...';
+      this.disabled = true;
+      
+      fetch('/test-telegram-connection', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value
+        },
+        body: JSON.stringify({ bot_token: botToken, chat_id: chatId })
+      })
+      .then(response => response.json())
+      .then(data => {
+        this.disabled = false;
+        this.innerHTML = '<i class="fas fa-paper-plane me-2"></i> اختبار الاتصال';
+        
+        if (data.success) {
+          alert('تم الاتصال بنجاح! تحقق من تطبيق تلغرام لديك للتأكد من استلام رسالة الاختبار.');
+        } else {
+          alert('فشل الاتصال: ' + data.message);
+        }
+      })
+      .catch(error => {
+        this.disabled = false;
+        this.innerHTML = '<i class="fas fa-paper-plane me-2"></i> اختبار الاتصال';
+        alert('حدث خطأ أثناء الاختبار: ' + error);
+      });
+    });
+  });
+</script>
+{% endblock %}

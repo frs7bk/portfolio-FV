@@ -1,0 +1,174 @@
+{% extends "layout.html" %}
+
+{% block title %}إعدادات الأمان{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">قائمة الإعدادات</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{{ url_for('auth.profile') }}" class="list-group-item list-group-item-action">الملف الشخصي</a>
+                    <a href="{{ url_for('auth.security_settings') }}" class="list-group-item list-group-item-action active">إعدادات الأمان</a>
+                    {% if current_user.is_admin() %}
+                    <a href="{{ url_for('admin_dashboard') }}" class="list-group-item list-group-item-action">لوحة التحكم</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-9">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">إعدادات الأمان والمصادقة الثنائية</h4>
+                </div>
+                <div class="card-body">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                    
+                    <h5 class="card-title mb-4">تغيير كلمة المرور</h5>
+                    <form method="POST" action="{{ url_for('auth.update_password') }}">
+                        {{ password_form.csrf_token }}
+                        <div class="mb-3">
+                            <label for="current_password" class="form-label">كلمة المرور الحالية</label>
+                            {{ password_form.current_password(class="form-control", placeholder="أدخل كلمة المرور الحالية") }}
+                            {% if password_form.current_password.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in password_form.current_password.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="new_password" class="form-label">كلمة المرور الجديدة</label>
+                            {{ password_form.new_password(class="form-control", placeholder="أدخل كلمة المرور الجديدة") }}
+                            {% if password_form.new_password.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in password_form.new_password.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirm_password" class="form-label">تأكيد كلمة المرور</label>
+                            {{ password_form.confirm_password(class="form-control", placeholder="أعد إدخال كلمة المرور الجديدة") }}
+                            {% if password_form.confirm_password.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in password_form.confirm_password.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <button type="submit" class="btn btn-primary">تحديث كلمة المرور</button>
+                    </form>
+                    
+                    <hr class="my-4">
+                    
+                    {% if current_user.is_admin() %}
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">المصادقة الثنائية</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-4">
+                                <div class="me-3">
+                                    <i class="fas fa-shield-alt fa-2x text-primary"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">حماية إضافية لحسابك</h6>
+                                    <p class="text-muted mb-0">المصادقة الثنائية تضيف طبقة حماية إضافية عند تسجيل الدخول.</p>
+                                </div>
+                            </div>
+                            
+                            {% if current_user.two_factor_enabled %}
+                                <div class="alert alert-success">
+                                    <i class="fas fa-check-circle me-2"></i> المصادقة الثنائية مفعّلة حالياً.
+                                </div>
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="me-3">
+                                        <i class="fab fa-telegram fa-lg text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1">مرتبط بـ تيليجرام</h6>
+                                        <p class="text-muted mb-0">سيتم إرسال رموز المصادقة عبر بوت التيليجرام.</p>
+                                    </div>
+                                </div>
+                                <form method="POST" action="{{ url_for('auth.disable_two_factor') }}" onsubmit="return confirm('هل أنت متأكد من رغبتك في تعطيل المصادقة الثنائية؟ سيؤدي هذا إلى تقليل مستوى الأمان لحسابك.')">
+                                    {{ disable_2fa_form.csrf_token }}
+                                    <button type="submit" class="btn btn-outline-danger">تعطيل المصادقة الثنائية</button>
+                                </form>
+                            {% else %}
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle me-2"></i> المصادقة الثنائية غير مفعّلة.
+                                </div>
+                                <p>للحماية القصوى، ننصح بتفعيل المصادقة الثنائية لحسابك، خصوصاً للحسابات الإدارية.</p>
+                                <a href="{{ url_for('auth.setup_two_factor') }}" class="btn btn-primary">
+                                    <i class="fas fa-shield-alt me-2"></i> تفعيل المصادقة الثنائية
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">سجل تسجيل الدخول</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted">آخر 5 عمليات تسجيل دخول لحسابك:</p>
+                            {% if login_history %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>التاريخ والوقت</th>
+                                                <th>عنوان IP</th>
+                                                <th>المتصفح</th>
+                                                <th>الحالة</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for entry in login_history %}
+                                                <tr>
+                                                    <td>{{ entry.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                                    <td>{{ entry.ip_address }}</td>
+                                                    <td>{{ entry.user_agent }}</td>
+                                                    <td>
+                                                        {% if entry.success %}
+                                                            <span class="badge bg-success">ناجح</span>
+                                                        {% else %}
+                                                            <span class="badge bg-danger">فاشل</span>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="alert alert-info">
+                                    لا توجد عمليات تسجيل دخول مسجلة.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

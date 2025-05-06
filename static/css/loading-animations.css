@@ -1,0 +1,37 @@
+/**
+ * تم تعطيل جميع أنماط التحميل
+ * بناءً على طلب المستخدم، تم إزالة جميع مؤشرات التحميل لتتم عمليات التحميل مباشرة
+ */
+
+/* إخفاء جميع عناصر التحميل */
+.loading-overlay,
+.loading-spinner,
+.loading-text,
+.loading-animation-container,
+.loading-character,
+.progress-container,
+.progress-bar,
+.speech-bubble,
+.character,
+.character-head,
+.character-eye,
+.character-mouth,
+.character-body,
+.character-arm,
+.character-leg {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* تعطيل الإضافة الديناميكية للعناصر باستخدام جافاسكريبت */
+.loading-overlay.show {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* تعطيل الرسائل المختلفة */
+.loading-messages {
+  display: none !important;
+}

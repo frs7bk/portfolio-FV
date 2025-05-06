@@ -1,0 +1,322 @@
+/* 
+ * ملف أنماط موحد للوحة التحكم - يضمن تناسق التصميم في جميع الصفحات
+ * ANTML 2025-04-30
+ */
+
+/* أساسيات الصفحة */
+body {
+  font-family: 'Cairo', sans-serif;
+  background-color: #0f1116;
+  color: #fff;
+  direction: rtl;
+  overflow-x: hidden;
+}
+
+/* تأثيرات خلفية عامة */
+.bg-pattern {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  opacity: 0.1;
+  pointer-events: none;
+}
+
+.bg-gradient {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    radial-gradient(circle at 0% 0%, rgba(99, 102, 241, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 100% 0%, rgba(139, 92, 246, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 50% 100%, rgba(59, 130, 246, 0.05) 0%, transparent 50%);
+  z-index: -2;
+  pointer-events: none;
+}
+
+/* نص متدرج وتأثيرات توهج */
+.gradient-text {
+  background-image: linear-gradient(to right, #6366f1, #8b5cf6, #a855f7);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* تأثير خلفية زجاجية */
+.bg-glass {
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(99, 102, 241, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+/* ======= لوحة التحكم الجانبية ======= */
+.admin-sidebar {
+  background: rgba(17, 24, 39, 0.7) !important;
+  backdrop-filter: blur(10px) !important;
+  border-radius: 0 16px 16px 0 !important;
+  border-right: 1px solid rgba(99, 102, 241, 0.2) !important;
+  min-height: 100vh !important;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1) !important;
+  display: block !important;
+}
+
+.admin-sidebar h3 {
+  background-image: linear-gradient(to right, #6366f1, #8b5cf6, #a855f7) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+  text-shadow: 0 0 15px rgba(139, 92, 246, 0.3) !important;
+}
+
+.admin-sidebar .nav-link {
+  color: #e5e7eb !important;
+  padding: 0.9rem 1.2rem !important;
+  border-radius: 8px !important;
+  margin-bottom: 0.4rem !important;
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1) !important;
+  position: relative !important;
+  overflow: hidden !important;
+  background: rgba(30, 41, 59, 0.5) !important;
+  border: 1px solid rgba(99, 102, 241, 0.1) !important;
+  margin: 0.35rem 0 !important;
+}
+
+.admin-sidebar .nav-link:hover {
+  background: rgba(99, 102, 241, 0.1) !important;
+  color: #fff !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15) !important;
+}
+
+.admin-sidebar .nav-link.active {
+  background: linear-gradient(to right, #6366f1, #8b5cf6) !important;
+  color: #fff !important;
+  font-weight: bold !important;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3) !important;
+}
+
+.admin-sidebar .nav-link:before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 4px !important;
+  height: 100% !important;
+  background: linear-gradient(to bottom, #6366f1, #8b5cf6) !important;
+  opacity: 0 !important;
+  transition: opacity 0.3s ease !important;
+}
+
+.admin-sidebar .nav-link:hover:before,
+.admin-sidebar .nav-link.active:before {
+  opacity: 1 !important;
+}
+
+.admin-sidebar .nav-link i,
+.admin-sidebar .nav-link lord-icon {
+  margin-left: 0.5rem !important;
+  width: 1.5rem !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+}
+
+.admin-profile-container {
+  width: 90px !important;
+  height: 90px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: relative !important;
+  margin: 0 auto !important;
+}
+
+.admin-profile-container .profile-glow {
+  position: absolute !important;
+  inset: 0 !important;
+  border-radius: 50% !important;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
+  opacity: 0.7 !important;
+  filter: blur(5px) !important;
+  animation: pulse 2s infinite alternate !important;
+}
+
+.admin-profile-container img {
+  position: relative !important;
+  z-index: 1 !important;
+  border: 2px solid #8b5cf6 !important;
+  padding: 3px !important;
+}
+
+/* كارت الإحصائيات */
+.stats-card {
+  background: rgba(17, 24, 39, 0.7) !important;
+  backdrop-filter: blur(10px) !important;
+  border-radius: 16px !important;
+  padding: 1.8rem !important;
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1) !important;
+  height: 100% !important;
+  border: 1px solid rgba(99, 102, 241, 0.1) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.stats-card:hover {
+  transform: translateY(-8px) !important;
+  box-shadow: 0 15px 30px -8px rgba(0, 0, 0, 0.3) !important;
+  border-color: rgba(99, 102, 241, 0.3) !important;
+}
+
+.stats-card .icon {
+  font-size: 2.5rem !important;
+  background: linear-gradient(to right, #6366f1, #8b5cf6) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+  margin-bottom: 1rem !important;
+  display: inline-block !important;
+}
+
+.stats-card .number {
+  font-size: 2.5rem !important;
+  font-weight: bold !important;
+  background: linear-gradient(to right, #fff, #cbd5e1) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+  display: inline-block !important;
+}
+
+.stats-card .label {
+  color: #94a3b8 !important;
+  font-size: 1.1rem !important;
+  margin-top: 0.5rem !important;
+}
+
+/* الأزرار */
+.btn-outline-warning {
+  color: #8b5cf6 !important;
+  border-color: #8b5cf6 !important;
+}
+
+.btn-outline-warning:hover {
+  background-color: #8b5cf6 !important;
+  color: #fff !important;
+}
+
+.btn-warning {
+  background-color: #8b5cf6 !important;
+  border-color: #8b5cf6 !important;
+  color: #fff !important;
+}
+
+.text-warning {
+  color: #8b5cf6 !important;
+}
+
+/* تحسين الجداول */
+.table-dark {
+  background: rgba(30, 41, 59, 0.5) !important;
+  color: #f1f5f9 !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  border-color: rgba(99, 102, 241, 0.1) !important;
+}
+
+.table-dark th {
+  background: rgba(15, 23, 42, 0.6) !important;
+  color: #8b5cf6 !important;
+  border-color: rgba(99, 102, 241, 0.2) !important;
+}
+
+.table-dark td {
+  border-color: rgba(99, 102, 241, 0.1) !important;
+}
+
+.table-dark tbody tr:hover {
+  background: rgba(99, 102, 241, 0.1) !important;
+}
+
+/* البطاقات */
+.card {
+  background: rgba(17, 24, 39, 0.7) !important;
+  backdrop-filter: blur(10px) !important;
+  border-radius: 16px !important;
+  border: 1px solid rgba(99, 102, 241, 0.1) !important;
+  overflow: hidden !important;
+}
+
+.card-header {
+  background: rgba(15, 23, 42, 0.8) !important;
+  border-bottom: 1px solid rgba(99, 102, 241, 0.1) !important;
+}
+
+/* التنبيهات */
+.alert {
+  background: rgba(17, 24, 39, 0.8) !important;
+  backdrop-filter: blur(10px) !important;
+  border: none !important;
+  border-radius: 12px !important;
+  padding: 1rem 1.5rem !important;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* تأثيرات حركية */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.05);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* تعديلات على الأنظمة المختصرة */
+.border-secondary {
+  border-color: rgba(99, 102, 241, 0.2) !important;
+}
+
+/* لون ال Progress Bar */
+.progress-bar {
+  background-color: #8b5cf6 !important;
+}
+
+/* تغيير ألوان حقول الإدخال */
+.form-control, .form-select {
+  background: rgba(30, 41, 59, 0.6) !important;
+  border: 1px solid rgba(99, 102, 241, 0.2) !important;
+  color: #f1f5f9 !important;
+}
+
+.form-control:focus, .form-select:focus {
+  background: rgba(30, 41, 59, 0.8) !important;
+  border-color: rgba(139, 92, 246, 0.5) !important;
+  box-shadow: 0 0 0 0.3rem rgba(139, 92, 246, 0.15) !important;
+}
+
+/* نص لكل صفحات الإدارة */
+.admin-content {
+  background-color: transparent !important;
+  min-height: calc(100vh - 60px) !important;
+}

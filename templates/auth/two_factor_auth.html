@@ -1,0 +1,79 @@
+{% extends "layout.html" %}
+
+{% block title %}المصادقة الثنائية{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0 text-center">المصادقة الثنائية</h3>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-lock fa-3x text-primary mb-3"></i>
+                        <p class="lead">تم إرسال رمز التحقق إلى حساب التيليجرام المرتبط بحسابك.</p>
+                        <p>يرجى إدخال الرمز المكون من 6 أرقام لإكمال عملية تسجيل الدخول.</p>
+                    </div>
+
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <form method="POST" action="{{ url_for('auth.verify_two_factor') }}">
+                        {{ form.csrf_token }}
+                        <div class="mb-3">
+                            <div class="otp-input-container d-flex justify-content-center">
+                                <input type="text" name="code" id="code-input" class="form-control form-control-lg text-center" maxlength="6" autocomplete="one-time-code" inputmode="numeric" pattern="[0-9]*" placeholder="******" required />
+                            </div>
+                            {% if form.code.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.code.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">تحقق</button>
+                            <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-secondary">تسجيل الخروج</a>
+                        </div>
+                    </form>
+
+                    <div class="text-center mt-4">
+                        <p class="mb-0 text-muted">
+                            <small>الرمز صالح لمدة 10 دقائق فقط.</small>
+                        </p>
+                        <p class="text-muted">
+                            <small>إذا لم تستلم الرمز، يمكنك <a href="{{ url_for('auth.resend_two_factor_code') }}">طلب رمز جديد</a>.</small>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    // تركيز حقل إدخال الرمز تلقائياً
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('code-input').focus();
+    });
+
+    // التحقق من أن المدخلات أرقام فقط
+    document.getElementById('code-input').addEventListener('input', function(e) {
+        e.target.value = e.target.value.replace(/[^0-9]/g, '');
+    });
+</script>
+{% endblock %}

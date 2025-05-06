@@ -1,0 +1,446 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}الملف الشخصي - لوحة الإدارة{% endblock %}
+
+{% block page_title %}إدارة الملف الشخصي{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+  .profile-header {
+    background-color: #222;
+    border-radius: 0.5rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
+  }
+  .profile-image {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 4px solid #fbbf24;
+    object-fit: cover;
+  }
+  .activity-log {
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  .activity-item {
+    border-right: 3px solid #333;
+    padding: 0.5rem 1rem;
+    margin-bottom: 1rem;
+    position: relative;
+  }
+  .activity-item:before {
+    content: '';
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #fbbf24;
+    right: -7px;
+    top: 8px;
+  }
+  .security-box {
+    border-right: 4px solid #dc3545;
+  }
+</style>
+{% endblock %}
+
+{% block admin_content %}
+
+        <!-- Profile header -->
+        <div class="profile-header">
+          <div class="row align-items-center">
+            <div class="col-md-3 text-center mb-3 mb-md-0">
+              <img src="{{ section_data.about.images.profile_image|default('/static/uploads/profile.png') }}" alt="Profile" class="profile-image" id="profileAvatarPreview">
+              <div class="mt-3">
+                <form id="profileImageForm" action="{{ url_for('upload_profile_image') }}" method="POST" enctype="multipart/form-data">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <label for="profileImageUpload" class="btn btn-sm btn-warning">
+                    <i class="fas fa-camera me-1"></i> تغيير الصورة
+                  </label>
+                  <input type="file" id="profileImageUpload" name="profile_image" class="d-none" accept="image/jpeg,image/png,image/jpg">
+                  <div id="uploadProgress" class="progress mt-2 d-none" style="height: 5px;">
+                    <div id="uploadProgressBar" class="progress-bar bg-warning" role="progressbar" style="width: 0%"></div>
+                  </div>
+                  <small id="imageValidationMessage" class="form-text text-danger d-none"></small>
+                </form>
+              </div>
+            </div>
+            <div class="col-md-9">
+              <h3 class="mb-1">{{ current_user.username }}</h3>
+              <p class="text-muted mb-2">{{ current_user.email }}</p>
+              <div class="d-flex align-items-center mb-3">
+                <span class="badge bg-success me-2">مدير الموقع</span>
+                <span class="text-muted small">
+                  <i class="fas fa-clock me-1"></i>
+                  عضو منذ {{ current_user.created_at.strftime('%Y-%m-%d') }}
+                </span>
+              </div>
+              <p>مدير موقع فراس للتصميم. مسؤول عن إدارة محتوى الموقع والتحكم في كافة الإعدادات.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <!-- Account settings -->
+          <div class="col-md-7 mb-4">
+            <div class="content-card">
+              <h5 class="card-title">
+                <i class="fas fa-user-cog me-2"></i>
+                إعدادات الحساب
+              </h5>
+
+              <form method="POST" action="{{ url_for('update_profile') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="mb-3">
+                  <label for="email" class="form-label">البريد الإلكتروني</label>
+                  <input type="email" class="form-control" id="email" name="email" value="{{ current_user.email }}">
+                </div>
+
+                <hr class="border-gray-700 my-4">
+
+                <h6 class="mb-3">تغيير كلمة المرور</h6>
+
+                <div class="mb-3">
+                  <label for="current_password" class="form-label">كلمة المرور الحالية</label>
+                  <div class="input-group">
+                    <input type="password" class="form-control" id="current_password" name="current_password">
+                    <button class="btn btn-outline-secondary toggle-password" type="button" data-target="current_password">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label for="new_password" class="form-label">كلمة المرور الجديدة</label>
+                  <div class="input-group">
+                    <input type="password" class="form-control" id="new_password" name="new_password">
+                    <button class="btn btn-outline-secondary toggle-password" type="button" data-target="new_password">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                  </div>
+                  <div class="form-text">يجب أن تحتوي كلمة المرور على 6 أحرف على الأقل</div>
+                </div>
+
+                <div class="mb-4">
+                  <label for="confirm_password" class="form-label">تأكيد كلمة المرور</label>
+                  <div class="input-group">
+                    <input type="password" class="form-control" id="confirm_password" name="confirm_password">
+                    <button class="btn btn-outline-secondary toggle-password" type="button" data-target="confirm_password">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                  <button type="reset" class="btn btn-secondary">
+                    <i class="fas fa-undo me-1"></i> إعادة تعيين
+                  </button>
+                  <button type="submit" class="btn btn-warning" id="updateProfileBtn">
+                    <i class="fas fa-save me-1"></i> حفظ التغييرات
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Security section -->
+            <div class="content-card mt-4 security-box">
+              <h5 class="card-title text-danger">
+                <i class="fas fa-shield-alt me-2"></i>
+                الأمان
+              </h5>
+
+              <div class="d-flex align-items-center mb-3">
+                <div class="me-3">
+                  <i class="fas fa-key text-warning fa-2x"></i>
+                </div>
+                <div>
+                  <h6 class="mb-1">تفعيل المصادقة الثنائية</h6>
+                  <p class="text-muted small mb-0">تأمين حسابك باستخدام رمز إضافي</p>
+                </div>
+                <div class="ms-auto">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="two-factor-auth">
+                  </div>
+                </div>
+              </div>
+
+              <div class="d-flex align-items-center">
+                <div class="me-3">
+                  <i class="fas fa-history text-warning fa-2x"></i>
+                </div>
+                <div>
+                  <h6 class="mb-1">سجل تسجيل الدخول</h6>
+                  <p class="text-muted small mb-0">عرض جميع عمليات تسجيل الدخول الأخيرة</p>
+                </div>
+                <div class="ms-auto">
+                  <button class="btn btn-outline-light btn-sm">
+                    <i class="fas fa-external-link-alt me-1"></i> عرض
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Activity log and quick settings -->
+          <div class="col-md-5 mb-4">
+            <div class="content-card mb-4">
+              <h5 class="card-title">
+                <i class="fas fa-history me-2"></i>
+                سجل النشاطات
+              </h5>
+
+              <div class="activity-log">
+                <div class="activity-item">
+                  <div class="d-flex justify-content-between">
+                    <span class="fw-bold">تسجيل الدخول</span>
+                    <span class="text-muted small">منذ 5 دقائق</span>
+                  </div>
+                  <p class="text-muted small mb-0">تم تسجيل الدخول من متصفح Chrome</p>
+                </div>
+
+                <div class="activity-item">
+                  <div class="d-flex justify-content-between">
+                    <span class="fw-bold">تعديل محتوى</span>
+                    <span class="text-muted small">منذ 3 ساعات</span>
+                  </div>
+                  <p class="text-muted small mb-0">تم تحديث قسم "من أنا"</p>
+                </div>
+
+                <div class="activity-item">
+                  <div class="d-flex justify-content-between">
+                    <span class="fw-bold">اعتماد تقييم</span>
+                    <span class="text-muted small">منذ 1 يوم</span>
+                  </div>
+                  <p class="text-muted small mb-0">تم اعتماد تقييم جديد من "أحمد محمد"</p>
+                </div>
+
+                <div class="activity-item">
+                  <div class="d-flex justify-content-between">
+                    <span class="fw-bold">تغيير كلمة المرور</span>
+                    <span class="text-muted small">منذ 2 أيام</span>
+                  </div>
+                  <p class="text-muted small mb-0">تم تغيير كلمة المرور بنجاح</p>
+                </div>
+
+                <div class="activity-item">
+                  <div class="d-flex justify-content-between">
+                    <span class="fw-bold">رفع صورة</span>
+                    <span class="text-muted small">منذ 3 أيام</span>
+                  </div>
+                  <p class="text-muted small mb-0">تم إضافة صورة جديدة إلى معرض الأعمال</p>
+                </div>
+              </div>
+
+              <div class="text-center mt-3">
+                <button class="btn btn-sm btn-outline-light">عرض جميع النشاطات</button>
+              </div>
+            </div>
+
+            <div class="content-card">
+              <h5 class="card-title">
+                <i class="fas fa-bell me-2"></i>
+                إعدادات الإشعارات
+              </h5>
+
+              <div class="mb-3">
+                <div class="form-check form-switch mb-2">
+                  <input class="form-check-input" type="checkbox" id="email-notifications" checked>
+                  <label class="form-check-label" for="email-notifications">
+                    إشعارات البريد الإلكتروني
+                  </label>
+                </div>
+                <div class="text-muted small">استلام إشعارات عبر البريد الإلكتروني عند وجود تقييمات جديدة أو تفاعلات</div>
+              </div>
+
+              <div class="mb-3">
+                <div class="form-check form-switch mb-2">
+                  <input class="form-check-input" type="checkbox" id="testimonial-notifications" checked>
+                  <label class="form-check-label" for="testimonial-notifications">
+                    إشعارات التقييمات الجديدة
+                  </label>
+                </div>
+                <div class="text-muted small">إظهار إشعار داخل لوحة التحكم عند وجود تقييمات جديدة</div>
+              </div>
+
+              <div>
+                <div class="form-check form-switch mb-2">
+                  <input class="form-check-input" type="checkbox" id="security-notifications" checked>
+                  <label class="form-check-label" for="security-notifications">
+                    إشعارات الأمان
+                  </label>
+                </div>
+                <div class="text-muted small">إشعارات عن عمليات تسجيل الدخول الجديدة أو تغييرات الأمان</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Toggle password visibility
+      const toggleButtons = document.querySelectorAll('.toggle-password');
+      toggleButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          const targetId = this.getAttribute('data-target');
+          const passwordInput = document.getElementById(targetId);
+
+          if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            this.innerHTML = '<i class="fas fa-eye-slash"></i>';
+          } else {
+            passwordInput.type = 'password';
+            this.innerHTML = '<i class="fas fa-eye"></i>';
+          }
+        });
+      });
+
+      // Form validation for password change
+      const passwordForm = document.getElementById('updateProfileBtn');
+      passwordForm.addEventListener('click', function(e) {
+        const newPassword = document.getElementById('new_password').value;
+        const confirmPassword = document.getElementById('confirm_password').value;
+
+        if (newPassword && newPassword !== confirmPassword) {
+          e.preventDefault();
+          alert('كلمة المرور وتأكيدها غير متطابقين');
+        }
+
+        if (newPassword && newPassword.length < 6) {
+          e.preventDefault();
+          alert('يجب أن تحتوي كلمة المرور على 6 أحرف على الأقل');
+        }
+      });
+
+      // Profile image upload
+      const profileImageUpload = document.getElementById('profileImageUpload');
+      const profileImageForm = document.getElementById('profileImageForm');
+      const profileAvatarPreview = document.getElementById('profileAvatarPreview');
+      const uploadProgress = document.getElementById('uploadProgress');
+      const uploadProgressBar = document.getElementById('uploadProgressBar');
+      const imageValidationMessage = document.getElementById('imageValidationMessage');
+      
+      profileImageUpload.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+          // File type validation
+          const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+          if (!allowedTypes.includes(file.type)) {
+            imageValidationMessage.textContent = 'يرجى اختيار صورة بتنسيق JPG أو PNG فقط';
+            imageValidationMessage.classList.remove('d-none');
+            this.value = ''; // Clear the file input
+            return;
+          }
+          
+          // File size validation (max 5MB)
+          const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+          if (file.size > maxSize) {
+            imageValidationMessage.textContent = 'حجم الملف كبير جدًا. الحد الأقصى هو 5 ميغابايت.';
+            imageValidationMessage.classList.remove('d-none');
+            this.value = ''; // Clear the file input
+            return;
+          }
+          
+          // Hide any previous error message
+          imageValidationMessage.classList.add('d-none');
+          
+          // Preview image
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            profileAvatarPreview.src = e.target.result;
+          };
+          reader.readAsDataURL(file);
+          
+          // Automatically upload the image
+          const formData = new FormData(profileImageForm);
+          uploadProgress.classList.remove('d-none');
+          uploadProgressBar.style.width = '0%';
+          
+          // Upload with progress indicator
+          const xhr = new XMLHttpRequest();
+          xhr.open('POST', profileImageForm.action, true);
+          xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+          
+          xhr.upload.onprogress = function(e) {
+            if (e.lengthComputable) {
+              const percentComplete = (e.loaded / e.total) * 100;
+              uploadProgressBar.style.width = percentComplete + '%';
+            }
+          };
+          
+          xhr.onload = function() {
+            uploadProgress.classList.add('d-none');
+            
+            if (xhr.status === 200) {
+              try {
+                const response = JSON.parse(xhr.responseText);
+                
+                if (response.success) {
+                  // Show success message
+                  const alertContainer = document.querySelector('.alert-container');
+                  const successAlert = document.createElement('div');
+                  successAlert.className = 'alert alert-success alert-dismissible fade show';
+                  successAlert.innerHTML = `
+                    <i class="fas fa-check-circle me-2"></i>
+                    ✅ تم تحديث صورة الملف الشخصي بنجاح
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                  `;
+                  alertContainer.appendChild(successAlert);
+                  
+                  // Auto dismiss after 5 seconds
+                  setTimeout(() => {
+                    successAlert.classList.remove('show');
+                    setTimeout(() => successAlert.remove(), 300);
+                  }, 5000);
+                  
+                  // Update profile image if path is returned
+                  if (response.image_path) {
+                    profileAvatarPreview.src = response.image_path;
+                  }
+                } else {
+                  // Show error message
+                  imageValidationMessage.textContent = response.message || 'حدث خطأ أثناء رفع الصورة';
+                  imageValidationMessage.classList.remove('d-none');
+                }
+              } catch (e) {
+                console.error('Error parsing JSON response:', e);
+                imageValidationMessage.textContent = 'حدث خطأ في استجابة الخادم';
+                imageValidationMessage.classList.remove('d-none');
+              }
+            } else {
+              imageValidationMessage.textContent = 'حدث خطأ أثناء رفع الصورة: ' + xhr.status;
+              imageValidationMessage.classList.remove('d-none');
+            }
+          };
+          
+          xhr.onerror = function() {
+            uploadProgress.classList.add('d-none');
+            imageValidationMessage.textContent = 'حدث خطأ في الاتصال بالخادم';
+            imageValidationMessage.classList.remove('d-none');
+          };
+          
+          xhr.send(formData);
+        }
+      });
+
+      // Toggle switches with confirmation
+      const twoFactorToggle = document.getElementById('two-factor-auth');
+      twoFactorToggle.addEventListener('change', function() {
+        if (this.checked) {
+          if (confirm('هل تريد تفعيل المصادقة الثنائية؟ سيتطلب ذلك إعدادًا إضافيًا.')) {
+            alert('سيتم تفعيل المصادقة الثنائية قريبًا!');
+          } else {
+            this.checked = false;
+          }
+        } else {
+          if (confirm('هل أنت متأكد من تعطيل المصادقة الثنائية؟ سيؤدي ذلك إلى تقليل أمان حسابك.')) {
+            // Disable 2FA code would go here
+          } else {
+            this.checked = true;
+          }
+        }
+      });
+    });
+  </script>
+{% endblock %}

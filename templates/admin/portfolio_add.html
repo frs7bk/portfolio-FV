@@ -1,0 +1,209 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}إضافة مشروع جديد | لوحة التحكم{% endblock %}
+
+{% block page_title %}إضافة مشروع جديد{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+  .form-loading {
+    opacity: 0.7;
+    pointer-events: none;
+  }
+  .spinner-border {
+    width: 1rem;
+    height: 1rem;
+    margin-left: 0.5rem;
+  }
+  .required-field::after {
+    content: "*";
+    color: #dc3545;
+    margin-right: 4px;
+  }
+  .preview-image {
+    max-width: 100%;
+    max-height: 200px;
+    border-radius: 5px;
+    border: 1px solid #444;
+  }
+  .custom-file-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+  <h1 class="h2">
+    <i class="fas fa-plus-circle me-2"></i>
+    إضافة مشروع جديد
+  </h1>
+  <div class="btn-toolbar mb-2 mb-md-0">
+    <a href="{{ url_for('admin_portfolio_management') }}" class="btn btn-sm btn-secondary">
+      <i class="fas fa-arrow-right me-1"></i>
+      العودة إلى معرض الأعمال
+    </a>
+  </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }}" role="alert">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<!-- Add Portfolio Item Form -->
+<div class="card bg-dark border-secondary mb-4">
+  <div class="card-header bg-dark border-secondary">
+    <h5 class="mb-0">معلومات المشروع</h5>
+  </div>
+  <div class="card-body">
+    <form id="portfolioForm" method="POST" action="{{ url_for('add_portfolio_item') }}" enctype="multipart/form-data" class="row g-3 needs-validation" novalidate>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      
+      <!-- Project Title -->
+      <div class="col-md-6">
+        <label for="title" class="form-label required-field">عنوان المشروع</label>
+        <input type="text" class="form-control bg-dark text-white border-secondary" id="title" name="title" required>
+        <div class="invalid-feedback">يرجى إدخال عنوان للمشروع</div>
+      </div>
+      
+      <!-- English Title -->
+      <div class="col-md-6">
+        <label for="title_en" class="form-label">عنوان المشروع (بالإنجليزية)</label>
+        <input type="text" class="form-control bg-dark text-white border-secondary" id="title_en" name="title_en">
+      </div>
+      
+      <!-- Category -->
+      <div class="col-md-6">
+        <label for="category" class="form-label required-field">الفئة</label>
+        <input type="text" class="form-control bg-dark text-white border-secondary" id="category" name="category" required>
+        <div class="invalid-feedback">يرجى إدخال فئة للمشروع</div>
+        <div class="form-text text-muted">مثال: تصميم، برمجة، تسويق، الخ.</div>
+      </div>
+      
+      <!-- Year -->
+      <div class="col-md-6">
+        <label for="year" class="form-label">سنة الإنجاز</label>
+        <input type="number" class="form-control bg-dark text-white border-secondary" id="year" name="year" min="2000" max="2030">
+      </div>
+      
+      <!-- Project URL -->
+      <div class="col-md-6">
+        <label for="link" class="form-label">رابط المشروع</label>
+        <input type="url" class="form-control bg-dark text-white border-secondary" id="link" name="link">
+      </div>
+      
+      <!-- Featured -->
+      <div class="col-md-6">
+        <div class="mt-4">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="featured" name="featured">
+            <label class="form-check-label" for="featured">
+              <i class="fas fa-star text-warning me-1"></i>
+              عرض في القائمة المميزة
+            </label>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Description -->
+      <div class="col-12">
+        <label for="description" class="form-label required-field">وصف المشروع</label>
+        <textarea class="form-control bg-dark text-white border-secondary" id="description" name="description" rows="4" required></textarea>
+        <div class="invalid-feedback">يرجى إدخال وصف للمشروع</div>
+      </div>
+      
+      <!-- English Description -->
+      <div class="col-12">
+        <label for="description_en" class="form-label">وصف المشروع (بالإنجليزية)</label>
+        <textarea class="form-control bg-dark text-white border-secondary" id="description_en" name="description_en" rows="4"></textarea>
+      </div>
+      
+      <!-- Main Image -->
+      <div class="col-12 mt-3">
+        <label for="image" class="form-label required-field">صورة المشروع الرئيسية</label>
+        <div class="input-group">
+          <input type="file" class="form-control bg-dark text-white border-secondary" id="image" name="image" accept="image/*" required>
+          <div class="invalid-feedback">يرجى اختيار صورة للمشروع</div>
+        </div>
+        <div class="form-text text-muted">الصورة المميزة للمشروع. يفضل أن تكون بأبعاد مناسبة (1200×800 بكسل).</div>
+        <div class="mt-2">
+          <img id="imagePreview" class="preview-image d-none" alt="معاينة الصورة">
+        </div>
+      </div>
+      
+      <!-- Submit Buttons -->
+      <div class="col-12 mt-4">
+        <button type="submit" class="btn btn-primary" id="submitBtn">
+          <i class="fas fa-save me-1"></i>
+          حفظ المشروع
+        </button>
+        <a href="{{ url_for('admin_portfolio_management') }}" class="btn btn-secondary ms-2">
+          <i class="fas fa-times me-1"></i>
+          إلغاء
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('Portfolio add form initialized');
+  
+  // Image preview functionality
+  const imageInput = document.getElementById('image');
+  const imagePreview = document.getElementById('imagePreview');
+  
+  imageInput.addEventListener('change', function() {
+    if (this.files && this.files[0]) {
+      const reader = new FileReader();
+      
+      reader.onload = function(e) {
+        imagePreview.src = e.target.result;
+        imagePreview.classList.remove('d-none');
+      }
+      
+      reader.readAsDataURL(this.files[0]);
+    } else {
+      imagePreview.classList.add('d-none');
+    }
+  });
+  
+  // Form validation
+  const form = document.getElementById('portfolioForm');
+  
+  form.addEventListener('submit', function(event) {
+    event.preventDefault();
+    
+    if (!form.checkValidity()) {
+      event.stopPropagation();
+      // Add validation classes
+      form.classList.add('was-validated');
+      return;
+    }
+    
+    // Form is valid, show loading state
+    const submitBtn = document.getElementById('submitBtn');
+    const originalBtnText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> جاري الحفظ...';
+    
+    // Submit the form
+    console.log('Form validated, submitting...');
+    form.submit();
+  });
+});
+</script>
+{% endblock %}

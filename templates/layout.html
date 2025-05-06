@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+  <meta name="theme-color" content="#030014" />
+  <meta name="msapplication-navbutton-color" content="#030014" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>{% block title %}فراس للتصميم{% endblock %}</title>
+
+  {% block header_scripts %}{% endblock %}
+  
+  <!-- الخطوط وأوراق الأنماط -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="/static/css/instagram-modal.css" />
+  
+  <!-- مكتبات جافاسكريبت -->
+  <script src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js" defer></script>
+  <script src="https://cdn.lordicon.com/lordicon.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  
+  <script>
+  // دالة لفتح النافذة المنبثقة لعرض الصورة بالحجم الكامل
+  function openGalleryModal(imageSrc, caption) {
+    const modal = document.getElementById('galleryModal');
+    const modalImage = document.getElementById('galleryModalImage');
+    
+    // طباعة معلومات للتصحيح
+    console.log('مسار الصورة:', imageSrc);
+    console.log('النص الوصفي:', caption);
+    console.log('عنصر النافذة:', modal ? 'موجود' : 'غير موجود');
+    console.log('عنصر الصورة:', modalImage ? 'موجود' : 'غير موجود');
+    
+    if (!modal || !modalImage) {
+      console.error('عناصر النافذة المنبثقة غير موجودة');
+      return;
+    }
+    
+    // تعيين مصدر الصورة
+    modalImage.src = imageSrc;
+    modalImage.alt = caption || '';
+    
+    // إظهار النافذة المنبثقة
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex'; // تعيين العرض إلى flex بدلاً من none
+    
+    // إيقاف التمرير في الصفحة
+    document.body.style.overflow = 'hidden';
+  }
+  
+  // دالة لإغلاق النافذة المنبثقة
+  function closeGalleryModal() {
+    const modal = document.getElementById('galleryModal');
+    
+    if (modal) {
+      // إخفاء النافذة المنبثقة فورًا
+      modal.classList.add('hidden');
+      modal.style.display = 'none'; // إضافة تعيين صريح لخاصية display
+      document.body.style.overflow = ''; // استعادة التمرير
+      
+      // إعادة تعيين الصورة
+      const image = document.getElementById('galleryModalImage');
+      if (image) {
+        // إعادة تعيين مصدر الصورة بعد فترة قصيرة لتجنب ظهور الصورة السابقة
+        setTimeout(() => {
+          image.src = '';
+          image.style.maxWidth = '';
+          image.style.maxHeight = '';
+        }, 300);
+      }
+    }
+  }
+  
+  // إضافة مستمعي أحداث عند تحميل الصفحة
+  document.addEventListener('DOMContentLoaded', function() {
+    // إضافة مستمعي أحداث لأزرار الإغلاق
+    // نستخدم المحدد بالفئة بدلاً من المعرف للحصول على جميع الأزرار
+    const closeButtons = document.querySelectorAll('.gallery-close-btn');
+    console.log('أزرار الإغلاق التي تم العثور عليها:', closeButtons.length);
+    
+    if (closeButtons.length > 0) {
+      closeButtons.forEach(btn => {
+        btn.addEventListener('click', closeGalleryModal);
+      });
+    }
+    
+    // إغلاق النافذة عند النقر خارج الصورة
+    const galleryModals = document.querySelectorAll('#galleryModal');
+    if (galleryModals.length > 0) {
+      galleryModals.forEach(modal => {
+        modal.addEventListener('click', function(e) {
+          if (e.target === this) {
+            closeGalleryModal();
+          }
+        });
+      });
+    }
+    
+    // إغلاق النافذة عند الضغط على زر ESC
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        const modal = document.getElementById('galleryModal');
+        if (modal && !modal.classList.contains('hidden')) {
+          closeGalleryModal();
+          e.preventDefault();
+        }
+      }
+    });
+  });
+  </script>
+  
+  <!-- ملفات الموقع الخاصة -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/eki-theme.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/instagram-style.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/vertical_carousel.css') }}" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.css" />
+  <link rel="stylesheet" href="/static/css/liquid_buttons.css" />
+  <link rel="stylesheet" href="/static/css/glass_inputs.css?v={{ range(1000, 9999) | random }}" />
+  
+  <!-- أنماط مخصصة إضافية -->
+  <style>
+    :root {
+      --primary-bg: #030014;
+      --secondary-bg: #070024;
+      --gradient-start: #6366f1; /* indigo-500 */
+      --gradient-end: #a855f7;   /* purple-500 */
+      --accent-purple: #a855f7;
+      --accent-indigo: #6366f1;
+      --accent-cyan: #22d3ee;
+    }
+    
+    /* خلفية الصفحة */
+    body {
+      font-family: 'Poppins', 'Cairo', sans-serif;
+      background-color: var(--primary-bg);
+      color: #ffffff;
+      line-height: 1.7;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+    
+    /* أقسام الصفحة */
+    .eki-section {
+      padding: 5rem 0;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    /* الخلفيات الأساسية */
+    .bg-primary-bg {
+      background-color: var(--primary-bg);
+    }
+    
+    .bg-secondary-bg {
+      background-color: var(--secondary-bg);
+    }
+    
+    /* العناوين والنصوص المتدرجة */
+    .gradient-text, .text-gradient {
+      background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    
+    .gradient-header {
+      background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      position: relative;
+    }
+    
+    /* خلفية زجاجية */
+    .bg-glass {
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(99, 102, 241, 0.1);
+    }
+    
+    /* تعديل على أنماط التنقل لتتناسب مع التصميم الجديد */
+    .nav-link {
+      position: relative;
+      transition: all 0.3s ease;
+    }
+    
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: linear-gradient(to right, #6366f1, #a855f7);
+      transition: width 0.3s ease;
+    }
+    
+    .nav-link:hover::after {
+      width: 100%;
+    }
+    
+    /* تعديل ألوان الأزرار */
+    .btn-primary {
+      background: linear-gradient(to right, #6366f1, #a855f7);
+      border: none;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+      transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    }
+    /* أزرار النيون */
+    .btn-neon {
+      position: relative;
+      background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+      color: white;
+      border: none;
+      overflow: hidden;
+      box-shadow: 0 0 15px rgba(99, 102, 241, 0.5),
+                  0 0 30px rgba(168, 85, 247, 0.3);
+      transition: all 0.3s ease;
+      z-index: 1;
+    }
+    
+    .btn-neon::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transform: skewX(-30deg);
+      z-index: -1;
+      transition: left 0.6s ease;
+    }
+    
+    .btn-neon:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 7px 20px rgba(99, 102, 241, 0.6),
+                  0 0 35px rgba(99, 102, 241, 0.4);
+    }
+    
+    .btn-neon:hover::before {
+      left: 100%;
+    }
+    
+    .btn-neon:active {
+      transform: translateY(-1px);
+    }
+    
+    /* مؤثرات خلفية الفقاعات */
+    .blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.3;
+      z-index: -1;
+      pointer-events: none;
+      transition: all 10s ease-in-out;
+    }
+    
+    .blob-purple {
+      background: var(--accent-purple);
+      width: 500px;
+      height: 500px;
+      right: -250px;
+      top: 10%;
+    }
+    
+    .blob-blue {
+      background: var(--accent-indigo);
+      width: 600px;
+      height: 600px;
+      left: -300px;
+      bottom: 10%;
+    }
+    
+    .blob-cyan {
+      background: var(--accent-cyan);
+      width: 400px;
+      height: 400px;
+      right: 20%;
+      bottom: -200px;
+    }
+    
+    /* المؤثرات الحركية */
+    .animated-grid-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: -2;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    
+    .grid-pattern {
+      position: absolute;
+      width: 200%;
+      height: 200%;
+      top: -50%;
+      left: -50%;
+      background-image: linear-gradient(to right, #4f4f4f15 1px, transparent 1px),
+                        linear-gradient(to bottom, #4f4f4f15 1px, transparent 1px);
+      background-size: 24px 24px;
+      z-index: -1;
+      opacity: 0.3;
+      transform-origin: center;
+      animation: gridRotate 150s linear infinite;
+    }
+    
+    @keyframes gridRotate {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+    
+    /* شريط التنقل */
+    .eki-navbar {
+      background: rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+    }
+    
+    .eki-navbar.scrolled {
+      background: rgba(3, 0, 20, 0.85);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 15px rgba(99, 102, 241, 0.2);
+      border-bottom: 1px solid rgba(99, 102, 241, 0.25);
+      padding-top: 0.5rem;
+      padding-bottom: 0.5rem;
+    }
+    
+    /* تحسين التنقل */
+    .nav-link {
+      position: relative;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+    }
+    
+    /* تأثير القائمة المتنقلة */
+    #mobile-menu {
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    #mobile-menu:not(.hidden) {
+      opacity: 1;
+    }
+    
+    #mobile-menu .relative {
+      transform: translateX(-100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    #mobile-menu:not(.hidden) .relative {
+      transform: translateX(0);
+    }
+  </style>
+  
+  <!-- ملفات جافاسكريبت للمؤثرات الحركية -->
+  <script src="{{ url_for('static', filename='js/eki-effects.js') }}" defer></script>
+  <!-- تم تعطيل سكربت التحميل لتفادي شاشة التحميل -->
+  <!-- <script src="{{ url_for('static', filename='js/loader.js') }}" defer></script> -->
+  <script src="/static/js/liquid_buttons.js" defer></script>
+  <!-- إضافة سكربت خاص لإزالة أي عناصر تحميل متبقية -->
+  <script src="{{ url_for('static', filename='js/remove-loading.js') }}" defer></script>
+  
+  {% block styles %}{% endblock %}
+</head>
+<body class="bg-primary-bg text-white text-right" data-user-logged-in="{{ 'true' if current_user.is_authenticated else 'false' }}">
+
+<!-- تم إزالة شاشة التحميل بناءً على طلب المستخدم -->
+<!-- تم إخفاء شاشة التحميل مع حرف F لجعل المرور بين الصفحات مباشر بدون انتظار -->
+
+<!-- شاشة الترحيب (تظهر فقط مرة واحدة للزائر الجديد) -->
+<div id="introOverlay" class="fixed inset-0 z-50 bg-primary-bg flex flex-col items-center justify-center hidden">
+  <div class="welcome-blob absolute w-96 h-96 rounded-full bg-indigo-500/20 filter blur-3xl top-1/4 -right-24"></div>
+  <div class="welcome-blob absolute w-96 h-96 rounded-full bg-purple-500/20 filter blur-3xl bottom-1/4 -left-24"></div>
+  
+  <div class="relative z-10 py-16 px-8 text-center max-w-screen-md mx-auto">
+    <div class="mb-6 transform transition duration-700 ease-out scale-0" style="animation: scaleIn 1s forwards 0.3s;">
+      <span class="inline-block text-6xl md:text-8xl font-bold text-gradient">فراس</span>
+      <span class="inline-block ml-2 text-3xl md:text-4xl font-bold text-white">للتصميم</span>
+    </div>
+    
+    <p class="mb-12 text-gray-300 transform transition duration-700 ease-out opacity-0 translate-y-10" style="animation: fadeInUp 1s forwards 0.8s;">تصاميم إبداعية تحول أفكارك إلى واقع ملموس، مع لمسة من الإتقان والتميّز</p>
+    
+    <div class="transform transition duration-700 ease-out opacity-0" style="animation: fadeIn 1s forwards 1.4s;">
+      <button class="btn-neon px-10 py-3 rounded-full text-lg font-bold mx-auto">استكشف الأعمال</button>
+    </div>
+  </div>
+</div>
+
+<!-- تحريك الشاشة الترحيبية -->
+<style>
+  @keyframes scaleIn {
+    from { transform: scale(0); }
+    to { transform: scale(1); }
+  }
+  
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+</style>
+
+<!-- Admin link - hidden by default, revealed with keyboard shortcut -->
+<div id="adminControlBtn" class="fixed top-5 left-5 z-50 hidden">
+  <a href="/admin" class="bg-yellow-400 hover:bg-yellow-300 text-black p-3 rounded-full transition-all transform hover:scale-110 focus:outline-none shadow-lg">
+    <i class="fas fa-user-cog"></i>
+  </a>
+</div>
+
+<!-- Header/Navbar -->
+<header class="eki-navbar fixed top-0 left-0 right-0 z-40 py-4 px-6">
+  <div class="max-w-6xl mx-auto flex justify-between items-center">
+    <a href="/" class="text-white text-3xl font-bold flex items-center group">
+      <span class="text-gradient bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-600 group-hover:from-indigo-400 group-hover:to-purple-500 transition-all">فراس</span>
+      <span class="mr-1 text-xl text-white group-hover:text-gray-200 transition-all">للتصميم</span>
+    </a>
+
+    <nav class="hidden md:flex space-x-6 space-x-reverse">
+      <a href="/" class="nav-link text-white hover:text-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:bg-clip-text transition-all duration-300 relative after:absolute after:bottom-[-5px] after:right-0 after:h-[2px] after:w-0 after:bg-gradient-to-l after:from-indigo-500 after:to-purple-600 hover:after:w-full after:transition-all after:duration-300">الرئيسية</a>
+      <a href="/#about" class="nav-link text-white hover:text-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:bg-clip-text transition-all duration-300 relative after:absolute after:bottom-[-5px] after:right-0 after:h-[2px] after:w-0 after:bg-gradient-to-l after:from-indigo-500 after:to-purple-600 hover:after:w-full after:transition-all after:duration-300">من أنا</a>
+      <a href="/#services" class="nav-link text-white hover:text-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:bg-clip-text transition-all duration-300 relative after:absolute after:bottom-[-5px] after:right-0 after:h-[2px] after:w-0 after:bg-gradient-to-l after:from-indigo-500 after:to-purple-600 hover:after:w-full after:transition-all after:duration-300">الخدمات</a>
+      <a href="/portfolio" class="nav-link text-white hover:text-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:bg-clip-text transition-all duration-300 relative after:absolute after:bottom-[-5px] after:right-0 after:h-[2px] after:w-0 after:bg-gradient-to-l after:from-indigo-500 after:to-purple-600 hover:after:w-full after:transition-all after:duration-300">معرض الأعمال</a>
+      <a href="/#testimonials" class="nav-link text-white hover:text-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:bg-clip-text transition-all duration-300 relative after:absolute after:bottom-[-5px] after:right-0 after:h-[2px] after:w-0 after:bg-gradient-to-l after:from-indigo-500 after:to-purple-600 hover:after:w-full after:transition-all after:duration-300">آراء العملاء</a>
+      <a href="/#contact" class="nav-link text-white hover:text-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:bg-clip-text transition-all duration-300 relative after:absolute after:bottom-[-5px] after:right-0 after:h-[2px] after:w-0 after:bg-gradient-to-l after:from-indigo-500 after:to-purple-600 hover:after:w-full after:transition-all after:duration-300">تواصل معي</a>
+    </nav>
+
+    <div class="flex items-center space-x-4 space-x-reverse">
+      <button id="menu-toggle" class="md:hidden text-white text-xl focus:outline-none transition-all hover:text-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:bg-clip-text">
+        <i class="fas fa-bars"></i>
+      </button>
+
+      <!-- تم إزالة زر تغيير اللغة -->
+    </div>
+  </div>
+
+  <!-- Mobile Menu (Hidden by default) -->
+  <div id="mobile-menu" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/70 backdrop-blur-xl"></div>
+    <div class="relative h-full flex flex-col bg-gradient-to-b from-gray-900/90 to-gray-800/90 backdrop-blur-xl z-10 px-6 py-10">
+      <div class="flex justify-end">
+        <button id="close-menu" class="focus:outline-none text-white text-2xl hover:text-gradient transition-all duration-300 hover:rotate-90">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="flex-1 flex flex-col items-center justify-center">
+        <div class="w-20 h-20 mb-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg shadow-indigo-500/30">
+          <span class="text-white text-3xl font-bold">فراس</span>
+        </div>
+        
+        <nav class="space-y-6 text-center">
+          <a href="/" class="block text-2xl font-bold text-white hover:text-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:bg-clip-text transition-all duration-300 py-2">الرئيسية</a>
+          <a href="/#about" class="block text-2xl font-bold text-white hover:text-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:bg-clip-text transition-all duration-300 py-2">من أنا</a>
+          <a href="/#services" class="block text-2xl font-bold text-white hover:text-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:bg-clip-text transition-all duration-300 py-2">الخدمات</a>
+          <a href="/portfolio" class="block text-2xl font-bold text-white hover:text-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:bg-clip-text transition-all duration-300 py-2">معرض الأعمال</a>
+          <a href="/#testimonials" class="block text-2xl font-bold text-white hover:text-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:bg-clip-text transition-all duration-300 py-2">آراء العملاء</a>
+          <a href="/#contact" class="block text-2xl font-bold text-white hover:text-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:bg-clip-text transition-all duration-300 py-2">تواصل معي</a>
+        </nav>
+      </div>
+
+      <div class="flex justify-center space-x-5 space-x-reverse mt-10">
+        {% if social_media_links and social_media_links|length > 0 %}
+          {% for link in social_media_links %}
+            {% if link.active %}
+              <a href="{{ link.url }}" target="_blank" class="text-gray-300 hover:text-white hover:scale-110 transition-all duration-300 text-xl">
+                <i class="{{ link.icon }}"></i>
+              </a>
+            {% endif %}
+          {% endfor %}
+        {% else %}
+          <!-- تم إزالة الأيقونات الافتراضية لتجنب الصراع مع الأيقونات المضافة -->
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- الفقاعات المتحركة والخلفية -->
+<div class="animated-grid-bg">
+  <div class="grid-pattern"></div>
+  <div class="blob blob-purple"></div>
+  <div class="blob blob-blue"></div>
+  <div class="blob blob-cyan"></div>
+</div>
+
+<!-- Main Content -->
+<main>
+  {% block content %}
+  <section id="contact" class="py-16 bg-black">
+    <div class="max-w-6xl mx-auto text-center">
+        <h2 class="text-4xl font-bold text-yellow-400 mb-8">تواصل معنا</h2>
+        <form id="contactForm" class="space-y-4 max-w-xl mx-auto">
+            <div id="contactFormAlert" class="hidden rounded-lg p-4 mb-4 text-sm" role="alert"></div>
+            <div>
+                <label for="name" class="block text-lg font-medium mb-2">الاسم:</label>
+                <input type="text" id="name" name="name" required class="w-full px-3 py-2 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400">
+            </div>
+            <div>
+                <label for="email" class="block text-lg font-medium mb-2">البريد الإلكتروني:</label>
+                <input type="email" id="email" name="email" required class="w-full px-3 py-2 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400">
+            </div>
+            <div>
+                <label for="message" class="block text-lg font-medium mb-2">الرسالة:</label>
+                <textarea id="message" name="message" rows="5" required class="w-full px-3 py-2 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"></textarea>
+            </div>
+            <button type="submit" class="btn-neon w-full px-6 py-3 rounded-lg font-bold uppercase text-lg focus:outline-none focus:shadow-outline">إرسال</button>
+        </form>
+    </div>
+</section>
+  {% endblock %}
+</main>
+
+<!-- Footer -->
+<footer class="eki-footer py-12 px-6 relative overflow-hidden">
+  <!-- خلفية متحركة للتذييل -->
+  <div class="absolute inset-0 pointer-events-none opacity-50">
+    <div class="absolute bottom-0 left-1/4 w-64 h-64 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-full blur-3xl"></div>
+    <div class="absolute top-1/4 right-1/4 w-80 h-80 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-3xl"></div>
+  </div>
+  
+  <div class="max-w-6xl mx-auto relative z-10">
+    <div class="flex flex-col md:flex-row justify-between items-center mb-12">
+      <div class="mb-8 md:mb-0 text-center md:text-right">
+        <a href="/" class="inline-block group">
+          <h2 class="text-3xl font-bold mb-2">
+            <span class="text-gradient bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-600 group-hover:from-indigo-400 group-hover:to-purple-500 transition-all">فراس</span>
+            <span class="mr-1 text-xl text-white group-hover:text-gray-200 transition-all">للتصميم</span>
+          </h2>
+        </a>
+        <p class="text-gray-300 mt-2 max-w-md hover:text-white transition-colors duration-300">تصاميم إبداعية تنقل رؤيتك إلى الواقع مع لمسة من الإبداع والتميّز</p>
+      </div>
+
+      <div class="flex flex-wrap justify-center gap-5">
+        <a href="/" class="nav-link text-gray-300 hover:text-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:bg-clip-text transition-all duration-300 relative after:absolute after:bottom-[-5px] after:right-0 after:h-[2px] after:w-0 after:bg-gradient-to-l after:from-indigo-500 after:to-purple-600 hover:after:w-full after:transition-all after:duration-300">الرئيسية</a>
+        <a href="/#about" class="nav-link text-gray-300 hover:text-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:bg-clip-text transition-all duration-300 relative after:absolute after:bottom-[-5px] after:right-0 after:h-[2px] after:w-0 after:bg-gradient-to-l after:from-indigo-500 after:to-purple-600 hover:after:w-full after:transition-all after:duration-300">من أنا</a>
+        <a href="/#services" class="nav-link text-gray-300 hover:text-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:bg-clip-text transition-all duration-300 relative after:absolute after:bottom-[-5px] after:right-0 after:h-[2px] after:w-0 after:bg-gradient-to-l after:from-indigo-500 after:to-purple-600 hover:after:w-full after:transition-all after:duration-300">الخدمات</a>
+        <a href="/portfolio" class="nav-link text-gray-300 hover:text-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:bg-clip-text transition-all duration-300 relative after:absolute after:bottom-[-5px] after:right-0 after:h-[2px] after:w-0 after:bg-gradient-to-l after:from-indigo-500 after:to-purple-600 hover:after:w-full after:transition-all after:duration-300">معرض الأعمال</a>
+        <a href="/#testimonials" class="nav-link text-gray-300 hover:text-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:bg-clip-text transition-all duration-300 relative after:absolute after:bottom-[-5px] after:right-0 after:h-[2px] after:w-0 after:bg-gradient-to-l after:from-indigo-500 after:to-purple-600 hover:after:w-full after:transition-all after:duration-300">آراء العملاء</a>
+        <a href="/#contact" class="nav-link text-gray-300 hover:text-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:bg-clip-text transition-all duration-300 relative after:absolute after:bottom-[-5px] after:right-0 after:h-[2px] after:w-0 after:bg-gradient-to-l after:from-indigo-500 after:to-purple-600 hover:after:w-full after:transition-all after:duration-300">تواصل معي</a>
+      </div>
+    </div>
+
+    <!-- أيقونات وسائل التواصل الاجتماعي -->
+    <div class="flex justify-center my-10">
+      <div class="grid grid-cols-4 md:grid-cols-7 gap-5">
+        {% if social_media_links and social_media_links|length > 0 %}
+          {% for link in social_media_links %}
+            {% if link.active %}
+              <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer" class="social-icon-link flex flex-col items-center group">
+                <div class="w-12 h-12 rounded-full bg-glass border border-gray-800 text-white flex items-center justify-center transform hover:scale-110 transition-all duration-300 overflow-hidden group-hover:border-indigo-500">
+                  <i class="{{ link.icon }} text-xl group-hover:text-gradient"></i>
+                  <div class="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-500 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+                </div>
+                <span class="text-xs text-gray-400 mt-2 group-hover:text-gradient transition-colors duration-300">{{ link.name }}</span>
+              </a>
+            {% endif %}
+          {% endfor %}
+        {% else %}
+          <!-- تم إزالة الأيقونات الافتراضية لتجنب الصراع مع الأيقونات المضافة -->
+        {% endif %}
+      </div>
+    </div>
+
+    <hr class="border-gray-800 my-8 opacity-30">
+
+    <div class="text-center text-gray-500 text-sm">
+      <p>جميع الحقوق محفوظة &copy; 2025 - <span class="text-gradient font-semibold">فراس للتصميم</span></p>
+    </div>
+  </div>
+</footer>
+
+<!-- زر العودة للأعلى -->
+<div id="backToTop" class="fixed bottom-6 right-6 z-40 opacity-0 invisible transition-all duration-300">
+  <button class="w-12 h-12 rounded-full bg-glass border border-gray-800 text-white flex items-center justify-center hover:border-indigo-500 transition-all duration-300 hover:scale-110">
+    <i class="fas fa-arrow-up text-gradient"></i>
+  </button>
+</div>
+
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+  AOS.init({
+    duration: 500, // تقليل المدة لتسريع الانتقالات
+    once: true,
+    easing: 'ease-out',
+    offset: 50 // تقليل المسافة لبدء الانتقال مبكرًا
+  });
+
+  // تبديل القائمة المتنقلة
+  document.addEventListener('DOMContentLoaded', function() {
+    const menuToggle = document.getElementById('menu-toggle');
+    const closeMenu = document.getElementById('close-menu');
+    const mobileMenu = document.getElementById('mobile-menu');
+
+    if (menuToggle && closeMenu && mobileMenu) {
+      menuToggle.addEventListener('click', function() {
+        mobileMenu.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        
+        // تأثير ظهور تدريجي سلس
+        setTimeout(() => {
+          mobileMenu.querySelector('.relative').classList.add('animate-slide-in');
+        }, 50);
+      });
+
+      closeMenu.addEventListener('click', function() {
+        // تأثير اختفاء تدريجي
+        mobileMenu.querySelector('.relative').classList.remove('animate-slide-in');
+        mobileMenu.querySelector('.relative').classList.add('animate-slide-out');
+        
+        setTimeout(() => {
+          mobileMenu.classList.add('hidden');
+          document.body.style.overflow = '';
+          mobileMenu.querySelector('.relative').classList.remove('animate-slide-out');
+        }, 300);
+      });
+      
+      // إضافة تأثير للقائمة
+      if (!document.querySelector('.animate-slide-in-keyframes')) {
+        const styleElement = document.createElement('style');
+        styleElement.innerHTML = `
+          @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+          }
+          
+          @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(-100%); opacity: 0; }
+          }
+          
+          .animate-slide-in {
+            animation: slideIn 0.3s forwards;
+          }
+          
+          .animate-slide-out {
+            animation: slideOut 0.3s forwards;
+          }
+        `;
+        styleElement.className = 'animate-slide-in-keyframes';
+        document.head.appendChild(styleElement);
+      }
+    }
+
+    // إظهار زر لوحة التحكم بالضغط على Ctrl+Alt+A
+    document.addEventListener('keydown', function(e) {
+      if (e.ctrlKey && e.altKey && e.code === 'KeyA') {
+        const adminBtn = document.getElementById('adminControlBtn');
+        if (adminBtn) {
+          adminBtn.classList.toggle('hidden');
+          localStorage.setItem('adminAccess', !adminBtn.classList.contains('hidden'));
+        }
+      }
+    });
+
+    // حفظ حالة زر لوحة التحكم
+    if (localStorage.getItem('adminAccess') === 'true') {
+      const adminBtn = document.getElementById('adminControlBtn');
+      if (adminBtn) {
+        adminBtn.classList.remove('hidden');
+      }
+    }
+  });
+
+  // تم إزالة وظيفة تغيير اللغة
+  
+  // زر العودة للأعلى
+  document.addEventListener('DOMContentLoaded', function() {
+    const backToTopBtn = document.getElementById('backToTop');
+    
+    if (backToTopBtn) {
+      // ظهور الزر عند التمرير
+      window.addEventListener('scroll', function() {
+        if (window.scrollY > 300) {
+          backToTopBtn.classList.remove('opacity-0', 'invisible');
+          backToTopBtn.classList.add('opacity-100', 'visible');
+        } else {
+          backToTopBtn.classList.add('opacity-0', 'invisible');
+          backToTopBtn.classList.remove('opacity-100', 'visible');
+        }
+      });
+      
+      // العودة للأعلى عند النقر
+      backToTopBtn.addEventListener('click', function() {
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+      });
+    }
+  });
+
+  // تهيئة كاروسيل المشاريع الجديد
+  document.addEventListener('DOMContentLoaded', function() {
+    // تهيئة كاروسيل المعرض الاحترافي
+    if (document.getElementById('portfolioSwiper')) {
+      const swiperPortfolio = new Swiper('#portfolioSwiper', {
+        slidesPerView: 1.2,
+        centeredSlides: true,
+        loop: true,
+        loopAdditionalSlides: 8,
+        speed: 800,
+        autoplay: {
+          delay: 2000,
+          disableOnInteraction: false,
+          pauseOnMouseEnter: true,
+        },
+        effect: 'coverflow',
+        coverflowEffect: {
+          rotate: 0,
+          stretch: 0,
+          depth: 150,
+          modifier: 1,
+          slideShadows: false,
+        },
+        grabCursor: true,
+        pagination: {
+          el: '.swiper-pagination',
+          clickable: true,
+        },
+        navigation: {
+          nextEl: '#portfolioNext',
+          prevEl: '#portfolioPrev',
+        },
+        breakpoints: {
+          // عندما يكون عرض النافذة >= 640px
+          640: {
+            slidesPerView: 1.5,
+            spaceBetween: 20,
+          },
+          // عندما يكون عرض النافذة >= 768px
+          768: {
+            slidesPerView: 2.2,
+            spaceBetween: 30,
+          },
+          // عندما يكون عرض النافذة >= 1024px
+          1024: {
+            slidesPerView: 3,
+            spaceBetween: 30,
+          },
+          // عندما يكون عرض النافذة >= 1280px
+          1280: {
+            slidesPerView: 3.5,
+            spaceBetween: 40,
+          }
+        },
+        on: {
+          // تفعيل تأثيرات بصرية إضافية على الشرائح النشطة
+          slideChange: function() {
+            // إضافة تأثير خفيف على العنصر النشط
+            document.querySelectorAll('.swiper-slide').forEach(slide => {
+              slide.classList.remove('swiper-slide-highlighted');
+            });
+
+            setTimeout(() => {
+              const activeSlide = document.querySelector('.swiper-slide-active');
+              if (activeSlide) {
+                activeSlide.classList.add('swiper-slide-highlighted');
+              }
+            }, 100);
+          },
+        }
+      });
+
+      // إيقاف الكاروسيل عند تمرير المؤشر على البطاقات
+      const featuredCards = document.querySelectorAll('.featured-card');
+
+      featuredCards.forEach(card => {
+        // عند تمرير المؤشر، إيقاف الحركة التلقائية
+        card.addEventListener('mouseenter', function() {
+          if (swiperPortfolio.autoplay && swiperPortfolio.autoplay.running) {
+            swiperPortfolio.autoplay.stop();
+          }
+        });
+
+        // عند إزالة المؤشر، استئناف الحركة التلقائية
+        card.addEventListener('mouseleave', function() {
+          if (swiperPortfolio.autoplay && !swiperPortfolio.autoplay.running) {
+            swiperPortfolio.autoplay.start();
+          }
+        });
+
+        // عند النقر على البطاقة، عرض المشروع
+        card.addEventListener('click', function(e) {
+          // استثناء الزر من الحدث
+          if (e.target.closest('.explore-btn')) {
+            return;
+          }
+
+          const portfolioId = this.getAttribute('data-portfolio-id');
+          if (portfolioId) {
+            viewPortfolio(portfolioId);
+          }
+        });
+      });
+
+      // معالجة أزرار عرض التفاصيل
+      document.querySelectorAll('.explore-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+          e.stopPropagation(); // منع انتشار الحدث للبطاقة
+
+          // إذا كان الزر داخل بطاقة تحتوي على معرف المشروع
+          const portfolioCard = this.closest('.featured-card');
+          if (portfolioCard) {
+            const portfolioId = portfolioCard.getAttribute('data-portfolio-id');
+            if (portfolioId) {
+              viewPortfolio(portfolioId);
+            }
+          }
+        });
+      });
+    }
+
+    // إضافة تأثير تلميع لزيادة الجمالية
+    if (document.querySelectorAll('.featured-card').length > 0) {
+      // تشغيل تأثير اللمعان عند تحريك الماوس
+      document.addEventListener('mousemove', function(e) {
+        document.querySelectorAll('.featured-card').forEach(card => {
+          const rect = card.getBoundingClientRect();
+
+          // حساب موضع المؤشر النسبي إلى البطاقة
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+
+          if (x > 0 && x < rect.width && y > 0 && y < rect.height) {
+            // نسبة الموضع داخل البطاقة (0-1)
+            const percentX = x / rect.width;
+            const percentY = y / rect.height;
+
+            // تطبيق تأثير دوران خفيف باتجاه الماوس
+            card.style.transform = `perspective(1000px) rotateY(${(percentX - 0.5) * 10}deg) rotateX(${(0.5 - percentY) * 10}deg)`;
+
+            // إضافة تأثير اللمعان
+            card.style.background = `linear-gradient(145deg, rgba(28, 36, 49, ${0.8 + percentX * 0.2}), rgba(17, 24, 39, ${0.8 + percentY * 0.2}))`;
+          } else {
+            // إعادة البطاقة إلى الوضع الأصلي إذا كان المؤشر خارجها
+            card.style.transform = 'perspective(1000px) rotateY(0) rotateX(0)';
+            card.style.background = 'linear-gradient(145deg, #1c2431, #111827)';
+          }
+        });
+      });
+    }
+  });
+
+  // وظيفة عرض المشروع وزيادة عدد المشاهدات
+  function viewPortfolio(portfolioId) {
+    // زيادة عدد المشاهدات
+    fetch(`/portfolio/${portfolioId}/view`, { method: 'POST' })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // تحديث عدد المشاهدات في الواجهة إن وجدت
+          const viewCountElements = document.querySelectorAll(`.view-count[data-id="${portfolioId}"]`);
+          viewCountElements.forEach(el => {
+            el.textContent = data.views;
+          });
+
+          // الانتقال إلى صفحة معرض الأعمال مع التركيز على المشروع المحدد
+          window.location.href = `/portfolio#portfolio-${portfolioId}`;
+        }
+      })
+      .catch(error => console.error('خطأ في عرض المشروع:', error));
+  }
+</script>
+
+<!-- دالة لإنشاء بصمة المتصفح وحفظها في ملفات تعريف الارتباط -->
+<script>
+  // إنشاء بصمة فريدة للمتصفح لتتبع المشاهدات بشكل أكثر دقة
+  function generateBrowserFingerprint() {
+    // تجميع مجموعة من البيانات للحصول على بصمة أكثر دقة
+    const screen = window.screen;
+    const navigator = window.navigator;
+    
+    // تجميع بيانات متنوعة عن المتصفح وبيئة التشغيل
+    const fingerprint = [
+      navigator.userAgent,
+      navigator.language,
+      screen.colorDepth,
+      screen.width + 'x' + screen.height,
+      new Date().getTimezoneOffset(),
+      !!window.sessionStorage,
+      !!window.localStorage,
+      !!window.indexedDB,
+      typeof(window.openDatabase),
+      navigator.cpuClass || '',
+      navigator.platform || '',
+      navigator.doNotTrack || ''
+    ].join('||');
+    
+    // تحويل البصمة إلى سلسلة فريدة باستخدام الهاش
+    let hash = 0;
+    for (let i = 0; i < fingerprint.length; i++) {
+      const char = fingerprint.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // تحويل إلى 32bit integer
+    }
+    
+    return 'fp_' + Math.abs(hash).toString(16);
+  }
+  
+  // التأكد من وجود معرف الجلسة الفريد
+  function ensureSessionId() {
+    let sessionId = getCookie('session_id');
+    if (!sessionId) {
+      sessionId = 'sid_' + Date.now() + '_' + Math.random().toString(36).substring(2, 15);
+      setCookie('session_id', sessionId, 30); // تعيين ملف تعريف الارتباط لمدة 30 يومًا
+    }
+    return sessionId;
+  }
+  
+  // حفظ بصمة المتصفح وجلسة المستخدم
+  function saveUserIdentifiers() {
+    const fingerprint = generateBrowserFingerprint();
+    const sessionId = ensureSessionId();
+    
+    setCookie('browser_fingerprint', fingerprint, 30); // تحديث ملف تعريف الارتباط للبصمة
+    
+    // إرسال البيانات للخادم لتحديث سجل الزائر إذا لزم الأمر
+    fetch('/api/update-visitor', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        fingerprint: fingerprint,
+        session_id: sessionId
+      })
+    }).catch(err => console.error('خطأ في تحديث بيانات الزائر:', err));
+  }
+  
+  // دالة مساعدة لتعيين ملفات تعريف الارتباط
+  function setCookie(name, value, days) {
+    var expires = "";
+    if (days) {
+      var date = new Date();
+      date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+      expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax";
+  }
+  
+  // دالة مساعدة لقراءة ملفات تعريف الارتباط
+  function getCookie(name) {
+    var nameEQ = name + "=";
+    var ca = document.cookie.split(';');
+    for(var i=0; i < ca.length; i++) {
+      var c = ca[i];
+      while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+      if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+    }
+    return null;
+  }
+  
+  // تحديث وظيفة مشاهدة المشاريع لتضمين بصمة المتصفح
+  function viewPortfolio(portfolioId) {
+    // زيادة عدد المشاهدات مع إرسال بصمة المتصفح ومعرف الجلسة
+    const fingerprint = getCookie('browser_fingerprint') || generateBrowserFingerprint();
+    const sessionId = getCookie('session_id') || ensureSessionId();
+    
+    fetch(`/portfolio/${portfolioId}/view`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        fingerprint: fingerprint,
+        session_id: sessionId
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // تحديث عدد المشاهدات في الواجهة إن وجدت
+        const viewCountElements = document.querySelectorAll(`.view-count[data-id="${portfolioId}"]`);
+        viewCountElements.forEach(el => {
+          el.textContent = data.views_count;
+        });
+
+        // الانتقال إلى صفحة معرض الأعمال مع التركيز على المشروع المحدد
+        window.location.href = `/portfolio#portfolio-${portfolioId}`;
+      }
+    })
+    .catch(error => console.error('خطأ في عرض المشروع:', error));
+  }
+  
+  // تنفيذ الدالة عند تحميل الصفحة
+  document.addEventListener('DOMContentLoaded', function() {
+    saveUserIdentifiers();
+    // بدء تتبع الزائر
+    trackCurrentVisitor();
+  });
+  
+  // وظيفة تتبع الزائر الحالي
+  function trackCurrentVisitor() {
+    try {
+      // الحصول على معرف الزائر من fingerprint أو fingerprint2 الذي تم إنشاؤه أعلاه
+      const visitorId = localStorage.getItem('fingerprint') || 
+                        generateFingerprint() || 
+                        Math.random().toString(36).substring(2, 15);
+      
+      // جمع بيانات الصفحة الحالية
+      const pageUrl = window.location.pathname;
+      const pageTitle = document.title;
+      const referrer = document.referrer;
+      
+      console.log("تتبع الزائر: " + visitorId);
+      
+      // إرسال بيانات التتبع
+      fetch('/api/live/track', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Visitor-ID': visitorId
+        },
+        body: JSON.stringify({
+          visitor_id: visitorId,
+          page_url: pageUrl,
+          page_title: pageTitle,
+          referer: referrer
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log("تم تحديث بيانات الزائر بنجاح");
+      })
+      .catch(error => {
+        console.error("خطأ في تتبع الزائر:", error);
+      });
+      
+      // تتبع مستمر كل 30 ثانية
+      setTimeout(trackCurrentVisitor, 30000);
+    } catch (e) {
+      console.error("خطأ في تتبع الزائر:", e);
+    }
+  }
+</script>
+
+{% block scripts %}{% endblock %}
+
+</body>
+</html>

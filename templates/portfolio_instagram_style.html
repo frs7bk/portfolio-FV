@@ -1,0 +1,449 @@
+{% extends "layout.html" %}
+
+{% block title %}معرض الأعمال - نمط إنستجرام{% endblock %}
+
+{% block additional_head %}
+<!-- إضافة ملفات CSS خاصة بمعرض الأعمال بنمط إنستجرام -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/portfolio-modal.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    .portfolio-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 4px;
+        max-width: 1200px;
+        margin: 0 auto;
+        direction: rtl;
+    }
+
+    .portfolio-item {
+        position: relative;
+        padding-bottom: 100%; /* نسبة 1:1 للصور */
+        overflow: hidden;
+        cursor: pointer;
+    }
+
+    .portfolio-item img {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .portfolio-item:hover img {
+        transform: scale(1.05);
+    }
+
+    .portfolio-item-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .portfolio-item:hover .portfolio-item-overlay {
+        opacity: 1;
+    }
+
+    .portfolio-item-stats {
+        display: flex;
+        gap: 20px;
+    }
+
+    .stat {
+        display: flex;
+        align-items: center;
+        font-size: 16px;
+    }
+
+    .stat i {
+        margin-left: 5px;
+    }
+
+    .portfolio-item-title {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        text-align: center;
+        padding: 0 10px;
+    }
+
+    @media (max-width: 767px) {
+        .portfolio-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 480px) {
+        .portfolio-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* ترويسة القسم مع معلومات المستخدم */
+    .portfolio-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 30px;
+        padding: 20px;
+        direction: rtl;
+        text-align: center;
+    }
+
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-bottom: 15px;
+    }
+
+    .profile-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .profile-name {
+        font-size: 28px;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .profile-stats {
+        display: flex;
+        gap: 20px;
+        margin: 15px 0;
+    }
+
+    .profile-stat {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .stat-value {
+        font-weight: bold;
+        font-size: 18px;
+    }
+
+    .stat-label {
+        font-size: 14px;
+        color: #666;
+    }
+
+    .profile-bio {
+        max-width: 600px;
+        margin: 10px 0;
+        line-height: 1.5;
+    }
+
+    .profile-categories {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+        margin: 15px 0;
+    }
+
+    .category-button {
+        border: none;
+        background-color: #f0f0f0;
+        padding: 8px 15px;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .category-button:hover, .category-button.active {
+        background-color: #333;
+        color: white;
+    }
+
+    /* شريط الفلترة وترتيب المشاريع */
+    .portfolio-filters {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 20px;
+        padding: 10px 20px;
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .filter-label {
+        font-weight: bold;
+        font-size: 14px;
+    }
+
+    .filter-dropdown select {
+        padding: 8px 15px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background-color: white;
+        font-size: 14px;
+    }
+
+    .filter-search input {
+        padding: 8px 15px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        width: 200px;
+        font-size: 14px;
+    }
+
+    /* زر العودة للأعلى */
+    .back-to-top {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 40px;
+        height: 40px;
+        background-color: rgba(0, 0, 0, 0.7);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 100;
+    }
+
+    .back-to-top.visible {
+        opacity: 1;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <!-- ترويسة معرض الأعمال بنمط إنستجرام -->
+        <div class="portfolio-header">
+            {% if profile.image_url %}
+            <img src="{{ profile.image_url }}" alt="{{ profile.name }}" class="profile-avatar">
+            {% else %}
+            <img src="{{ url_for('static', filename='img/default-avatar.png') }}" alt="الصورة الشخصية" class="profile-avatar">
+            {% endif %}
+            
+            <div class="profile-info">
+                <h1 class="profile-name">{{ profile.name }}</h1>
+                
+                <div class="profile-stats">
+                    <div class="profile-stat">
+                        <span class="stat-value">{{ portfolio_items|length }}</span>
+                        <span class="stat-label">مشروع</span>
+                    </div>
+                    <div class="profile-stat">
+                        <span class="stat-value">{{ total_likes }}</span>
+                        <span class="stat-label">إعجاب</span>
+                    </div>
+                    <div class="profile-stat">
+                        <span class="stat-value">{{ total_views }}</span>
+                        <span class="stat-label">مشاهدة</span>
+                    </div>
+                </div>
+                
+                {% if profile.bio %}
+                <p class="profile-bio">{{ profile.bio }}</p>
+                {% endif %}
+                
+                <!-- أزرار التصنيف -->
+                {% if categories %}
+                <div class="profile-categories">
+                    <button class="category-button active" data-category="all">الكل</button>
+                    {% for category in categories %}
+                    <button class="category-button" data-category="{{ category }}">{{ category }}</button>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- فلاتر الترتيب والبحث -->
+        <div class="portfolio-filters">
+            <div class="filter-group">
+                <span class="filter-label">ترتيب حسب:</span>
+                <div class="filter-dropdown">
+                    <select id="sort-select">
+                        <option value="newest">الأحدث</option>
+                        <option value="oldest">الأقدم</option>
+                        <option value="popular">الأكثر إعجابًا</option>
+                        <option value="views">الأكثر مشاهدة</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="filter-group">
+                <span class="filter-label">بحث:</span>
+                <div class="filter-search">
+                    <input type="text" id="search-input" placeholder="اكتب اسم المشروع...">
+                </div>
+            </div>
+        </div>
+
+        <!-- شبكة معرض الأعمال بنمط إنستجرام -->
+        <div class="portfolio-grid">
+            {% for item in portfolio_items %}
+            <div class="portfolio-item" data-id="{{ item.id }}" data-category="{{ item.category }}" data-title="{{ item.title }}">
+                <img src="{{ item.image_url }}" alt="{{ item.title }}">
+                <div class="portfolio-item-overlay">
+                    <div class="portfolio-item-title">{{ item.title }}</div>
+                    <div class="portfolio-item-stats">
+                        <div class="stat"><i class="fas fa-heart"></i> {{ item.likes_count }}</div>
+                        <div class="stat"><i class="fas fa-comment"></i> {{ item.comments|length }}</div>
+                        <div class="stat"><i class="fas fa-eye"></i> {{ item.views_count }}</div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- زر العودة للأعلى -->
+        <div class="back-to-top">
+            <i class="fas fa-arrow-up"></i>
+        </div>
+    </div>
+    
+    <!-- روابط التواصل الاجتماعي -->
+    <div class="social-links-container mt-12 py-8 bg-gray-900">
+        <div class="container mx-auto text-center">
+            <h3 class="text-2xl font-bold text-yellow-400 mb-6">تواصل معنا</h3>
+            <div class="flex justify-center gap-4">
+                {% if social_media_links and social_media_links|length > 0 %}
+                    {% for link in social_media_links %}
+                        {% if link.active %}
+                            <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer" class="social-icon-link flex flex-col items-center">
+                                <div class="w-12 h-12 rounded-full {% if 'facebook' in link.platform %}bg-blue-600 hover:bg-blue-700{% elif 'twitter' in link.platform or 'x' in link.platform %}bg-black hover:bg-gray-800 border border-gray-700{% elif 'telegram' in link.platform %}bg-blue-500 hover:bg-blue-600{% elif 'whatsapp' in link.platform %}bg-green-500 hover:bg-green-600{% elif 'instagram' in link.platform %}bg-pink-600 hover:bg-pink-700{% elif 'linkedin' in link.platform %}bg-blue-700 hover:bg-blue-800{% elif 'youtube' in link.platform %}bg-red-600 hover:bg-red-700{% elif 'tiktok' in link.platform %}bg-black hover:bg-gray-800{% elif 'behance' in link.platform %}bg-blue-900 hover:bg-blue-950{% elif 'dribbble' in link.platform %}bg-pink-500 hover:bg-pink-600{% elif 'pinterest' in link.platform %}bg-red-700 hover:bg-red-800{% elif 'snapchat' in link.platform %}bg-yellow-400 hover:bg-yellow-500{% else %}bg-gray-700 hover:bg-gray-800{% endif %} text-white flex items-center justify-center transition-all transform hover:scale-110">
+                                    <i class="{{ link.icon }} text-xl"></i>
+                                </div>
+                                <span class="text-xs text-gray-400 mt-2">{{ link.name }}</span>
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <!-- تم إزالة الأيقونات الافتراضية لتجنب الصراع مع الأيقونات المضافة -->
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<!-- إضافة الجافاسكريبت الخاص بالنافذة المنبثقة -->
+<script src="{{ url_for('static', filename='js/portfolio-modal.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // فلترة المشاريع حسب التصنيف
+        const categoryButtons = document.querySelectorAll('.category-button');
+        categoryButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // إزالة الفئة النشطة من جميع الأزرار
+                categoryButtons.forEach(btn => btn.classList.remove('active'));
+                // إضافة الفئة النشطة للزر المضغوط
+                this.classList.add('active');
+                
+                const category = this.getAttribute('data-category');
+                filterPortfolioItems(category, document.getElementById('search-input').value);
+            });
+        });
+        
+        // البحث في المشاريع
+        const searchInput = document.getElementById('search-input');
+        searchInput.addEventListener('input', function() {
+            const activeCategory = document.querySelector('.category-button.active').getAttribute('data-category');
+            filterPortfolioItems(activeCategory, this.value);
+        });
+        
+        // ترتيب المشاريع
+        const sortSelect = document.getElementById('sort-select');
+        sortSelect.addEventListener('change', function() {
+            sortPortfolioItems(this.value);
+        });
+        
+        // زر العودة للأعلى
+        const backToTop = document.querySelector('.back-to-top');
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 300) {
+                backToTop.classList.add('visible');
+            } else {
+                backToTop.classList.remove('visible');
+            }
+        });
+        
+        backToTop.addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+        
+        // وظيفة فلترة المشاريع
+        function filterPortfolioItems(category, searchText) {
+            const portfolioItems = document.querySelectorAll('.portfolio-item');
+            
+            portfolioItems.forEach(item => {
+                const itemCategory = item.getAttribute('data-category');
+                const itemTitle = item.getAttribute('data-title').toLowerCase();
+                const searchMatch = !searchText || itemTitle.includes(searchText.toLowerCase());
+                const categoryMatch = category === 'all' || itemCategory.includes(category);
+                
+                if (categoryMatch && searchMatch) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+        
+        // وظيفة ترتيب المشاريع
+        function sortPortfolioItems(sortBy) {
+            const portfolioGrid = document.querySelector('.portfolio-grid');
+            const portfolioItems = Array.from(document.querySelectorAll('.portfolio-item'));
+            
+            portfolioItems.sort((a, b) => {
+                if (sortBy === 'newest') {
+                    return parseInt(b.getAttribute('data-id')) - parseInt(a.getAttribute('data-id'));
+                } else if (sortBy === 'oldest') {
+                    return parseInt(a.getAttribute('data-id')) - parseInt(b.getAttribute('data-id'));
+                } else if (sortBy === 'popular') {
+                    return parseInt(b.querySelector('.fa-heart').nextSibling.textContent) - 
+                           parseInt(a.querySelector('.fa-heart').nextSibling.textContent);
+                } else if (sortBy === 'views') {
+                    return parseInt(b.querySelector('.fa-eye').nextSibling.textContent) - 
+                           parseInt(a.querySelector('.fa-eye').nextSibling.textContent);
+                }
+            });
+            
+            // إعادة ترتيب العناصر في DOM
+            portfolioItems.forEach(item => {
+                portfolioGrid.appendChild(item);
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends "layout.html" %}
+
+{% block title %}التحقق من ربط تيليجرام{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">التحقق من ربط تيليجرام</h3>
+                </div>
+                <div class="card-body">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <div class="text-center mb-4">
+                        <i class="fab fa-telegram fa-4x text-primary mb-3"></i>
+                        <h4>التحقق من ربط حساب تيليجرام</h4>
+                        <p class="lead">أدخل الرمز الذي تم إرساله إلى بوت التيليجرام الخاص بنا</p>
+                    </div>
+
+                    <form method="POST" action="{{ url_for('auth.verify_telegram') }}">
+                        {{ form.csrf_token }}
+                        <div class="mb-4">
+                            <label for="verification_code" class="form-label">رمز التحقق</label>
+                            {{ form.verification_code(class="form-control form-control-lg text-center", autocomplete="off", placeholder="أدخل الرمز هنا") }}
+                            {% if form.verification_code.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.verification_code.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text text-muted">
+                                أدخل الرمز المكون من 8 أحرف الذي أرسلته إلى البوت
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">تحقق</button>
+                        </div>
+                    </form>
+
+                    <div class="text-center mt-4">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            لم ترسل الرمز بعد؟ <a href="{{ url_for('auth.setup_two_factor') }}" class="alert-link">العودة إلى الخطوة السابقة</a>
+                        </div>
+                        <a href="{{ url_for('auth.security_settings') }}" class="btn btn-outline-secondary mt-2">
+                            <i class="fas fa-arrow-right me-2"></i> العودة إلى إعدادات الأمان
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

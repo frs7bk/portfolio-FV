@@ -1,0 +1,385 @@
+/*
+ * EKI Theme - تصميم متميز بأسلوب EKI Portfolio
+ * خلفيات داكنة، ألوان متدرجة، وتأثيرات نيون
+ */
+
+:root {
+  --primary-bg: #030014;
+  --secondary-bg: #070024;
+  --gradient-start: #6366f1; /* indigo-500 */
+  --gradient-end: #a855f7;   /* purple-500 */
+  --accent-purple: #a855f7;
+  --accent-indigo: #6366f1;
+  --accent-cyan: #22d3ee;
+}
+
+/* خلفية الصفحة */
+body {
+  font-family: 'Poppins', 'Cairo', sans-serif;
+  background-color: var(--primary-bg);
+  color: #ffffff;
+  line-height: 1.7;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* أقسام الصفحة */
+.eki-section {
+  padding: 5rem 0;
+  position: relative;
+  overflow: hidden;
+}
+
+/* الخلفيات الأساسية */
+.bg-primary-bg {
+  background-color: var(--primary-bg);
+}
+
+.bg-secondary-bg {
+  background-color: var(--secondary-bg);
+}
+
+/* العناوين والنصوص المتدرجة */
+.gradient-text {
+  background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.gradient-header {
+  background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  position: relative;
+}
+
+/* خلفية زجاجية */
+.bg-glass {
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(99, 102, 241, 0.1);
+}
+
+/* أزرار النيون */
+.btn-neon {
+  position: relative;
+  background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+  color: white;
+  border: none;
+  overflow: hidden;
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.5),
+              0 0 30px rgba(168, 85, 247, 0.3);
+  transition: all 0.3s ease;
+  z-index: 1;
+}
+
+.btn-neon::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transform: skewX(-30deg);
+  z-index: -1;
+  transition: left 0.6s ease;
+}
+
+.btn-neon:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 7px 20px rgba(99, 102, 241, 0.6),
+              0 0 35px rgba(99, 102, 241, 0.4);
+}
+
+.btn-neon:hover::before {
+  left: 100%;
+}
+
+.btn-neon:active {
+  transform: translateY(-1px);
+}
+
+/* بطاقات شبه شفافة */
+.eki-card {
+  background: rgba(13, 12, 34, 0.5); 
+  border-radius: 12px;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  padding: 24px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 
+              0 1px 2px rgba(255, 255, 255, 0.05),
+              0 0 0 1px rgba(99, 102, 241, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.eki-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15),
+              0 0 0 1px rgba(99, 102, 241, 0.2),
+              0 0 20px rgba(99, 102, 241, 0.2);
+}
+
+/* مؤثرات خلفية الفقاعات */
+.blob {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.3;
+  z-index: -1;
+  pointer-events: none;
+  transition: all 10s ease-in-out;
+}
+
+.blob-purple {
+  background: var(--accent-purple);
+  width: 500px;
+  height: 500px;
+  right: -250px;
+  top: 10%;
+}
+
+.blob-blue {
+  background: var(--accent-indigo);
+  width: 600px;
+  height: 600px;
+  left: -300px;
+  bottom: 10%;
+}
+
+.blob-cyan {
+  background: var(--accent-cyan);
+  width: 400px;
+  height: 400px;
+  right: 20%;
+  bottom: -200px;
+}
+
+/* المؤثرات الحركية */
+.animated-grid-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -2;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.grid-pattern {
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  top: -50%;
+  left: -50%;
+  background-image: linear-gradient(to right, #4f4f4f15 1px, transparent 1px),
+                    linear-gradient(to bottom, #4f4f4f15 1px, transparent 1px);
+  background-size: 24px 24px;
+  z-index: -1;
+  opacity: 0.3;
+  transform-origin: center;
+  animation: gridRotate 150s linear infinite;
+}
+
+@keyframes gridRotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* شريط التنقل */
+.eki-navbar {
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: background 0.3s ease, padding 0.3s ease;
+  border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+}
+
+.eki-navbar.scrolled {
+  background: rgba(3, 0, 20, 0.7);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  border-bottom-color: rgba(99, 102, 241, 0.2);
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+/* مؤثرات الدخول */
+.fade-in {
+  opacity: 0;
+  animation: fadeIn 0.8s forwards;
+}
+
+.fade-in-up {
+  opacity: 0;
+  transform: translateY(30px);
+  animation: fadeInUp 0.8s forwards;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* شاشة الترحيب */
+#introOverlay {
+  background: radial-gradient(circle at center, var(--primary-bg) 0%, rgba(0,0,0,0.98) 100%);
+}
+
+.welcome-blob {
+  transition: transform 15s ease-in-out;
+}
+
+/* مؤثرات نصية إضافية */
+.text-shadow-sm {
+  text-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+}
+
+.text-shadow-md {
+  text-shadow: 0 0 20px rgba(99, 102, 241, 0.5), 0 0 40px rgba(99, 102, 241, 0.3);
+}
+
+/* تأثيرات Hover على الصور */
+.img-hover-scale {
+  transition: transform 0.5s ease, filter 0.5s ease;
+}
+
+.img-hover-scale:hover {
+  transform: scale(1.05);
+  filter: brightness(1.1);
+}
+
+/* أقسام خاصة */
+.eki-header {
+  padding: 140px 0 100px;
+  background: radial-gradient(circle at bottom, var(--secondary-bg) 0%, var(--primary-bg) 70%);
+  position: relative;
+  overflow: hidden;
+}
+
+.eki-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 100px;
+  background: linear-gradient(to top, var(--primary-bg), transparent);
+  pointer-events: none;
+}
+
+/* تذييل الصفحة */
+.eki-footer {
+  background-color: rgba(3, 0, 20, 0.9);
+  position: relative;
+  overflow: hidden;
+  border-top: 1px solid rgba(99, 102, 241, 0.1);
+}
+
+.eki-footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(99, 102, 241, 0.3), transparent);
+}
+
+.text-gradient {
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.group-hover\:text-gradient:not(.text-gradient) {
+  transition: background-position 0.3s ease;
+}
+
+.group:hover .group-hover\:text-gradient {
+  background-image: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+/* تم تعطيل جميع مؤشرات التحميل */
+
+/* تحسينات لشكل الظل للعناصر */
+.shadow-glow {
+  box-shadow: 0 0 15px 1px rgba(99, 102, 241, 0.4);
+}
+
+.hover\:shadow-glow:hover {
+  box-shadow: 0 0 20px 2px rgba(99, 102, 241, 0.5);
+}
+
+/* تأثيرات إضافية للأزرار */
+.btn-glow {
+  background-image: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+  color: white;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+}
+
+.btn-glow:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+}
+
+.btn-glow:active {
+  transform: translateY(0);
+}
+
+/* تأثيرات جديدة للتحريك */
+.animate-blob {
+  animation: blob 7s infinite alternate;
+}
+
+.animate-blob-slow {
+  animation: blob 12s infinite alternate;
+}
+
+@keyframes blob {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+/* تأثير نبض للأيقونات */
+.pulse-on-hover {
+  transition: transform 0.3s ease;
+}
+
+.pulse-on-hover:hover {
+  transform: scale(1.2);
+  color: var(--gradient-start);
+}

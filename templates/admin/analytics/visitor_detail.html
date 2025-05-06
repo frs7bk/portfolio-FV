@@ -1,0 +1,541 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}تفاصيل الزائر{% endblock %}
+{% block page_title %}تفاصيل الزائر{% endblock %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css">
+<style>
+    /* تصميم عام محسن */
+    .analytics-dashboard {
+        background-color: #f8f9fa;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+    }
+    
+    .dashboard-header {
+        margin-bottom: 2rem;
+        border-bottom: 1px solid #e9ecef;
+        padding-bottom: 1rem;
+    }
+    
+    .dashboard-title {
+        color: #495057;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    .dashboard-subtitle {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    /* بطاقة الزائر المحسنة */
+    .visitor-card {
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        background-color: #fff;
+        transition: all 0.3s ease;
+    }
+    
+    .visitor-card:hover {
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+        transform: translateY(-3px);
+    }
+    
+    .visitor-header {
+        background: linear-gradient(to right, #3b7ddd, #6610f2);
+        padding: 25px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        color: white;
+    }
+    
+    .visitor-body {
+        padding: 25px;
+    }
+    
+    /* عنوان IP المحسن */
+    .ip-address {
+        font-family: monospace;
+        font-size: 1.3rem;
+        font-weight: bold;
+        color: #fff;
+        padding: 6px 12px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        display: inline-block;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        backdrop-filter: blur(5px);
+    }
+    
+    /* بطاقات المعلومات المحسنة */
+    .info-card {
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        padding: 20px;
+        margin-bottom: 25px;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+    
+    .info-card:hover {
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        transform: translateY(-3px);
+    }
+    
+    .info-card .card-title {
+        font-weight: 600;
+        color: #495057;
+        border-bottom: 1px solid #e9ecef;
+        padding-bottom: 12px;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .info-card .card-title i {
+        margin-left: 10px;
+        color: #3b7ddd;
+        font-size: 1.2rem;
+    }
+    
+    .visit-info .row {
+        margin-bottom: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px dashed #e9ecef;
+    }
+    
+    .visit-info .row:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+    
+    .visit-info .label {
+        font-weight: 600;
+        color: #6c757d;
+    }
+    
+    .visit-info .value {
+        color: #212529;
+    }
+    
+    /* زيارات الصفحات المحسنة */
+    .visit-page {
+        padding: 18px;
+        border-radius: 10px;
+        border-right: 5px solid #3b7ddd;
+        background-color: white;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .visit-page::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 5px;
+        background-color: #3b7ddd;
+        transition: all 0.3s ease;
+    }
+    
+    .visit-page:hover {
+        background-color: #f8f9fa;
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    }
+    
+    .visit-page .time {
+        color: #6c757d;
+        font-size: 0.9rem;
+        font-family: monospace;
+    }
+    
+    .visit-page .url {
+        color: #3b7ddd;
+        word-break: break-all;
+        font-family: monospace;
+        font-size: 0.9rem;
+    }
+    
+    .visit-page .title {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 8px;
+        font-size: 1.05rem;
+    }
+    
+    .exit-page::before {
+        background-color: #dc3545;
+    }
+    
+    /* معلومات الجهاز المحسنة */
+    .device-info .device-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+        border-bottom: 1px dashed #e9ecef;
+    }
+    
+    .device-info .device-item:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+    
+    .device-info .icon {
+        font-size: 1.8rem;
+        width: 50px;
+        height: 50px;
+        text-align: center;
+        margin-left: 15px;
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: all 0.3s ease;
+    }
+    
+    .device-info .device-item:hover .icon {
+        transform: scale(1.1);
+    }
+    
+    .device-mobile {
+        color: #28a745;
+    }
+    
+    .device-desktop {
+        color: #3b7ddd;
+    }
+    
+    .device-tablet {
+        color: #fd7e14;
+    }
+    
+    .device-bot {
+        color: #dc3545;
+    }
+    
+    .device-info .label {
+        font-weight: 600;
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+    
+    .device-info .value {
+        color: #212529;
+        font-size: 1.05rem;
+    }
+    
+    /* وكيل المستخدم وكود الجلسة */
+    .code-block {
+        font-family: monospace;
+        font-size: 0.9rem;
+        padding: 15px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+        color: #495057;
+        white-space: pre-wrap;
+        word-break: break-all;
+        max-height: 150px;
+        overflow-y: auto;
+        position: relative;
+    }
+    
+    .code-dark {
+        background-color: #343a40;
+        color: #f8f9fa;
+        border-color: #212529;
+    }
+    
+    /* شارات وأيقونات محسنة */
+    .badge {
+        padding: 6px 12px;
+        border-radius: 50px;
+        font-weight: 500;
+        font-size: 0.85rem;
+    }
+    
+    .badge-bot {
+        background-color: #dc3545;
+        color: white;
+    }
+    
+    .badge-user {
+        background-color: #3b7ddd;
+        color: white;
+    }
+    
+    .badge-exit {
+        background-color: #dc3545;
+        color: white;
+    }
+    
+    .btn-lookup {
+        border-radius: 50px;
+        padding: 8px 20px;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        backdrop-filter: blur(5px);
+        transition: all 0.3s ease;
+    }
+    
+    .btn-lookup:hover {
+        background: rgba(255, 255, 255, 0.3);
+        color: white;
+    }
+    
+    .btn-return {
+        border-radius: 50px;
+        padding: 10px 25px;
+        transition: all 0.3s ease;
+    }
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<div class="container-fluid py-4">
+    <div class="analytics-dashboard animate__animated animate__fadeIn">
+        <div class="dashboard-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 dashboard-title">تفاصيل الزائر</h1>
+                    <p class="dashboard-subtitle">معلومات تفصيلية عن الزائر وسجل نشاطه</p>
+                </div>
+                <a href="{{ url_for('analytics.visitors_dashboard') }}" class="btn btn-outline-secondary btn-return">
+                    <i class="fas fa-arrow-left me-1"></i> العودة إلى قائمة الزوار
+                </a>
+            </div>
+        </div>
+        
+        <div class="visitor-card animate__animated animate__fadeInUp">
+            <div class="visitor-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="ip-address">{{ visitor.ip_address }}</span>
+                        {% if visitor.is_bot %}
+                        <span class="badge badge-bot ms-2">
+                            <i class="fas fa-robot me-1"></i> بوت
+                        </span>
+                        {% endif %}
+                        {% if visitor.user_id %}
+                        <span class="badge badge-user ms-2">
+                            <i class="fas fa-user-check me-1"></i> مستخدم مسجل
+                        </span>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <a href="{{ url_for('analytics.ip_lookup', ip=visitor.ip_address) }}" class="btn btn-lookup">
+                            <i class="fas fa-search me-1"></i> بحث عن عنوان IP
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="visitor-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <!-- معلومات الزيارة -->
+                        <div class="info-card animate__animated animate__fadeIn" style="animation-delay: 0.1s;">
+                            <h5 class="card-title">
+                                <i class="fas fa-info-circle"></i>
+                                معلومات الزيارة
+                            </h5>
+                            <div class="visit-info">
+                                <div class="row">
+                                    <div class="col-md-6 label">أول زيارة:</div>
+                                    <div class="col-md-6 value">
+                                        <i class="far fa-calendar-alt me-1 text-muted"></i>
+                                        {{ visitor.first_visit.strftime('%Y-%m-%d %H:%M') }}
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 label">آخر زيارة:</div>
+                                    <div class="col-md-6 value">
+                                        <i class="far fa-calendar-check me-1 text-muted"></i>
+                                        {{ visitor.last_visit.strftime('%Y-%m-%d %H:%M') }}
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 label">عدد الزيارات:</div>
+                                    <div class="col-md-6 value">
+                                        <i class="fas fa-chart-line me-1 text-primary"></i>
+                                        <span class="fw-bold">{{ visitor.visit_count }}</span> زيارة
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 label">المحيل:</div>
+                                    <div class="col-md-6 value">
+                                        {% if visitor.referrer %}
+                                        <a href="{{ visitor.referrer }}" target="_blank" class="text-primary">
+                                            <i class="fas fa-external-link-alt me-1"></i>
+                                            {{ visitor.referrer|truncate(30) }}
+                                        </a>
+                                        {% else %}
+                                        <span class="text-muted">
+                                            <i class="fas fa-ban me-1"></i>
+                                            غير متوفر
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% if visitor.user_id and user %}
+                                <div class="row">
+                                    <div class="col-md-6 label">المستخدم:</div>
+                                    <div class="col-md-6 value">
+                                        <a href="{{ url_for('analytics.user_activity', user_id=user.id) }}" class="text-primary">
+                                            <i class="fas fa-user me-1"></i>
+                                            {{ user.username }}
+                                        </a>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- معرف الجلسة -->
+                        {% if visitor.session_id %}
+                        <div class="info-card animate__animated animate__fadeIn" style="animation-delay: 0.2s;">
+                            <h5 class="card-title">
+                                <i class="fas fa-key"></i>
+                                معرف الجلسة
+                            </h5>
+                            <div class="code-block code-dark">
+                                {{ visitor.session_id }}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <!-- معلومات الجهاز -->
+                        <div class="info-card animate__animated animate__fadeIn" style="animation-delay: 0.3s;">
+                            <h5 class="card-title">
+                                <i class="fas fa-laptop"></i>
+                                معلومات الجهاز
+                            </h5>
+                            <div class="device-info">
+                                <div class="device-item">
+                                    <div class="icon">
+                                        <i class="fas fa-{% if visitor.device == 'mobile' %}mobile-alt device-mobile{% elif visitor.device == 'tablet' %}tablet-alt device-tablet{% elif visitor.device == 'desktop' %}desktop device-desktop{% elif visitor.device == 'bot' %}robot device-bot{% else %}question-circle{% endif %}"></i>
+                                    </div>
+                                    <div>
+                                        <div class="label">الجهاز</div>
+                                        <div class="value">{{ visitor.device|capitalize }}</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="device-item">
+                                    <div class="icon">
+                                        <i class="fab fa-{% if 'chrome' in visitor.browser|lower %}chrome{% elif 'firefox' in visitor.browser|lower %}firefox{% elif 'safari' in visitor.browser|lower %}safari{% elif 'edge' in visitor.browser|lower %}edge{% elif 'ie' in visitor.browser|lower or 'explorer' in visitor.browser|lower %}internet-explorer{% else %}globe{% endif %}"></i>
+                                    </div>
+                                    <div>
+                                        <div class="label">المتصفح</div>
+                                        <div class="value">{{ visitor.browser }}</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="device-item">
+                                    <div class="icon">
+                                        <i class="fab fa-{% if 'windows' in visitor.os|lower %}windows{% elif 'mac' in visitor.os|lower or 'ios' in visitor.os|lower %}apple{% elif 'android' in visitor.os|lower %}android{% elif 'linux' in visitor.os|lower %}linux{% else %}globe{% endif %}"></i>
+                                    </div>
+                                    <div>
+                                        <div class="label">نظام التشغيل</div>
+                                        <div class="value">{{ visitor.os }}</div>
+                                    </div>
+                                </div>
+                                
+                                {% if visitor.country or visitor.city %}
+                                <div class="device-item">
+                                    <div class="icon">
+                                        <i class="fas fa-map-marker-alt text-danger"></i>
+                                    </div>
+                                    <div>
+                                        <div class="label">الموقع</div>
+                                        <div class="value">
+                                            {% if visitor.city %}{{ visitor.city }}{% endif %}
+                                            {% if visitor.city and visitor.country %}, {% endif %}
+                                            {% if visitor.country %}{{ visitor.country }}{% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- معلومات وكيل المستخدم -->
+                        <div class="info-card animate__animated animate__fadeIn" style="animation-delay: 0.4s;">
+                            <h5 class="card-title">
+                                <i class="fas fa-code"></i>
+                                وكيل المستخدم
+                            </h5>
+                            <div class="code-block">
+                                {{ visitor.user_agent }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- زيارات الصفحات -->
+                <div class="info-card mt-4 animate__animated animate__fadeIn" style="animation-delay: 0.5s;">
+                    <h5 class="card-title">
+                        <i class="fas fa-history"></i>
+                        سجل زيارات الصفحات
+                    </h5>
+                    
+                    {% if page_visits %}
+                        {% for visit in page_visits %}
+                        <div class="visit-page {{ 'exit-page' if visit.exit_page }} animate__animated animate__fadeIn" style="animation-delay: calc(0.5s + {{ loop.index0 * 0.1 }}s);">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    {% if visit.page_title %}
+                                    <div class="title">
+                                        <i class="fas fa-file-alt text-muted me-2"></i>
+                                        {{ visit.page_title }}
+                                    </div>
+                                    {% endif %}
+                                    <div class="url">
+                                        <a href="{{ visit.page_url }}" target="_blank" class="text-decoration-none">
+                                            <i class="fas fa-link text-muted me-1"></i>
+                                            {{ visit.page_url }}
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="time">
+                                    <i class="far fa-clock text-muted me-1"></i>
+                                    {{ visit.visited_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                                    {% if visit.exit_page %}
+                                    <span class="badge badge-exit ms-1">
+                                        <i class="fas fa-sign-out-alt me-1"></i> صفحة الخروج
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        لا توجد زيارات مسجلة لهذا الزائر.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

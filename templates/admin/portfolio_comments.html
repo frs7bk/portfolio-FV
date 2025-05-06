@@ -1,0 +1,270 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}تعليقات معرض الأعمال - لوحة الإدارة{% endblock %}
+
+{% block page_title %}تعليقات معرض الأعمال{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-end mb-3">
+  <a href="{{ url_for('admin_dashboard') }}" class="btn btn-sm btn-outline-secondary me-2">
+    <i class="fas fa-arrow-right"></i> العودة للوحة التحكم
+  </a>
+  <button type="button" class="btn btn-sm btn-outline-secondary" onclick="window.location.reload()">
+    <i class="fas fa-sync-alt"></i> تحديث
+  </button>
+</div>
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4 text-primary">إدارة تعليقات معرض الأعمال</h1>
+            
+            <!-- Pending Comments -->
+            <div class="card mb-5">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0">تعليقات بانتظار الموافقة ({{ pending_comments|length }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if pending_comments %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>الاسم</th>
+                                    <th>البريد الإلكتروني</th>
+                                    <th>التعليق</th>
+                                    <th>العمل</th>
+                                    <th>التاريخ</th>
+                                    <th>عنوان IP</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for comment in pending_comments %}
+                                <tr>
+                                    <td>{{ comment.name }}</td>
+                                    <td>{{ comment.email or 'غير محدد' }}</td>
+                                    <td>{{ comment.content|truncate(50) }}</td>
+                                    <td>
+                                        <a href="/portfolio/{{ comment.portfolio_item.id }}" target="_blank">
+                                            {{ comment.portfolio_item.title|truncate(30) }}
+                                        </a>
+                                    </td>
+                                    <td>{{ comment.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>
+                                        <span class="badge bg-dark text-light" title="عنوان IP للمعلق">
+                                            {{ comment.ip_address or 'غير متاح' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="btn btn-sm btn-success approve-comment-btn" 
+                                                    data-id="{{ comment.id }}" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#approveCommentModal" 
+                                                    data-name="{{ comment.name }}"
+                                                    data-content="{{ comment.content|truncate(40) }}">
+                                                <i class="bi bi-check-circle"></i> موافقة
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-danger delete-comment-btn ms-1"
+                                                    data-id="{{ comment.id }}"
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#deleteCommentModal"
+                                                    data-name="{{ comment.name }}"
+                                                    data-content="{{ comment.content|truncate(40) }}">
+                                                <i class="bi bi-trash"></i> حذف
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        لا توجد تعليقات بانتظار الموافقة حالياً.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Approved Comments -->
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">التعليقات المعتمدة (آخر {{ approved_comments|length }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if approved_comments %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>الاسم</th>
+                                    <th>البريد الإلكتروني</th>
+                                    <th>التعليق</th>
+                                    <th>العمل</th>
+                                    <th>التاريخ</th>
+                                    <th>عنوان IP</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for comment in approved_comments %}
+                                <tr>
+                                    <td>{{ comment.name }}</td>
+                                    <td>{{ comment.email or 'غير محدد' }}</td>
+                                    <td>{{ comment.content|truncate(50) }}</td>
+                                    <td>
+                                        <a href="/portfolio/{{ comment.portfolio_item.id }}" target="_blank">
+                                            {{ comment.portfolio_item.title|truncate(30) }}
+                                        </a>
+                                    </td>
+                                    <td>{{ comment.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>
+                                        <span class="badge bg-dark text-light" title="عنوان IP للمعلق">
+                                            {{ comment.ip_address or 'غير متاح' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-danger delete-comment-btn" 
+                                                data-id="{{ comment.id }}" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#deleteCommentModal"
+                                                data-name="{{ comment.name }}"
+                                                data-content="{{ comment.content|truncate(40) }}">
+                                            <i class="bi bi-trash"></i> حذف
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        لا توجد تعليقات معتمدة حالياً.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal: تأكيد الموافقة على التعليق -->
+<div class="modal fade" id="approveCommentModal" tabindex="-1" aria-labelledby="approveCommentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header">
+                <h5 class="modal-title" id="approveCommentModalLabel">تأكيد الموافقة على التعليق</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <i class="bi bi-check-circle-fill text-success fa-3x"></i>
+                </div>
+                <p class="lead text-center mb-3">هل أنت متأكد من الموافقة على هذا التعليق؟</p>
+                <div class="alert alert-secondary">
+                    <p><strong id="approveCommentModalName"></strong></p>
+                    <p id="approveCommentModalContent" class="fst-italic"></p>
+                </div>
+                <div class="alert alert-info">
+                    <p><i class="bi bi-info-circle-fill me-2"></i> عند الموافقة، سيظهر هذا التعليق للزوار في صفحة معرض الأعمال.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <form id="approveCommentForm" method="POST" action="">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-circle me-1"></i> تأكيد الموافقة
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: تأكيد حذف التعليق -->
+<div class="modal fade" id="deleteCommentModal" tabindex="-1" aria-labelledby="deleteCommentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteCommentModalLabel">تأكيد حذف التعليق</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <i class="bi bi-exclamation-triangle-fill text-danger fa-3x"></i>
+                </div>
+                <p class="lead text-center mb-3">هل أنت متأكد من حذف هذا التعليق؟</p>
+                <div class="alert alert-secondary">
+                    <p><strong id="deleteCommentModalName"></strong></p>
+                    <p id="deleteCommentModalContent" class="fst-italic"></p>
+                </div>
+                <div class="alert alert-danger">
+                    <p><i class="bi bi-exclamation-circle-fill me-2"></i> هذا الإجراء لا يمكن التراجع عنه. سيتم حذف التعليق نهائياً من قاعدة البيانات.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <form id="deleteCommentForm" method="POST" action="">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-1"></i> تأكيد الحذف
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle approve comment buttons
+        const approveButtons = document.querySelectorAll('.approve-comment-btn');
+        const approveForm = document.getElementById('approveCommentForm');
+        const approveModalName = document.getElementById('approveCommentModalName');
+        const approveModalContent = document.getElementById('approveCommentModalContent');
+        
+        approveButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const commentId = this.getAttribute('data-id');
+                const commentName = this.getAttribute('data-name');
+                const commentContent = this.getAttribute('data-content');
+                
+                // Update modal content
+                approveModalName.textContent = commentName;
+                approveModalContent.textContent = commentContent;
+                
+                // Update form action URL
+                approveForm.action = `/admin/portfolio-comments/${commentId}/approve`;
+            });
+        });
+        
+        // Handle delete comment buttons
+        const deleteButtons = document.querySelectorAll('.delete-comment-btn');
+        const deleteForm = document.getElementById('deleteCommentForm');
+        const deleteModalName = document.getElementById('deleteCommentModalName');
+        const deleteModalContent = document.getElementById('deleteCommentModalContent');
+        
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const commentId = this.getAttribute('data-id');
+                const commentName = this.getAttribute('data-name');
+                const commentContent = this.getAttribute('data-content');
+                
+                // Update modal content
+                deleteModalName.textContent = commentName;
+                deleteModalContent.textContent = commentContent;
+                
+                // Update form action URL
+                deleteForm.action = `/admin/portfolio-comments/${commentId}/delete`;
+            });
+        });
+    });
+</script>
+{% endblock %}

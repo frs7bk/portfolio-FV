@@ -1,0 +1,359 @@
+{% extends "admin/base.html" %}
+
+{% block title %}اختبار اتصال تلغرام{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="row">
+    <div class="col-12">
+      <div class="card bg-dark mb-4">
+        <div class="card-header pb-0 p-3 bg-gradient-dark">
+          <div class="d-flex justify-content-between">
+            <h6 class="mb-0 text-white">اختبار اتصال تلغرام</h6>
+          </div>
+        </div>
+        <div class="card-body p-3">
+          <div class="row">
+            <div class="col-md-12">
+              {% for category, message in get_flashed_messages(with_categories=true) %}
+              <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+              {% endfor %}
+
+              <div class="card bg-gradient-dark shadow mb-4">
+                <div class="card-header pb-0 bg-dark border-bottom border-secondary">
+                  <h6 class="text-white">حالة اتصال تلغرام</h6>
+                </div>
+                <div class="card-body">
+                  <div id="status-container" class="mb-4 text-center">
+                    <div class="spinner-border text-primary" role="status">
+                      <span class="visually-hidden">جاري التحميل...</span>
+                    </div>
+                    <p class="text-white mt-2">جاري التحقق من حالة الاتصال...</p>
+                  </div>
+                  
+                  <div class="d-grid gap-2">
+                    <button id="testButton" class="btn btn-primary">
+                      <i class="fas fa-paper-plane me-2"></i> إرسال رسالة اختبارية
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="card bg-gradient-dark shadow mb-4" id="notification-types-card" style="display: none;">
+                <div class="card-header pb-0 bg-dark border-bottom border-secondary">
+                  <h6 class="text-white">اختبار أنواع الإشعارات</h6>
+                </div>
+                <div class="card-body">
+                  <p class="text-white-50 mb-3">اختبر إرسال مختلف أنواع الإشعارات التي يدعمها النظام</p>
+                  
+                  <div class="row">
+                    <div class="col-md-4 mb-3">
+                      <div class="card bg-dark border border-secondary h-100">
+                        <div class="card-body text-center">
+                          <i class="fas fa-envelope fa-2x text-info mb-3"></i>
+                          <h5 class="text-white mb-3">رسالة تواصل</h5>
+                          <button class="btn btn-sm btn-info w-100" id="testContactMessage">
+                            <i class="fas fa-paper-plane me-1"></i> اختبار
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                      <div class="card bg-dark border border-secondary h-100">
+                        <div class="card-body text-center">
+                          <i class="fas fa-comment fa-2x text-primary mb-3"></i>
+                          <h5 class="text-white mb-3">تعليق جديد</h5>
+                          <button class="btn btn-sm btn-primary w-100" id="testComment">
+                            <i class="fas fa-paper-plane me-1"></i> اختبار
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                      <div class="card bg-dark border border-secondary h-100">
+                        <div class="card-body text-center">
+                          <i class="fas fa-star fa-2x text-warning mb-3"></i>
+                          <h5 class="text-white mb-3">تقييم جديد</h5>
+                          <button class="btn btn-sm btn-warning w-100" id="testTestimonial">
+                            <i class="fas fa-paper-plane me-1"></i> اختبار
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                      <div class="card bg-dark border border-secondary h-100">
+                        <div class="card-body text-center">
+                          <i class="fas fa-shopping-cart fa-2x text-success mb-3"></i>
+                          <h5 class="text-white mb-3">طلب خدمة</h5>
+                          <button class="btn btn-sm btn-success w-100" id="testServiceRequest">
+                            <i class="fas fa-paper-plane me-1"></i> اختبار
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                      <div class="card bg-dark border border-secondary h-100">
+                        <div class="card-body text-center">
+                          <i class="fas fa-heart fa-2x text-danger mb-3"></i>
+                          <h5 class="text-white mb-3">إعجاب جديد</h5>
+                          <button class="btn btn-sm btn-danger w-100" id="testLike">
+                            <i class="fas fa-paper-plane me-1"></i> اختبار
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                      <div class="card bg-dark border border-secondary h-100">
+                        <div class="card-body text-center">
+                          <i class="fas fa-user fa-2x text-secondary mb-3"></i>
+                          <h5 class="text-white mb-3">تسجيل مستخدم</h5>
+                          <button class="btn btn-sm btn-secondary w-100" id="testRegistration">
+                            <i class="fas fa-paper-plane me-1"></i> اختبار
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card bg-gradient-dark shadow mb-4">
+                <div class="card-header pb-0 bg-dark border-bottom border-secondary">
+                  <h6 class="text-white">كيفية إعداد إشعارات تلغرام</h6>
+                </div>
+                <div class="card-body">
+                  <ol class="text-white-50">
+                    <li class="mb-3">قم بإنشاء بوت تلغرام جديد من خلال محادثة <a href="https://t.me/BotFather" target="_blank" class="text-info">@BotFather</a></li>
+                    <li class="mb-3">احصل على رمز التوكن (API Token) للبوت الذي أنشأته</li>
+                    <li class="mb-3">قم بفتح محادثة مع البوت الذي أنشأته</li>
+                    <li class="mb-3">للحصول على معرف المحادثة، قم بزيارة: <br>
+                      <code>https://api.telegram.org/bot<span class="text-danger">TOKEN</span>/getUpdates</code><br>
+                      (استبدل <span class="text-danger">TOKEN</span> برمز التوكن الخاص بك)</li>
+                    <li>ابحث عن قيمة <code>chat_id</code> في الاستجابة</li>
+                  </ol>
+                </div>
+              </div>
+              
+              <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i> العودة إلى لوحة التحكم
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const statusContainer = document.getElementById('status-container');
+    const testButton = document.getElementById('testButton');
+    
+    // أزرار اختبار الإشعارات المختلفة
+    const testContactButton = document.getElementById('testContactMessage');
+    const testCommentButton = document.getElementById('testComment');
+    const testTestimonialButton = document.getElementById('testTestimonial');
+    const testServiceButton = document.getElementById('testServiceRequest');
+    const testLikeButton = document.getElementById('testLike');
+    const testRegistrationButton = document.getElementById('testRegistration');
+    
+    // التحقق من حالة الاتصال أولاً
+    checkConnectionStatus();
+    
+    // إضافة مستمع النقر لزر الاختبار
+    testButton.addEventListener('click', function() {
+      testTelegramConnection();
+    });
+    
+    // إضافة مستمعات النقر لأزرار اختبار الإشعارات المختلفة
+    if (testContactButton) {
+      testContactButton.addEventListener('click', function() {
+        testSpecificNotification('/direct-telegram/test-contact', 'رسالة تواصل', this);
+      });
+    }
+    
+    if (testCommentButton) {
+      testCommentButton.addEventListener('click', function() {
+        testSpecificNotification('/direct-telegram/test-comment', 'تعليق جديد', this);
+      });
+    }
+    
+    if (testTestimonialButton) {
+      testTestimonialButton.addEventListener('click', function() {
+        testSpecificNotification('/direct-telegram/test-testimonial', 'تقييم جديد', this);
+      });
+    }
+    
+    if (testServiceButton) {
+      testServiceButton.addEventListener('click', function() {
+        testSpecificNotification('/direct-telegram/test-service', 'طلب خدمة', this);
+      });
+    }
+    
+    if (testLikeButton) {
+      testLikeButton.addEventListener('click', function() {
+        testSpecificNotification('/direct-telegram/test-like', 'إعجاب جديد', this);
+      });
+    }
+    
+    if (testRegistrationButton) {
+      testRegistrationButton.addEventListener('click', function() {
+        testSpecificNotification('/direct-telegram/test-registration', 'تسجيل مستخدم', this);
+      });
+    }
+    
+    // دالة التحقق من حالة الاتصال
+    function checkConnectionStatus() {
+      // الحصول على معلومات متغيرات البيئة
+      fetch('/direct-telegram/status')
+        .then(response => response.json())
+        .then(data => {
+          if (data.bot_token_exists && data.chat_id_exists) {
+            statusContainer.innerHTML = `
+              <div class="text-center">
+                <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
+                <h5 class="text-white">الاتصال بتلغرام جاهز</h5>
+                <p class="text-white-50">متغيرات البيئة المطلوبة موجودة. يمكنك إرسال رسالة اختبارية للتحقق من عمل الاتصال.</p>
+              </div>
+            `;
+            
+            // إظهار قسم أنواع الإشعارات
+            document.getElementById('notification-types-card').style.display = 'block';
+          } else {
+            statusContainer.innerHTML = `
+              <div class="text-center">
+                <i class="fas fa-exclamation-triangle text-warning fa-3x mb-3"></i>
+                <h5 class="text-white">الاتصال بتلغرام غير مكتمل</h5>
+                <p class="text-white-50">
+                  ${!data.bot_token_exists ? '<span class="text-danger">• توكن البوت (TELEGRAM_BOT_TOKEN) غير موجود</span><br>' : ''}
+                  ${!data.chat_id_exists ? '<span class="text-danger">• معرف المحادثة (TELEGRAM_CHAT_ID) غير موجود</span><br>' : ''}
+                  يرجى إضافة المتغيرات المفقودة لتفعيل الإشعارات.
+                </p>
+              </div>
+            `;
+            
+            // تعطيل زر الاختبار
+            testButton.disabled = true;
+          }
+        })
+        .catch(error => {
+          statusContainer.innerHTML = `
+            <div class="text-center">
+              <i class="fas fa-times-circle text-danger fa-3x mb-3"></i>
+              <h5 class="text-white">حدث خطأ</h5>
+              <p class="text-white-50">تعذر التحقق من حالة الاتصال. يرجى المحاولة مرة أخرى لاحقًا.</p>
+            </div>
+          `;
+        });
+    }
+    
+    // دالة اختبار اتصال تلغرام
+    function testTelegramConnection() {
+      // تغيير حالة الزر
+      testButton.disabled = true;
+      testButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> جاري الإرسال...';
+      
+      // إرسال طلب الاختبار
+      fetch('/direct-telegram/test')
+        .then(response => response.json())
+        .then(data => {
+          // استعادة حالة الزر
+          testButton.disabled = false;
+          testButton.innerHTML = '<i class="fas fa-paper-plane me-2"></i> إرسال رسالة اختبارية';
+          
+          if (data.success) {
+            // تنبيه النجاح
+            Swal.fire({
+              title: 'تم الإرسال بنجاح!',
+              text: 'تم إرسال رسالة الاختبار بنجاح. تحقق من تطبيق تلغرام لديك.',
+              icon: 'success',
+              confirmButtonText: 'حسناً'
+            });
+          } else {
+            // تنبيه الخطأ
+            Swal.fire({
+              title: 'فشل الإرسال!',
+              text: data.message || 'حدث خطأ أثناء إرسال رسالة الاختبار.',
+              icon: 'error',
+              confirmButtonText: 'حسناً'
+            });
+          }
+        })
+        .catch(error => {
+          // استعادة حالة الزر
+          testButton.disabled = false;
+          testButton.innerHTML = '<i class="fas fa-paper-plane me-2"></i> إرسال رسالة اختبارية';
+          
+          // تنبيه الخطأ
+          Swal.fire({
+            title: 'حدث خطأ!',
+            text: 'تعذر إرسال طلب الاختبار. يرجى المحاولة مرة أخرى لاحقًا.',
+            icon: 'error',
+            confirmButtonText: 'حسناً'
+          });
+        });
+    }
+    
+    // دالة اختبار نوع محدد من الإشعارات
+    function testSpecificNotification(endpoint, notificationType, button) {
+      // حفظ النص الأصلي للزر
+      const originalButtonText = button.innerHTML;
+      
+      // تغيير حالة الزر
+      button.disabled = true;
+      button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> جاري الإرسال...';
+      
+      // إرسال طلب الاختبار
+      fetch(endpoint)
+        .then(response => response.json())
+        .then(data => {
+          // استعادة حالة الزر
+          button.disabled = false;
+          button.innerHTML = originalButtonText;
+          
+          if (data.success) {
+            // تنبيه النجاح
+            Swal.fire({
+              title: 'تم الإرسال بنجاح!',
+              text: `تم إرسال إشعار ${notificationType} بنجاح. تحقق من تطبيق تلغرام لديك.`,
+              icon: 'success',
+              confirmButtonText: 'حسناً'
+            });
+          } else {
+            // تنبيه الخطأ
+            Swal.fire({
+              title: 'فشل الإرسال!',
+              text: data.message || `حدث خطأ أثناء إرسال إشعار ${notificationType}.`,
+              icon: 'error',
+              confirmButtonText: 'حسناً'
+            });
+          }
+        })
+        .catch(error => {
+          // استعادة حالة الزر
+          button.disabled = false;
+          button.innerHTML = originalButtonText;
+          
+          // تنبيه الخطأ
+          Swal.fire({
+            title: 'حدث خطأ!',
+            text: `تعذر إرسال طلب اختبار إشعار ${notificationType}. يرجى المحاولة مرة أخرى لاحقًا.`,
+            icon: 'error',
+            confirmButtonText: 'حسناً'
+          });
+        });
+    }
+  });
+</script>
+{% endblock %}

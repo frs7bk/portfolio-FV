@@ -1,0 +1,308 @@
+/**
+ * Instagram-Style Carousel (4:5 Aspect Ratio)
+ * Professional, polished carousel with optimal mobile responsiveness
+ */
+
+/* Main container */
+.vertical-carousel-section {
+  padding: 3rem 0;
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.vertical-carousel-container {
+  width: 100%;
+  max-width: 380px; /* Control maximum width for optimal display */
+  margin: 0 auto;
+  position: relative;
+  padding: 0;
+  overflow: visible;
+  box-sizing: border-box;
+}
+
+/* Swiper container */
+.vertical-carousel,
+.vertical-carousel-en {
+  width: 100%;
+  margin: 0 auto;
+  overflow: visible;
+  padding-bottom: 50px; /* Space for pagination */
+}
+
+/* Slide styling - Instagram-optimized */
+.vertical-slide {
+  transition: transform 0.7s cubic-bezier(0.25, 0.1, 0.25, 1), 
+              box-shadow 0.7s cubic-bezier(0.25, 0.1, 0.25, 1);
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px; /* Slightly larger radius for modern look */
+  box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.15);
+  transform: translateZ(0); /* Force hardware acceleration */
+  background-color: #0f0f0f; /* Darker background for contrast */
+  will-change: transform, opacity; /* Performance optimization hint */
+  margin: 8px; /* Small margin for visual spacing */
+  backface-visibility: hidden; /* Prevents flicker */
+  -webkit-font-smoothing: antialiased; /* Smoother text */
+  perspective: 1000px; /* 3D acceleration */
+}
+
+.vertical-slide::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom, 
+                rgba(0,0,0,0) 50%, 
+                rgba(0,0,0,0.5) 80%, 
+                rgba(0,0,0,0.8) 100%); /* Enhanced gradient */
+  opacity: 0.7;
+  z-index: 1;
+  transition: opacity 0.35s ease;
+  pointer-events: none; /* Ensures clicks pass through to the image */
+}
+
+.vertical-slide:hover {
+  transform: scale(1.05) translateY(-5px); /* Slight lift effect */
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3); /* Enhanced shadow depth */
+}
+
+.vertical-slide:hover::before {
+  opacity: 0.5;
+}
+
+/* Instagram 4:5 aspect ratio container - professional photo dimensions */
+.aspect-ratio-4-5 {
+  position: relative;
+  width: 100%;
+  height: 0;
+  padding-top: 125%; /* 5/4 * 100% = 125% for 4:5 Instagram portrait aspect ratio */
+  overflow: hidden;
+  background-color: #f0f0f0; /* Light background during image load */
+}
+
+.aspect-ratio-4-5::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  box-shadow: inset 0 0 2px rgba(0,0,0,0.1); /* Subtle inner shadow */
+  pointer-events: none;
+  z-index: 2;
+}
+
+.aspect-ratio-4-5 img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transition: transform 0.8s cubic-bezier(0.33, 1, 0.68, 1); /* Slower, smoother easing */
+  backface-visibility: hidden; /* Prevent flickering on hover */
+  transform-origin: center; /* Zoom from center */
+  filter: saturate(1.02); /* Very subtle saturation boost */
+  will-change: transform; /* Hardware-accelerate transforms */
+  -webkit-transform: translateZ(0); /* iOS optimization */
+  transform: translateZ(0);
+  image-rendering: -webkit-optimize-contrast; /* Sharper image rendering */
+}
+
+.vertical-slide:hover .aspect-ratio-4-5 img {
+  transform: scale(1.08); /* Slightly stronger zoom on image */
+}
+
+/* Caption styling - Instagram-inspired design */
+.slide-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1.5rem 1.25rem; /* Extra top padding */
+  background: linear-gradient(to top, 
+              rgba(0,0,0,0.9) 0%, 
+              rgba(0,0,0,0.7) 40%,
+              rgba(0,0,0,0.4) 80%,
+              rgba(0,0,0,0) 100%); /* Professional gradient */
+  color: white;
+  z-index: 2;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.4s cubic-bezier(0.215, 0.61, 0.355, 1);
+  pointer-events: none; /* Don't block image clicks */
+}
+
+.slide-caption h3 {
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.6); /* Text shadow for readability */
+  letter-spacing: 0.02em;
+  transform: translateY(5px);
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.215, 0.61, 0.355, 1) 0.1s; /* Delayed transition */
+}
+
+.slide-caption p {
+  font-weight: 400;
+  line-height: 1.5;
+  opacity: 0;
+  transform: translateY(5px);
+  transition: all 0.4s cubic-bezier(0.215, 0.61, 0.355, 1) 0.2s; /* More delayed transition */
+}
+
+.vertical-slide:hover .slide-caption {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.vertical-slide:hover .slide-caption h3,
+.vertical-slide:hover .slide-caption p {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Navigation buttons - Instagram-style circular controls */
+.swiper-button-next,
+.swiper-button-prev {
+  color: #fff !important;
+  background: rgba(0, 0, 0, 0.5);
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 50%;
+  transition: all 0.3s cubic-bezier(0.215, 0.61, 0.355, 1);
+  opacity: 0.8;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+  transform: translateY(-50%);
+  border: 2px solid rgba(255,255,255,0.2); /* Subtle border */
+}
+
+.swiper-button-next {
+  right: 10px;
+}
+
+.swiper-button-prev {
+  left: 10px;
+}
+
+.swiper-button-next:hover,
+.swiper-button-prev:hover {
+  background: rgba(139, 92, 246, 0.85); /* Purple hover */
+  transform: translateY(-50%) scale(1.1);
+  opacity: 1;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  border-color: rgba(255,255,255,0.5);
+}
+
+.swiper-button-next:after,
+.swiper-button-prev:after {
+  font-size: 18px !important;
+  font-weight: bold;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+/* Pagination dots - Instagram-style indicators */
+.swiper-pagination {
+  position: relative;
+  bottom: 0 !important;
+  margin-top: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.swiper-pagination-bullet {
+  background: #888 !important; /* Neutral color for inactive */
+  opacity: 0.4;
+  width: 8px; /* Smaller, more modern */
+  height: 8px;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  margin: 0;
+  position: relative;
+  border-radius: 50%;
+}
+
+.swiper-pagination-bullet::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border-radius: 50%;
+  transition: background-color 0.35s ease;
+}
+
+.swiper-pagination-bullet:hover {
+  opacity: 0.7;
+  background: #8b5cf6 !important;
+}
+
+.swiper-pagination-bullet-active {
+  opacity: 1;
+  width: 10px;
+  height: 10px;
+  background: #8b5cf6 !important; /* Purple */
+  transform: scale(1.2);
+  box-shadow: 0 0 6px rgba(139, 92, 246, 0.5); /* Subtle purple glow effect */
+}
+
+/* Add touch-friendly target area */
+.swiper-pagination-clickable .swiper-pagination-bullet {
+  cursor: pointer;
+}
+
+/* Active slide animation - more professional */
+@keyframes slideActiveAnim {
+  0% { transform: scale(0.95); opacity: 0.7; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.swiper-slide-active .vertical-slide {
+  animation: slideActiveAnim 0.4s ease-out;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive adjustments - optimized for all devices */
+@media (max-width: 991px) {
+  .vertical-carousel-container {
+    max-width: 340px;
+  }
+}
+
+@media (max-width: 768px) {
+  .vertical-carousel-container {
+    max-width: 320px;
+  }
+  
+  .vertical-carousel-section {
+    padding: 2rem 0;
+  }
+  
+  .swiper-button-next,
+  .swiper-button-prev {
+    width: 38px !important;
+    height: 38px !important;
+  }
+}
+
+/* Mobile optimizations */
+@media (max-width: 480px) {
+  .vertical-carousel-container {
+    max-width: 280px;
+  }
+  
+  .swiper-button-next,
+  .swiper-button-prev {
+    width: 35px !important;
+    height: 35px !important;
+    margin-top: -18px;
+  }
+}

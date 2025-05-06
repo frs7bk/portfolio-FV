@@ -1,0 +1,76 @@
+
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}إضافة خدمة جديدة - لوحة الإدارة{% endblock %}
+
+{% block page_title %}إضافة خدمة جديدة{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-end mb-3">
+  <a href="{{ url_for('admin_service_content') }}" class="btn btn-outline-secondary">
+    <i class="fas fa-arrow-right"></i> العودة للخدمات
+  </a>
+</div>
+
+<!-- New Service Form -->
+<div class="card bg-dark border-secondary">
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('admin_add_service') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="mb-3">
+        <label for="service_type" class="form-label">معرف الخدمة (بالإنجليزية، بدون مسافات) <span class="text-danger">*</span></label>
+        <input type="text" class="form-control bg-darker" id="service_type" name="service_type" required pattern="[a-zA-Z0-9-]+" placeholder="مثال: web-design">
+        <div class="form-text">سيتم استخدام هذا المعرف في روابط URL</div>
+      </div>
+      
+      <div class="mb-3">
+        <label for="title" class="form-label">عنوان الخدمة <span class="text-danger">*</span></label>
+        <input type="text" class="form-control bg-darker" id="title" name="title" required>
+      </div>
+      
+      <div class="mb-3">
+        <label for="subtitle" class="form-label">العنوان الفرعي</label>
+        <input type="text" class="form-control bg-darker" id="subtitle" name="subtitle">
+      </div>
+      
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="price" class="form-label">السعر</label>
+          <input type="text" class="form-control bg-darker" id="price" name="price">
+        </div>
+        
+        <div class="col-md-6 mb-3">
+          <label for="delivery_time" class="form-label">مدة التسليم</label>
+          <input type="text" class="form-control bg-darker" id="delivery_time" name="delivery_time">
+        </div>
+      </div>
+      
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="revisions" class="form-label">التعديلات</label>
+          <input type="text" class="form-control bg-darker" id="revisions" name="revisions">
+        </div>
+        
+        <div class="col-md-6 mb-3">
+          <label for="formats" class="form-label">الصيغ المتاحة</label>
+          <input type="text" class="form-control bg-darker" id="formats" name="formats">
+        </div>
+      </div>
+      
+      <div class="mb-3">
+        <label for="description" class="form-label">وصف الخدمة</label>
+        <textarea class="form-control bg-darker" id="description" name="description" rows="5"></textarea>
+      </div>
+      
+      <div class="d-flex justify-content-between">
+        <a href="{{ url_for('admin_service_content') }}" class="btn btn-secondary">
+          <i class="fas fa-times"></i> إلغاء
+        </a>
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-plus"></i> إضافة الخدمة
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

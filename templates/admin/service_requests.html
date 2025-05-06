@@ -1,0 +1,441 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}إدارة طلبات الخدمة - لوحة التحكم{% endblock %}
+
+{% block styles %}
+<style>
+    /* ألوان الموقع */
+    :root {
+        --yellow-main: #FCD34D;
+        --yellow-hover: #FBBF24;
+        --dark-gray: #1F2937;
+        --darker-gray: #111827;
+        --light-gray: #4B5563;
+        --lighter-gray: #9CA3AF;
+    }
+    
+    /* تنسيق بطاقات الطلبات */
+    .request-card {
+        border-left: 5px solid var(--lighter-gray);
+        transition: all 0.3s ease;
+        background-color: var(--darker-gray);
+        color: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        margin-bottom: 1.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+    .request-card.new {
+        border-left-color: var(--yellow-main);
+        background-color: rgba(252, 211, 77, 0.05);
+    }
+    .request-card.in_progress {
+        border-left-color: #FCA5A5;
+        background-color: rgba(252, 165, 165, 0.05);
+    }
+    .request-card.completed {
+        border-left-color: #6EE7B7;
+        background-color: rgba(110, 231, 183, 0.05);
+    }
+    .request-card.cancelled {
+        border-left-color: #F87171;
+        background-color: rgba(248, 113, 113, 0.05);
+    }
+    .request-info {
+        font-size: 0.85rem;
+        color: var(--lighter-gray);
+    }
+    .request-actions {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+    }
+    .request-content {
+        white-space: pre-line;
+        color: white;
+    }
+    
+    /* تنسيق الفلاتر */
+    .filter-badge {
+        cursor: pointer;
+        background-color: var(--dark-gray);
+        color: white;
+        transition: all 0.3s ease;
+    }
+    .filter-badge:hover {
+        background-color: var(--light-gray);
+    }
+    .filter-badge.active {
+        background-color: var(--yellow-main);
+        color: var(--darker-gray);
+        font-weight: bold;
+    }
+    
+    /* تنسيق الأيقونات */
+    .request-icon {
+        font-size: 1.5rem;
+        color: var(--yellow-main);
+    }
+    
+    /* تنسيق القائمة المنسدلة */
+    .dropdown-menu {
+        background-color: var(--dark-gray);
+        border: 1px solid var(--light-gray);
+    }
+    .dropdown-item {
+        color: white;
+    }
+    .dropdown-item:hover {
+        background-color: var(--darker-gray);
+    }
+    .dropdown-header {
+        color: var(--yellow-main);
+        font-weight: bold;
+    }
+    
+    /* تنسيق عناوين الطلبات */
+    .card-title {
+        color: var(--yellow-main);
+        font-weight: bold;
+    }
+    
+    /* تحسين شارات الحالة */
+    .status-badge.bg-primary {
+        background-color: var(--yellow-main) !important;
+        color: var(--darker-gray) !important;
+    }
+    .status-badge.bg-warning {
+        background-color: #FCA5A5 !important;
+        color: var(--darker-gray) !important;
+    }
+    .status-badge.bg-success {
+        background-color: #6EE7B7 !important;
+        color: var(--darker-gray) !important;
+    }
+    .status-badge.bg-danger {
+        background-color: #F87171 !important;
+        color: white !important;
+    }
+    .dropdown-item {
+        cursor: pointer;
+    }
+    .bg-light-hover:hover {
+        background-color: #f8f9fa;
+    }
+    .status-badge {
+        font-size: 0.85rem;
+        padding: 0.25rem 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block page_title %}إدارة طلبات الخدمة{% endblock %}
+
+{% block admin_content %}
+<!-- أزرار الفلترة -->
+<div class="d-flex justify-content-end mb-4">
+    <div>
+        <button type="button" class="btn btn-sm filter-btn me-2" data-filter="all" style="background-color: var(--dark-gray); color: white; border: 1px solid var(--light-gray);">
+            <i class="fas fa-list-ul me-1"></i>جميع الطلبات
+            <span class="badge ms-1" style="background-color: var(--yellow-main); color: var(--darker-gray);">{{ requests|length }}</span>
+        </button>
+        <button type="button" class="btn btn-sm filter-btn me-2" data-filter="new" style="background-color: rgba(252, 211, 77, 0.1); color: var(--yellow-main); border: 1px solid var(--yellow-main);">
+            <i class="fas fa-bell me-1"></i>جديدة
+            <span class="badge ms-1" style="background-color: var(--yellow-main); color: var(--darker-gray);">{{ new_requests|length }}</span>
+        </button>
+        <button type="button" class="btn btn-sm filter-btn me-2" data-filter="in_progress" style="background-color: rgba(252, 165, 165, 0.1); color: #FCA5A5; border: 1px solid #FCA5A5;">
+            <i class="fas fa-spinner me-1"></i>قيد التنفيذ
+            <span class="badge ms-1" style="background-color: #FCA5A5; color: var(--darker-gray);">{{ in_progress_requests|length }}</span>
+        </button>
+        <button type="button" class="btn btn-sm filter-btn me-2" data-filter="completed" style="background-color: rgba(110, 231, 183, 0.1); color: #6EE7B7; border: 1px solid #6EE7B7;">
+            <i class="fas fa-check-circle me-1"></i>مكتملة
+            <span class="badge ms-1" style="background-color: #6EE7B7; color: var(--darker-gray);">{{ completed_requests|length }}</span>
+        </button>
+        <button type="button" class="btn btn-sm filter-btn" data-filter="cancelled" style="background-color: rgba(248, 113, 113, 0.1); color: #F87171; border: 1px solid #F87171;">
+            <i class="fas fa-times-circle me-1"></i>ملغية
+            <span class="badge ms-1" style="background-color: #F87171; color: white;">{{ cancelled_requests|length }}</span>
+        </button>
+    </div>
+</div>
+
+<!-- شريط البحث -->
+<div class="card shadow-sm mb-4" style="background-color: var(--dark-gray); border: none; border-radius: 0.75rem;">
+    <div class="card-body">
+        <div class="input-group">
+            <input type="text" id="request-search" class="form-control" placeholder="ابحث في طلبات الخدمة..." 
+                   style="background-color: var(--darker-gray); border: 1px solid var(--light-gray); color: white;">
+            <button class="btn" type="button" style="background-color: var(--yellow-main); color: var(--darker-gray);">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- قائمة الطلبات -->
+<div class="row" id="requests-container">
+    {% if requests %}
+        {% for request in requests %}
+        <div class="col-12 mb-3 request-item {{ request.status }}" 
+             data-id="{{ request.id }}" 
+             data-search="{{ request.name }} {{ request.email }} {{ request.service_type }} {{ request.details }}">
+            <div class="card shadow-sm request-card {{ request.status }}">
+                <div class="card-body position-relative p-0">
+                    <!-- شريط الحالة في الأعلى -->
+                    <div class="d-flex justify-content-between align-items-center p-3" style="border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                        <div class="d-flex align-items-center">
+                            <!-- أيقونة الخدمة -->
+                            <span class="d-flex justify-content-center align-items-center me-3" style="width: 40px; height: 40px; background-color: rgba(252, 211, 77, 0.1); border-radius: 50%;">
+                                <i class="fas fa-clipboard-check" style="color: var(--yellow-main); font-size: 1.2rem;"></i>
+                            </span>
+                            
+                            <!-- نوع الخدمة والحالة -->
+                            <div>
+                                <h6 class="mb-0" style="color: var(--yellow-main); font-weight: bold; font-size: 1rem;">{{ request.service_type }}</h6>
+                                <div class="d-flex align-items-center mt-1">
+                                    {% if request.status == 'new' %}
+                                    <span class="badge bg-primary status-badge">جديد</span>
+                                    {% elif request.status == 'in_progress' %}
+                                    <span class="badge bg-warning text-dark status-badge">قيد التنفيذ</span>
+                                    {% elif request.status == 'completed' %}
+                                    <span class="badge bg-success status-badge">مكتمل</span>
+                                    {% elif request.status == 'cancelled' %}
+                                    <span class="badge bg-danger status-badge">ملغي</span>
+                                    {% endif %}
+                                    
+                                    {% if request.telegram_sent %}
+                                    <span class="badge bg-info ms-1" title="تم إرسال إشعار تيليجرام">
+                                        <i class="fab fa-telegram-plane"></i>
+                                    </span>
+                                    {% endif %}
+                                    {% if request.email_sent %}
+                                    <span class="badge bg-success ms-1" title="تم إرسال بريد إلكتروني">
+                                        <i class="fas fa-envelope"></i>
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- زر الإجراءات -->
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-sm dropdown-toggle" 
+                                    style="background-color: var(--yellow-main); color: var(--darker-gray);" 
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li class="dropdown-header">تغيير الحالة</li>
+                                <li>
+                                    <a class="dropdown-item update-status {% if request.status == 'new' %}disabled{% endif %}" 
+                                       data-id="{{ request.id }}" 
+                                       data-status="new" 
+                                       href="#">
+                                        <i class="fas fa-bell me-2 text-primary"></i>جديد
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item update-status {% if request.status == 'in_progress' %}disabled{% endif %}" 
+                                       data-id="{{ request.id }}" 
+                                       data-status="in_progress" 
+                                       href="#">
+                                        <i class="fas fa-spinner me-2 text-warning"></i>قيد التنفيذ
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item update-status {% if request.status == 'completed' %}disabled{% endif %}" 
+                                       data-id="{{ request.id }}" 
+                                       data-status="completed" 
+                                       href="#">
+                                        <i class="fas fa-check-circle me-2 text-success"></i>مكتمل
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item update-status {% if request.status == 'cancelled' %}disabled{% endif %}" 
+                                       data-id="{{ request.id }}" 
+                                       data-status="cancelled" 
+                                       href="#">
+                                        <i class="fas fa-times-circle me-2 text-danger"></i>ملغي
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" href="mailto:{{ request.email }}?subject=بخصوص طلب الخدمة: {{ request.service_type }}">
+                                        <i class="fas fa-reply me-2"></i>الرد عبر البريد
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item delete-service-request text-danger" 
+                                       data-id="{{ request.id }}" 
+                                       data-title="طلب خدمة: {{ request.service_type }} ({{ request.name }})"
+                                       data-type="service-requests" href="#">
+                                        <i class="fas fa-trash-alt me-2"></i>حذف
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- معلومات الطلب -->
+                    <div class="p-3">
+                        <!-- معلومات مقدم الطلب -->
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="d-flex justify-content-center align-items-center me-3" style="width: 40px; height: 40px; background-color: rgba(255, 255, 255, 0.05); border-radius: 50%;">
+                                <i class="fas fa-user" style="color: var(--yellow-main);"></i>
+                            </div>
+                            <div>
+                                <h5 class="card-title mb-0" style="color: var(--yellow-main); font-size: 1.1rem;">{{ request.name }}</h5>
+                                <div class="request-info" style="color: #E5E7EB; font-size: 0.85rem;">
+                                    <span><i class="fas fa-envelope me-1" style="color: var(--yellow-main);"></i>{{ request.email }}</span>
+                                    {% if request.phone %}
+                                    <span class="ms-2"><i class="fas fa-phone me-1" style="color: var(--yellow-main);"></i>{{ request.phone }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- تفاصيل الطلب -->
+                        <div style="background-color: rgba(255, 255, 255, 0.03); border-radius: 0.5rem; padding: 1rem; margin-bottom: 1rem;">
+                            <p class="card-text request-content mb-0" style="color: white; font-size: 0.95rem;">{{ request.details }}</p>
+                        </div>
+                        
+                        <!-- معلومات إضافية -->
+                        <div class="d-flex flex-wrap justify-content-between align-items-center" style="background-color: rgba(255, 255, 255, 0.02); border-radius: 0.5rem; padding: 0.75rem;">
+                            <div class="d-flex align-items-center" style="color: #E5E7EB;">
+                                <i class="fas fa-calendar-alt me-2" style="color: var(--yellow-main);"></i>
+                                <span style="font-size: 0.85rem;">{{ request.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                            </div>
+                            
+                            {% if request.budget %}
+                            <div style="color: #E5E7EB; font-size: 0.85rem;">
+                                <i class="fas fa-money-bill-wave me-1" style="color: var(--yellow-main);"></i>
+                                <strong>الميزانية:</strong> {{ request.budget }}
+                            </div>
+                            {% endif %}
+                            
+                            {% if request.timeline %}
+                            <div style="color: #E5E7EB; font-size: 0.85rem;">
+                                <i class="fas fa-clock me-1" style="color: var(--yellow-main);"></i>
+                                <strong>المدة الزمنية:</strong> {{ request.timeline }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+    <div class="col-12">
+        <div class="alert" style="background-color: var(--dark-gray); color: var(--yellow-main); border: 1px solid var(--yellow-main); border-radius: 0.5rem;">
+            <i class="fas fa-info-circle me-2"></i>لا توجد طلبات خدمة حالياً.
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- تم حذف نافذة التأكيد واستبدالها بالنظام الموحد في admin-unified.js -->
+<!-- تم إزالة نافذة تأكيد الحذف لأننا نستخدم الآن النظام الموحد الذي يتضمن تأكيدًا مبنيًا في المتصفح -->
+{% endblock %}
+
+<script>
+    $(document).ready(function() {
+        // تصفية الطلبات
+        $('.filter-btn').click(function() {
+            var filter = $(this).data('filter');
+            $('.filter-btn').removeClass('active');
+            $(this).addClass('active');
+            
+            if (filter === 'all') {
+                $('.request-item').show();
+            } else {
+                $('.request-item').hide();
+                $('.request-item.' + filter).show();
+            }
+        });
+        
+        // البحث في الطلبات
+        $('#request-search').on('keyup', function() {
+            var searchText = $(this).val().toLowerCase();
+            $('.request-item').each(function() {
+                var content = $(this).data('search').toLowerCase();
+                if (content.includes(searchText)) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        });
+        
+        // تحديث حالة الطلب
+        $('.update-status').click(function(e) {
+            e.preventDefault();
+            if ($(this).hasClass('disabled')) return;
+            
+            var requestId = $(this).data('id');
+            var newStatus = $(this).data('status');
+            var requestCard = $(this).closest('.request-item');
+            
+            $.ajax({
+                url: '{{ url_for("messaging.update_request_status", request_id=0) }}'.replace('0', requestId),
+                type: 'POST',
+                data: { status: newStatus },
+                success: function(response) {
+                    if (response.success) {
+                        // تحديث الفئة على العنصر والبطاقة
+                        requestCard.removeClass('new in_progress completed cancelled');
+                        requestCard.addClass(newStatus);
+                        
+                        requestCard.find('.request-card').removeClass('new in-progress completed cancelled');
+                        requestCard.find('.request-card').addClass(newStatus);
+                        
+                        // تحديث شارة الحالة
+                        var statusBadge = requestCard.find('.status-badge');
+                        statusBadge.removeClass('bg-primary bg-warning bg-success bg-danger');
+                        
+                        if (newStatus === 'new') {
+                            statusBadge.addClass('bg-primary').text('جديد');
+                        } else if (newStatus === 'in_progress') {
+                            statusBadge.addClass('bg-warning text-dark').text('قيد التنفيذ');
+                        } else if (newStatus === 'completed') {
+                            statusBadge.addClass('bg-success').text('مكتمل');
+                        } else if (newStatus === 'cancelled') {
+                            statusBadge.addClass('bg-danger').text('ملغي');
+                        }
+                        
+                        // تعطيل خيار الحالة الحالية وتفعيل الخيارات الأخرى
+                        requestCard.find('.update-status').removeClass('disabled');
+                        requestCard.find(`.update-status[data-status="${newStatus}"]`).addClass('disabled');
+                        
+                        // إظهار رسالة نجاح
+                        showAlert('تم تحديث حالة الطلب بنجاح', 'success');
+                    } else {
+                        showAlert('حدث خطأ أثناء تحديث حالة الطلب', 'danger');
+                    }
+                },
+                error: function() {
+                    showAlert('حدث خطأ في الاتصال بالخادم', 'danger');
+                }
+            });
+        });
+        
+        // تم تحديث حذف الطلبات لاستخدام النظام الموحد من admin-unified.js
+        
+        // عرض رسائل التنبيه
+        function showAlert(message, type) {
+            var alertHtml = `
+                <div class="alert alert-${type} alert-dismissible fade show mt-3" role="alert">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+            $('#requests-container').before(alertHtml);
+            
+            // إخفاء التنبيه بعد 5 ثوانٍ
+            setTimeout(function() {
+                $('.alert').alert('close');
+            }, 5000);
+        }
+    });
+</script>

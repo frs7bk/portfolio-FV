@@ -1,0 +1,562 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}لوحة الزوار النشطين{% endblock %}
+{% block page_title %}الزوار النشطين حاليًا{% endblock %}
+
+{% block admin_content %}
+<!-- إحصائيات الزوار النشطين -->
+<div class="row row-cols-1 row-cols-md-4 g-4 mb-4">
+  <div class="col">
+    <div class="stats-card text-center position-relative">
+      <div class="icon">
+        <i class="fas fa-user-clock"></i>
+      </div>
+      <div class="number" id="visitor-count">0</div>
+      <div class="label">الزوار النشطين حاليًا</div>
+      <div class="update-time small text-muted mt-2" id="last-update-time"></div>
+    </div>
+  </div>
+  
+  <!-- بطاقة زائر حالي -->
+  <div class="col" id="current-visitor-card">
+    <div class="stats-card text-center position-relative">
+      <div class="icon bg-success">
+        <i class="fas fa-user-check"></i>
+      </div>
+      <div class="d-flex align-items-center justify-content-center">
+        <span class="badge rounded-pill bg-success pulse-badge">متصل</span>
+        <span class="ms-2 fw-bold">أنت</span>
+      </div>
+      <div class="label">الصفحة الحالية: <span id="current-page" class="text-info">صفحة إدارة الزوار</span></div>
+      <div class="update-time small text-info mt-2">متصل الآن</div>
+    </div>
+  </div>
+</div>
+
+<style>
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+  }
+  
+  .pulse-badge {
+    animation: pulse 2s infinite;
+  }
+</style>
+
+<!-- أدوات التحكم -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card border-0 bg-dark bg-opacity-25">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0 gradient-text"><i class="fas fa-cog me-2"></i> أدوات التحكم</h6>
+      </div>
+      <div class="card-body">
+        <div class="d-flex flex-wrap gap-2">
+          <button id="refresh-btn" class="btn btn-primary">
+            <i class="fas fa-sync-alt me-1"></i> تحديث البيانات
+          </button>
+          <a href="{{ url_for('analytics.visitors_dashboard') }}" class="btn btn-info">
+            <i class="fas fa-chart-line me-1"></i> تحليلات الزوار
+          </a>
+          <a href="{{ url_for('analytics.activity_list') }}" class="btn btn-secondary">
+            <i class="fas fa-history me-1"></i> سجل النشاطات
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- قائمة الزوار النشطين -->
+<div class="row">
+  <div class="col-12 mb-4">
+    <div class="content-card">
+      <h5 class="card-title d-flex justify-content-between">
+        <span><i class="fas fa-users me-2"></i> قائمة الزوار النشطين</span>
+        <span class="badge bg-primary rounded-pill live-visitors-count">0</span>
+      </h5>
+      
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-dark table-hover mb-0">
+            <thead>
+              <tr>
+                <th scope="col"><i class="fas fa-fingerprint me-1"></i> المعرف</th>
+                <th scope="col"><i class="fas fa-map-marker-alt me-1"></i> عنوان IP</th>
+                <th scope="col"><i class="fas fa-file-alt me-1"></i> الصفحة الحالية</th>
+                <th scope="col"><i class="fas fa-browser me-1"></i> المتصفح</th>
+                <th scope="col"><i class="fas fa-clock me-1"></i> آخر نشاط</th>
+                <th scope="col"><i class="fas fa-share-alt me-1"></i> المصدر</th>
+                <th scope="col"><i class="fas fa-cog me-1"></i> الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="visitors-table-body">
+              <!-- سيتم ملؤها بالجافاسكريبت -->
+            </tbody>
+          </table>
+        </div>
+        
+        <div id="no-visitors" class="text-center py-5 d-none">
+          <div class="py-5">
+            <i class="fas fa-user-slash fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">لا يوجد زوار نشطين حاليًا</h5>
+            <p class="text-muted">سيظهر الزوار هنا عند تصفح موقعك</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- تفاصيل الزائر - المودال -->
+<div class="modal fade" id="visitorDetailsModal" tabindex="-1" aria-labelledby="visitorDetailsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content bg-dark">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title gradient-text" id="visitorDetailsModalLabel">
+          <i class="fas fa-user-shield me-2"></i> تفاصيل الزائر: <span id="detail-visitor-id"></span>
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <!-- بطاقات المعلومات -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <div class="visitor-info-card">
+              <span class="info-icon"><i class="fas fa-map-marker-alt"></i></span>
+              <div class="info-content">
+                <h6 class="info-title">عنوان IP</h6>
+                <div id="detail-ip" class="info-value"></div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="visitor-info-card">
+              <span class="info-icon"><i class="fas fa-clock"></i></span>
+              <div class="info-content">
+                <h6 class="info-title">آخر نشاط</h6>
+                <div id="detail-last-seen" class="info-value"></div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="visitor-info-card">
+              <span class="info-icon"><i class="fas fa-laptop-code"></i></span>
+              <div class="info-content">
+                <h6 class="info-title">المتصفح</h6>
+                <div id="detail-user-agent" class="info-value text-truncate"></div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="visitor-info-card">
+              <span class="info-icon"><i class="fas fa-share-alt"></i></span>
+              <div class="info-content">
+                <h6 class="info-title">المصدر</h6>
+                <div id="detail-referer" class="info-value"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- الصفحات التي تمت زيارتها -->
+        <div class="mt-4">
+          <h6 class="gradient-text mb-3"><i class="fas fa-history me-2"></i> الصفحات التي تمت زيارتها</h6>
+          <div class="list-group list-group-flush bg-transparent" id="detail-pages">
+            <!-- سيتم ملؤها بالجافاسكريبت -->
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer border-top border-secondary">
+        <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">إغلاق</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.visitor-info-card {
+  display: flex;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 15px;
+  height: 100%;
+  transition: all 0.3s ease;
+}
+
+.visitor-info-card:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-3px);
+}
+
+.info-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(45deg, #3b7ddd, #6610f2);
+  margin-left: 15px;
+  color: white;
+  font-size: 1.2rem;
+}
+
+.info-content {
+  flex: 1;
+}
+
+.info-title {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+}
+
+.info-value {
+  color: white;
+  font-weight: 500;
+  word-break: break-word;
+}
+
+.page-list-item {
+  background-color: rgba(255, 255, 255, 0.05);
+  border: none;
+  margin-bottom: 5px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.page-list-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: translateX(-5px);
+}
+
+.page-list-item .badge {
+  font-weight: normal;
+  padding: 5px 10px;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    // تحديث بيانات الزوار كل 10 ثواني
+    let refreshInterval;
+    let visitorDetailsModal;
+    
+    function fetchLiveVisitors() {
+        console.log("جاري جلب بيانات الزوار النشطين...");
+        
+        // إضافة timestamp لتجنب التخزين المؤقت
+        const timestamp = new Date().getTime();
+        fetch(`/api/live/visitors?t=${timestamp}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('خطأ في الاتصال: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                // تحديث عدد الزوار
+                document.getElementById('visitor-count').textContent = data.count;
+                document.querySelector('.live-visitors-count').textContent = data.count;
+                
+                // تحديث وقت آخر تحديث
+                const now = new Date();
+                const timeString = now.toLocaleTimeString('ar-SA');
+                document.getElementById('last-update-time').textContent = `آخر تحديث: ${timeString}`;
+                
+                // تحديث معلومات الزائر الحالي
+                document.getElementById('current-page').textContent = window.location.pathname;
+                
+                const tableBody = document.getElementById('visitors-table-body');
+                const noVisitors = document.getElementById('no-visitors');
+                
+                // مسح المحتوى الحالي
+                tableBody.innerHTML = '';
+                
+                if (data.visitors && data.visitors.length > 0) {
+                    noVisitors.classList.add('d-none');
+                    
+                    data.visitors.forEach((visitor, index) => {
+                        // استخراج معلومات المتصفح
+                        let browserInfo = 'غير معروف';
+                        let browserIcon = 'fa-question-circle';
+                        const ua = visitor.user_agent || '';
+                        
+                        if (ua.includes('Chrome')) {
+                            browserInfo = 'Chrome';
+                            browserIcon = 'fa-chrome';
+                        } else if (ua.includes('Firefox')) {
+                            browserInfo = 'Firefox';
+                            browserIcon = 'fa-firefox';
+                        } else if (ua.includes('Safari')) {
+                            browserInfo = 'Safari';
+                            browserIcon = 'fa-safari';
+                        } else if (ua.includes('Edge')) {
+                            browserInfo = 'Edge';
+                            browserIcon = 'fa-edge';
+                        } else if (ua.includes('Opera') || ua.includes('OPR')) {
+                            browserInfo = 'Opera';
+                            browserIcon = 'fa-opera';
+                        }
+                        
+                        let deviceIcon = '';
+                        if (ua.includes('Mobile')) {
+                            browserInfo += ' (هاتف)';
+                            deviceIcon = '<i class="fas fa-mobile-alt ms-1 text-warning"></i>';
+                        } else if (ua.includes('Tablet')) {
+                            browserInfo += ' (جهاز لوحي)';
+                            deviceIcon = '<i class="fas fa-tablet-alt ms-1 text-warning"></i>';
+                        } else {
+                            deviceIcon = '<i class="fas fa-desktop ms-1 text-info"></i>';
+                        }
+                        
+                        // استخراج المصدر بشكل مبسط
+                        let refererInfo = visitor.referer || '-';
+                        let refererIcon = 'fa-link';
+                        let refererBadge = '';
+                        
+                        if (refererInfo.includes('google')) {
+                            refererInfo = 'Google';
+                            refererIcon = 'fa-google';
+                            refererBadge = 'bg-danger';
+                        } else if (refererInfo.includes('facebook')) {
+                            refererInfo = 'Facebook';
+                            refererIcon = 'fa-facebook';
+                            refererBadge = 'bg-primary';
+                        } else if (refererInfo.includes('twitter') || refererInfo.includes('x.com')) {
+                            refererInfo = 'Twitter';
+                            refererIcon = 'fa-twitter';
+                            refererBadge = 'bg-info';
+                        } else if (refererInfo.includes('instagram')) {
+                            refererInfo = 'Instagram';
+                            refererIcon = 'fa-instagram';
+                            refererBadge = 'bg-danger';
+                        } else if (refererInfo.includes('linkedin')) {
+                            refererInfo = 'LinkedIn';
+                            refererIcon = 'fa-linkedin';
+                            refererBadge = 'bg-primary';
+                        } else if (refererInfo === '-' || refererInfo === '') {
+                            refererInfo = 'مباشر';
+                            refererIcon = 'fa-external-link-alt';
+                            refererBadge = 'bg-secondary';
+                        } else {
+                            // الحد من طول النص
+                            if (refererInfo.length > 30) {
+                                refererInfo = refererInfo.substring(0, 30) + '...';
+                            }
+                            refererBadge = 'bg-secondary';
+                        }
+                        
+                        // تنسيق الصفحة الحالية
+                        let currentPage = visitor.current_page || '/';
+                        let pageTitle = "";
+                        
+                        if (visitor.visited_pages && visitor.visited_pages.length > 0) {
+                            const lastPage = visitor.visited_pages[visitor.visited_pages.length - 1];
+                            pageTitle = lastPage[1] || "";
+                        }
+                        
+                        if (currentPage.length > 25) {
+                            currentPage = currentPage.substring(0, 25) + '...';
+                        }
+                        
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>
+                                <span class="badge bg-dark text-light border border-light">${visitor.id}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-dark text-light">
+                                    <i class="fas fa-map-marker-alt text-danger me-1"></i>
+                                    ${visitor.ip_address || '-'}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-dark text-light" title="${visitor.current_page || '/'}">
+                                    <i class="fas fa-file-alt text-success me-1"></i>
+                                    ${currentPage}
+                                    ${pageTitle ? `<small class="text-muted">(${pageTitle})</small>` : ''}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-dark text-light">
+                                    <i class="fab ${browserIcon} text-primary me-1"></i>
+                                    ${deviceIcon}
+                                    ${browserInfo}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-dark text-light">
+                                    <i class="fas fa-clock text-warning me-1"></i>
+                                    ${visitor.last_seen || '-'}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge ${refererBadge}" title="${visitor.referer || '-'}">
+                                    <i class="fab ${refererIcon} me-1"></i>
+                                    ${refererInfo}
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-info view-details" data-visitor-id="${visitor.id}">
+                                    <i class="fas fa-eye me-1"></i> عرض
+                                </button>
+                            </td>
+                        `;
+                        
+                        tableBody.appendChild(row);
+                    });
+                    
+                    // إضافة المستمعين لأزرار عرض التفاصيل
+                    document.querySelectorAll('.view-details').forEach(button => {
+                        button.addEventListener('click', function() {
+                            const visitorId = this.dataset.visitorId;
+                            showVisitorDetails(visitorId, data.visitors);
+                        });
+                    });
+                    
+                } else {
+                    noVisitors.classList.remove('d-none');
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching live visitors:', error);
+                document.getElementById('visitor-count').textContent = '0';
+                document.querySelector('.live-visitors-count').textContent = '0';
+                document.getElementById('visitors-table-body').innerHTML = '';
+                document.getElementById('no-visitors').classList.remove('d-none');
+                document.getElementById('no-visitors').innerHTML = `
+                    <div class="py-5">
+                        <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                        <h5 class="text-warning">خطأ في الاتصال بالخادم</h5>
+                        <p class="text-muted">تعذر الحصول على بيانات الزوار. يرجى إعادة تحميل الصفحة.</p>
+                    </div>
+                `;
+            });
+    }
+    
+    function showVisitorDetails(visitorId, visitors) {
+        const visitor = visitors.find(v => v.id === visitorId);
+        if (!visitor) return;
+        
+        // تنسيق تفاصيل الزائر
+        document.getElementById('detail-visitor-id').textContent = visitor.id;
+        document.getElementById('detail-ip').textContent = visitor.ip_address || '-';
+        document.getElementById('detail-last-seen').textContent = visitor.last_seen || '-';
+        document.getElementById('detail-user-agent').textContent = visitor.user_agent || '-';
+        document.getElementById('detail-referer').textContent = visitor.referer || 'مباشر';
+        
+        const pagesList = document.getElementById('detail-pages');
+        pagesList.innerHTML = '';
+        
+        if (visitor.visited_pages && visitor.visited_pages.length > 0) {
+            visitor.visited_pages.forEach((page, index) => {
+                const pageItem = document.createElement('a');
+                pageItem.href = "#";
+                pageItem.className = 'list-group-item list-group-item-action page-list-item';
+                pageItem.innerHTML = `
+                    <div class="d-flex w-100 justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-file-alt text-info me-2"></i>
+                            ${page[0]}
+                            ${page[1] ? `<span class="badge bg-dark ms-2">${page[1]}</span>` : ''}
+                        </div>
+                        <small class="text-muted">${index + 1}/${visitor.visited_pages.length}</small>
+                    </div>
+                `;
+                pagesList.appendChild(pageItem);
+            });
+        } else {
+            const pageItem = document.createElement('a');
+            pageItem.href = "#";
+            pageItem.className = 'list-group-item list-group-item-action page-list-item';
+            pageItem.innerHTML = `
+                <div class="d-flex w-100 justify-content-between">
+                    <div>
+                        <i class="fas fa-file-alt text-info me-2"></i>
+                        ${visitor.current_page || '/'}
+                        <span class="badge bg-dark ms-2">الصفحة الحالية</span>
+                    </div>
+                </div>
+            `;
+            pagesList.appendChild(pageItem);
+        }
+        
+        // عرض المودال
+        visitorDetailsModal.show();
+    }
+    
+    // الاستدعاء الأولي للبيانات
+    document.addEventListener('DOMContentLoaded', function() {
+        // تهيئة المودال
+        visitorDetailsModal = new bootstrap.Modal(document.getElementById('visitorDetailsModal'));
+        
+        // جلب بيانات الزوار النشطين للمرة الأولى
+        fetchLiveVisitors();
+        
+        // تتبع المستخدم الحالي
+        trackCurrentVisitor();
+        
+        // تحديث البيانات كل 5 ثواني (فترة أقصر لتحديث أكثر تفاعلية)
+        refreshInterval = setInterval(fetchLiveVisitors, 5000);
+        
+        // إضافة وظيفة للمساعدة في تتبع المستخدم الحالي (نفس المسؤول)
+        function trackCurrentVisitor() {
+            // إرسال بيانات المستخدم الحالي
+            const visitorId = "{{ current_user.id }}";
+            const currentPage = window.location.pathname;
+            const pageTitle = document.title;
+            
+            console.log("تتبع الزائر الحالي: " + visitorId);
+            
+            // إرسال بيانات المستخدم عبر واجهة التتبع
+            fetch('/api/live/track', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    visitor_id: visitorId,
+                    page_url: currentPage,
+                    page_title: pageTitle,
+                    referer: document.referrer
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("تم تحديث بيانات الزائر بنجاح", data);
+            })
+            .catch(error => {
+                console.error("خطأ في تتبع الزائر:", error);
+            });
+            
+            // تكرار عملية التتبع كل 30 ثانية
+            setTimeout(trackCurrentVisitor, 30000);
+        }
+        
+        // زر التحديث اليدوي
+        document.getElementById('refresh-btn').addEventListener('click', function() {
+            // تأثير أنيميشن للزر عند النقر
+            this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> جاري التحديث...';
+            
+            // استدعاء البيانات
+            fetchLiveVisitors();
+            
+            // إعادة النص الأصلي بعد ثانية
+            setTimeout(() => {
+                this.innerHTML = '<i class="fas fa-sync-alt me-1"></i> تحديث البيانات';
+            }, 1000);
+        });
+    });
+    
+    // تنظيف المؤقت عند مغادرة الصفحة
+    window.addEventListener('beforeunload', function() {
+        clearInterval(refreshInterval);
+    });
+</script>
+{% endblock %}

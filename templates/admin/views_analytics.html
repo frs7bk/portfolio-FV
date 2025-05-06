@@ -1,0 +1,427 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}تحليلات المشاهدات المتطورة{% endblock %}
+
+{% block styles %}
+<style>
+    .stats-card {
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        padding: 20px;
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+    }
+    
+    .stats-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+        color: #4a6cf7;
+    }
+    
+    .stats-title {
+        font-size: 1rem;
+        color: #6c757d;
+        margin-bottom: 0;
+    }
+    
+    .period-filter {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 20px;
+    }
+    
+    .period-filter .btn {
+        margin-right: 10px;
+    }
+    
+    .chart-wrapper {
+        min-height: 300px;
+        margin-bottom: 30px;
+    }
+    
+    .devices-chart {
+        min-height: 220px;
+    }
+    
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255,255,255,0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        border-radius: 10px;
+    }
+    
+    /* شريط التفاعل - معدل التفاعل */
+    .engagement-bar {
+        height: 8px;
+        background-color: #f5f5f5;
+        border-radius: 4px;
+        overflow: hidden;
+        width: 100%;
+    }
+    
+    .engagement-fill {
+        height: 100%;
+        background: linear-gradient(to right, #4a6cf7, #71dd37);
+        border-radius: 4px;
+    }
+    
+    /* تنسيق الترقيم */
+    .pagination {
+        margin-top: 20px;
+    }
+    
+    .pagination .page-link {
+        color: #4a6cf7;
+        border-color: #eaeaea;
+    }
+    
+    .pagination .page-item.active .page-link {
+        background-color: #4a6cf7;
+        border-color: #4a6cf7;
+    }
+    
+    @media (max-width: 768px) {
+        .stats-number {
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="page-title">
+                تحليلات المشاهدات المتطورة
+                <small class="text-muted">إحصائيات مفصلة لتتبع النشاط</small>
+            </h1>
+        </div>
+    </div>
+
+    <!-- رسائل الخطأ والتنبيه -->
+    {% include 'admin/messages.html' %}
+
+    <!-- مربعات الإحصائيات الرئيسية -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-sm-6 mb-4">
+            <div class="stats-card text-center">
+                <div class="stats-number">{{ total_views|default(0) }}</div>
+                <div class="stats-title">إجمالي المشاهدات</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-4">
+            <div class="stats-card text-center">
+                <div class="stats-number">{{ unique_views|default(0) }}</div>
+                <div class="stats-title">مشاهدات فريدة</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-4">
+            <div class="stats-card text-center">
+                <div class="stats-number">{{ engagement_stats.avg_duration|default(0) }} ثانية</div>
+                <div class="stats-title">متوسط مدة المشاهدة</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-4">
+            <div class="stats-card text-center">
+                <div class="stats-number">{{ engagement_stats.bounce_rate|default(0) }}%</div>
+                <div class="stats-title">نسبة الارتداد</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- فلتر الفترة الزمنية -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="period-filter">
+                <a href="?days=7" class="btn btn-sm {% if days == 7 %}btn-primary{% else %}btn-outline-primary{% endif %}">آخر 7 أيام</a>
+                <a href="?days=30" class="btn btn-sm {% if days == 30 %}btn-primary{% else %}btn-outline-primary{% endif %}">آخر 30 يوم</a>
+                <a href="?days=90" class="btn btn-sm {% if days == 90 %}btn-primary{% else %}btn-outline-primary{% endif %}">آخر 3 أشهر</a>
+                <a href="?days=365" class="btn btn-sm {% if days == 365 %}btn-primary{% else %}btn-outline-primary{% endif %}">سنة كاملة</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- معلومات المشاهدات على مدار الوقت (رسم بياني) -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">المشاهدات على مدار الوقت</h5>
+                </div>
+                <div class="card-body position-relative">
+                    <div class="chart-wrapper">
+                        <canvas id="viewsTrendChart"></canvas>
+                    </div>
+                    <div class="loading-overlay" id="viewsTrendLoading">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">جاري التحميل...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- توزيع المشاهدات حسب الجهاز والدولة -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">توزيع المشاهدات حسب نوع الجهاز</h5>
+                </div>
+                <div class="card-body position-relative">
+                    <div class="devices-chart">
+                        <canvas id="devicesChart"></canvas>
+                    </div>
+                    <div class="loading-overlay" id="devicesChartLoading">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">جاري التحميل...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">أكثر 5 مشاريع مشاهدة</h5>
+                </div>
+                <div class="card-body position-relative">
+                    <div class="devices-chart">
+                        <canvas id="topProjectsChart"></canvas>
+                    </div>
+                    <div class="loading-overlay" id="topProjectsLoading">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">جاري التحميل...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- معلومات متقدمة للمتابعة والتطوير -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">معلومات تفصيلية عن المشاهدات</h5>
+                    <div>
+                        <button type="button" class="btn btn-sm btn-outline-primary me-2" disabled>
+                            <i class="fas fa-download"></i> تصدير البيانات
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>المشروع</th>
+                                    <th>المشاهدات</th>
+                                    <th>مشاهدات فريدة</th>
+                                    <th>متوسط المدة</th>
+                                    <th>معدل التفاعل</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if detailed_stats %}
+                                    {% for item in detailed_stats %}
+                                        <tr>
+                                            <td>{{ item.title }}</td>
+                                            <td>{{ item.views }}</td>
+                                            <td>{{ item.unique_views }}</td>
+                                            <td>{{ item.avg_duration }} ثانية</td>
+                                            <td>
+                                                <div class="engagement-bar">
+                                                    <div class="engagement-fill" style="width: {{ item.engagement }}%"></div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center">لا توجد بيانات متاحة. قد يكون هناك حاجة لإضافة المزيد من المشاهدات.</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    {% if total_pages > 1 %}
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center mt-4">
+                            {% if page > 1 %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page-1 }}&days={{ days }}" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                            {% endif %}
+                            
+                            {% for i in range(1, total_pages + 1) %}
+                                <li class="page-item {% if i == page %}active{% endif %}">
+                                    <a class="page-link" href="?page={{ i }}&days={{ days }}">{{ i }}</a>
+                                </li>
+                            {% endfor %}
+                            
+                            {% if page < total_pages %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page+1 }}&days={{ days }}" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // إخفاء أقسام التحميل
+    setTimeout(() => {
+        document.getElementById('viewsTrendLoading').style.display = 'none';
+        document.getElementById('devicesChartLoading').style.display = 'none';
+        document.getElementById('topProjectsLoading').style.display = 'none';
+    }, 1000);
+
+    // رسم بياني للاتجاه
+    const trendCtx = document.getElementById('viewsTrendChart').getContext('2d');
+    const trendChart = new Chart(trendCtx, {
+        type: 'line',
+        data: {
+            labels: {{ views_trend.labels|tojson }},
+            datasets: [{
+                label: 'إجمالي المشاهدات',
+                data: {{ views_trend.total|tojson }},
+                backgroundColor: 'rgba(74, 108, 247, 0.2)',
+                borderColor: 'rgba(74, 108, 247, 1)',
+                borderWidth: 2,
+                tension: 0.4
+            }, {
+                label: 'مشاهدات فريدة',
+                data: {{ views_trend.unique|tojson }},
+                backgroundColor: 'rgba(113, 221, 55, 0.2)',
+                borderColor: 'rgba(113, 221, 55, 1)',
+                borderWidth: 2,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                tooltip: {
+                    mode: 'index',
+                    intersect: false
+                },
+                legend: {
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        boxWidth: 8
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // رسم بياني للأجهزة
+    const devicesCtx = document.getElementById('devicesChart').getContext('2d');
+    const devicesChart = new Chart(devicesCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ device_stats.labels|tojson }},
+            datasets: [{
+                data: {{ device_stats.values|tojson }},
+                backgroundColor: [
+                    'rgba(74, 108, 247, 0.7)',
+                    'rgba(113, 221, 55, 0.7)',
+                    'rgba(255, 99, 132, 0.7)',
+                    'rgba(54, 162, 235, 0.7)',
+                    'rgba(153, 102, 255, 0.7)',
+                    'rgba(255, 159, 64, 0.7)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        boxWidth: 8
+                    }
+                }
+            }
+        }
+    });
+
+    // رسم بياني لأكثر المشاريع مشاهدة
+    const topProjectsCtx = document.getElementById('topProjectsChart').getContext('2d');
+    const topProjectsChart = new Chart(topProjectsCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ top_projects.labels|tojson }},
+            datasets: [{
+                label: 'عدد المشاهدات',
+                data: {{ top_projects.values|tojson }},
+                backgroundColor: [
+                    'rgba(74, 108, 247, 0.7)',
+                    'rgba(74, 108, 247, 0.6)',
+                    'rgba(74, 108, 247, 0.5)',
+                    'rgba(74, 108, 247, 0.4)',
+                    'rgba(74, 108, 247, 0.3)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

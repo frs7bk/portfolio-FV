@@ -1,0 +1,166 @@
+{% extends "layout.html" %}
+
+{% block title %}إعداد المصادقة الثنائية{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">إعداد المصادقة الثنائية</h3>
+                </div>
+                <div class="card-body">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <div class="text-center mb-4">
+                        <i class="fab fa-telegram fa-4x text-primary mb-3"></i>
+                        <h4>ربط حسابك مع تيليجرام</h4>
+                        <p class="lead">ستتلقى رمز التحقق على حساب تيليجرام الخاص بك عند تسجيل الدخول.</p>
+                    </div>
+
+                    <div class="steps">
+                        <div class="step mb-4">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h5>ابدأ محادثة مع بوت التيليجرام الخاص بنا</h5>
+                                <p>انقر على الرابط أدناه لبدء محادثة مع البوت:</p>
+                                <div class="d-grid gap-2 col-md-6 mx-auto">
+                                    <a href="https://t.me/{{ bot_username }}" target="_blank" class="btn btn-outline-primary">
+                                        <i class="fab fa-telegram me-2"></i> فتح المحادثة مع البوت
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="step mb-4">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h5>أرسل الرمز التالي إلى البوت</h5>
+                                <p>انسخ الرمز التالي وأرسله إلى البوت:</p>
+                                <div class="verification-code mb-3">
+                                    <span class="code">{{ verification_code }}</span>
+                                    <button class="btn btn-sm btn-outline-secondary ms-2" onclick="copyCode()">
+                                        <i class="fas fa-copy"></i> نسخ
+                                    </button>
+                                </div>
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i> هذا الرمز صالح لمدة 24 ساعة فقط.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="step mb-4">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <h5>تأكيد الربط</h5>
+                                <p>بعد إرسال الرمز، انقر على زر "التحقق" أدناه:</p>
+                                <div class="d-grid gap-2 col-md-6 mx-auto">
+                                    <a href="{{ url_for('auth.verify_telegram') }}" class="btn btn-primary">
+                                        <i class="fas fa-check-circle me-2"></i> التحقق والمتابعة
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <a href="{{ url_for('auth.security_settings') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-right me-2"></i> العودة إلى إعدادات الأمان
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    .steps {
+        position: relative;
+        padding-right: 25px;
+    }
+    
+    .steps:before {
+        content: '';
+        position: absolute;
+        right: 14px;
+        top: 0;
+        height: 100%;
+        width: 2px;
+        background-color: #e9ecef;
+    }
+    
+    .step {
+        position: relative;
+        padding-right: 45px;
+    }
+    
+    .step-number {
+        position: absolute;
+        right: -25px;
+        top: 0;
+        width: 30px;
+        height: 30px;
+        background-color: #0d6efd;
+        color: #fff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        z-index: 1;
+    }
+    
+    .verification-code {
+        display: inline-flex;
+        align-items: center;
+        background-color: #f8f9fa;
+        padding: 10px 15px;
+        border-radius: 4px;
+        border: 1px solid #dee2e6;
+    }
+    
+    .verification-code .code {
+        font-family: monospace;
+        font-size: 1.2em;
+        font-weight: bold;
+        letter-spacing: 1px;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    function copyCode() {
+        var codeElement = document.querySelector('.verification-code .code');
+        var textArea = document.createElement('textarea');
+        textArea.value = codeElement.textContent;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        
+        // Show feedback
+        var button = document.querySelector('.verification-code button');
+        var originalHtml = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check"></i> تم النسخ';
+        setTimeout(function() {
+            button.innerHTML = originalHtml;
+        }, 2000);
+    }
+</script>
+{% endblock %}

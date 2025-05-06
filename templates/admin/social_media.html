@@ -1,0 +1,421 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}وسائل التواصل الاجتماعي - لوحة الإدارة{% endblock %}
+
+{% block page_title %}إدارة وسائل التواصل الاجتماعي{% endblock %}
+
+{% block admin_content %}
+<!-- Hidden CSRF token for JavaScript operations -->
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}" id="global-csrf-token">
+<div class="container my-5">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4 text-center">إدارة روابط التواصل الاجتماعي</h1>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+            {% endwith %}
+            
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title m-0">إضافة رابط جديد</h5>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('add_social_media') }}" method="POST" id="add-social-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label for="platform" class="form-label">المنصة</label>
+                                <select class="form-select" id="platform" name="platform" required>
+                                    <option value="">-- اختر المنصة --</option>
+                                    <option value="facebook">فيسبوك</option>
+                                    <option value="twitter">تويتر</option>
+                                    <option value="instagram">انستغرام</option>
+                                    <option value="youtube">يوتيوب</option>
+                                    <option value="linkedin">لينكد إن</option>
+                                    <option value="pinterest">بينتيرست</option>
+                                    <option value="behance">بيهانس</option>
+                                    <option value="dribbble">دريبل</option>
+                                    <option value="tiktok">تيك توك</option>
+                                    <option value="whatsapp">واتساب</option>
+                                    <option value="telegram">تلغرام</option>
+                                    <option value="snapchat">سناب شات</option>
+                                    <option value="other">أخرى</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="name" class="form-label">الاسم</label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="url" class="form-label">الرابط</label>
+                                <input type="url" class="form-control" id="url" name="url" required>
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <label for="icon" class="form-label">الأيقونة</label>
+                                <input type="text" class="form-control" id="icon" name="icon" value="fab fa-facebook">
+                                <small class="text-muted">مثال: fab fa-facebook</small>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary" id="add-social-btn">إضافة</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title m-0">روابط التواصل الاجتماعي الحالية</h5>
+                </div>
+                <div class="card-body">
+                    {% if social_media_links %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>المنصة</th>
+                                    <th>الاسم</th>
+                                    <th>الرابط</th>
+                                    <th>الأيقونة</th>
+                                    <th>الحالة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for link in social_media_links %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td>{{ link.platform }}</td>
+                                    <td>{{ link.name }}</td>
+                                    <td>
+                                        <a href="{{ link.url }}" target="_blank">{{ link.url }}</a>
+                                    </td>
+                                    <td>
+                                        <i class="{{ link.icon }}"></i>
+                                        <small class="text-muted">{{ link.icon }}</small>
+                                    </td>
+                                    <td>
+                                        {% if link.active %}
+                                        <span class="badge bg-success">نشط</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">غير نشط</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="btn btn-sm btn-primary edit-btn" 
+                                                data-id="{{ link.id }}"
+                                                data-platform="{{ link.platform }}"
+                                                data-name="{{ link.name }}"
+                                                data-url="{{ link.url }}"
+                                                data-icon="{{ link.icon }}"
+                                                data-active="{{ '1' if link.active else '0' }}">
+                                                <i class="fas fa-edit"></i> تعديل
+                                            </button>
+                                            {% if link.active %}
+                                            <button type="button" class="btn btn-sm btn-warning toggle-btn" data-id="{{ link.id }}">
+                                                <i class="fas fa-eye-slash"></i> تعطيل
+                                            </button>
+                                            {% else %}
+                                            <button type="button" class="btn btn-sm btn-success toggle-btn" data-id="{{ link.id }}">
+                                                <i class="fas fa-eye"></i> تفعيل
+                                            </button>
+                                            {% endif %}
+                                            <button type="button" class="btn btn-sm btn-danger delete-btn" data-id="{{ link.id }}">
+                                                <i class="fas fa-trash"></i> حذف
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        لا توجد روابط تواصل اجتماعي حتى الآن
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">تعديل رابط</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('update_social_media') }}" method="POST" id="edit-social-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" id="edit-id" name="social_id">
+                    <div class="mb-3">
+                        <label for="edit-platform" class="form-label">المنصة</label>
+                        <select class="form-select" id="edit-platform" name="platform" required>
+                            <option value="">-- اختر المنصة --</option>
+                            <option value="facebook">فيسبوك</option>
+                            <option value="twitter">تويتر</option>
+                            <option value="instagram">انستغرام</option>
+                            <option value="youtube">يوتيوب</option>
+                            <option value="linkedin">لينكد إن</option>
+                            <option value="pinterest">بينتيرست</option>
+                            <option value="behance">بيهانس</option>
+                            <option value="dribbble">دريبل</option>
+                            <option value="tiktok">تيك توك</option>
+                            <option value="whatsapp">واتساب</option>
+                            <option value="telegram">تلغرام</option>
+                            <option value="snapchat">سناب شات</option>
+                            <option value="other">أخرى</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-name" class="form-label">الاسم</label>
+                        <input type="text" class="form-control" id="edit-name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-url" class="form-label">الرابط</label>
+                        <input type="url" class="form-control" id="edit-url" name="url" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-icon" class="form-label">الأيقونة</label>
+                        <input type="text" class="form-control" id="edit-icon" name="icon" required>
+                        <small class="text-muted">مثال: fab fa-facebook</small>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="1" id="edit-active" name="active">
+                            <label class="form-check-label" for="edit-active">
+                                نشط
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-primary" id="save-edit-btn">حفظ التغييرات</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Platform based icon selection
+    document.getElementById('platform').addEventListener('change', function() {
+        const platform = this.value;
+        const iconInput = document.getElementById('icon');
+        
+        const iconMap = {
+            'facebook': 'fab fa-facebook',
+            'twitter': 'fab fa-twitter',
+            'instagram': 'fab fa-instagram',
+            'youtube': 'fab fa-youtube',
+            'linkedin': 'fab fa-linkedin',
+            'pinterest': 'fab fa-pinterest',
+            'behance': 'fab fa-behance',
+            'dribbble': 'fab fa-dribbble',
+            'tiktok': 'fab fa-tiktok',
+            'whatsapp': 'fab fa-whatsapp',
+            'telegram': 'fab fa-telegram',
+            'snapchat': 'fab fa-snapchat'
+        };
+        
+        if (iconMap[platform]) {
+            iconInput.value = iconMap[platform];
+        }
+    });
+    
+    // Handle add social media form submission
+    const addForm = document.getElementById('add-social-form');
+    if (addForm) {
+        addForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            const submitBtn = document.getElementById('add-social-btn');
+            const originalBtnText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإضافة...';
+            
+            const formData = new FormData(this);
+            
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Show success message
+                    const successAlert = document.createElement('div');
+                    successAlert.className = 'alert alert-success alert-dismissible fade show';
+                    successAlert.innerHTML = `
+                        <i class="fas fa-check-circle me-2"></i> ✅ تم إضافة رابط التواصل بنجاح
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    `;
+                    
+                    // Add alert to the page
+                    const alertsContainer = document.querySelector('.mb-4');
+                    alertsContainer.appendChild(successAlert);
+                    
+                    // Scroll to top to see the message
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    
+                    // Reset form
+                    addForm.reset();
+                    
+                    // Refresh the page after a delay
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    // Show error message
+                    const errorAlert = document.createElement('div');
+                    errorAlert.className = 'alert alert-danger alert-dismissible fade show';
+                    errorAlert.innerHTML = `
+                        <i class="fas fa-exclamation-triangle me-2"></i> حدث خطأ أثناء إضافة رابط التواصل
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    `;
+                    
+                    const alertsContainer = document.querySelector('.mb-4');
+                    alertsContainer.appendChild(errorAlert);
+                    
+                    // Scroll to top to see the message
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Show error message
+                const errorAlert = document.createElement('div');
+                errorAlert.className = 'alert alert-danger alert-dismissible fade show';
+                errorAlert.innerHTML = `
+                    <i class="fas fa-exclamation-triangle me-2"></i> حدث خطأ أثناء الاتصال بالخادم
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                
+                const alertsContainer = document.querySelector('.mb-4');
+                alertsContainer.appendChild(errorAlert);
+            })
+            .finally(() => {
+                // Re-enable submit button
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+            });
+        });
+    }
+    
+    // Edit button handlers
+    const editButtons = document.querySelectorAll('.edit-btn');
+    editButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            const platform = this.getAttribute('data-platform');
+            const name = this.getAttribute('data-name');
+            const url = this.getAttribute('data-url');
+            const icon = this.getAttribute('data-icon');
+            const active = this.getAttribute('data-active') === '1';
+            
+            document.getElementById('edit-id').value = id;
+            document.getElementById('edit-platform').value = platform;
+            document.getElementById('edit-name').value = name;
+            document.getElementById('edit-url').value = url;
+            document.getElementById('edit-icon').value = icon;
+            document.getElementById('edit-active').checked = active;
+            
+            const modal = new bootstrap.Modal(document.getElementById('editModal'));
+            modal.show();
+        });
+    });
+    
+    // Save edit button handler
+    document.getElementById('save-edit-btn').addEventListener('click', function() {
+        const saveBtn = this;
+        const originalBtnText = saveBtn.innerHTML;
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+        
+        const form = document.getElementById('edit-social-form');
+        form.submit();
+    });
+    
+    // Toggle button handlers
+    const toggleButtons = document.querySelectorAll('.toggle-btn');
+    toggleButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            const originalBtnText = this.innerHTML;
+            
+            // Disable button while processing
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحديث...';
+            
+            // Create a form dynamically and submit it
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/admin/social-media/toggle/${id}`;
+            
+            // Add CSRF token
+            const csrfToken = document.getElementById('global-csrf-token').value;
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrf_token';
+            csrfInput.value = csrfToken;
+            form.appendChild(csrfInput);
+            
+            // Add to DOM, submit, and remove
+            document.body.appendChild(form);
+            form.submit();
+        });
+    });
+    
+    // Delete button handlers
+    const deleteButtons = document.querySelectorAll('.delete-btn');
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            
+            // Ask for confirmation
+            if (confirm('هل أنت متأكد من حذف هذا الرابط؟')) {
+                // Disable button while processing
+                this.disabled = true;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحذف...';
+                
+                // Create a form dynamically and submit it
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/admin/social-media/delete/${id}`;
+                
+                // Add CSRF token
+                const csrfToken = document.getElementById('global-csrf-token').value;
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrf_token';
+                csrfInput.value = csrfToken;
+                form.appendChild(csrfInput);
+                
+                // Add to DOM, submit, and remove
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

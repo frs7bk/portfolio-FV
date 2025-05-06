@@ -1,0 +1,300 @@
+{% extends 'admin/base.html' %}
+
+{% block title %} إدارة التعليقات {% endblock %}
+
+{% block content %}
+<div class="p-6 bg-white shadow-md rounded-lg">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">إدارة التعليقات</h1>
+    </div>
+
+    <!-- تبويبات حالة التعليقات -->
+    <div class="mb-6 border-b border-gray-200">
+        <nav class="flex space-x-6 rtl:space-x-reverse">
+            <a href="{{ url_for('comments.admin_comments', status='pending') }}" class="px-3 py-2 font-medium text-sm {{ 'text-emerald-600 border-b-2 border-emerald-500' if status == 'pending' else 'text-gray-500 hover:text-gray-700' }}">
+                قيد الانتظار
+            </a>
+            <a href="{{ url_for('comments.admin_comments', status='approved') }}" class="px-3 py-2 font-medium text-sm {{ 'text-emerald-600 border-b-2 border-emerald-500' if status == 'approved' else 'text-gray-500 hover:text-gray-700' }}">
+                معتمدة
+            </a>
+            <a href="{{ url_for('comments.admin_comments', status='rejected') }}" class="px-3 py-2 font-medium text-sm {{ 'text-emerald-600 border-b-2 border-emerald-500' if status == 'rejected' else 'text-gray-500 hover:text-gray-700' }}">
+                مرفوضة
+            </a>
+            <a href="{{ url_for('comments.admin_comments', status='all') }}" class="px-3 py-2 font-medium text-sm {{ 'text-emerald-600 border-b-2 border-emerald-500' if status == 'all' else 'text-gray-500 hover:text-gray-700' }}">
+                جميع التعليقات
+            </a>
+        </nav>
+    </div>
+
+    {% if comments %}
+        <!-- قائمة التعليقات -->
+        <div class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            المعلق
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            البريد الإلكتروني
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            المشروع
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            التعليق
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            التاريخ
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            الإجراءات
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for comment in comments %}
+                    <tr id="comment-{{ comment.id }}" class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="ml-4 rtl:mr-4 rtl:ml-0">
+                                    <div class="text-sm font-medium text-gray-900">
+                                        {{ comment.author_name }}
+                                    </div>
+                                    <div class="text-sm text-gray-500">
+                                        {% if comment.user_id %}
+                                            (مستخدم مسجل)
+                                        {% else %}
+                                            (زائر)
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">{{ comment.author_email or 'غير متوفر' }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {% if comment.portfolio_item %}
+                                <a href="{{ url_for('portfolio.view_portfolio_item', item_id=comment.portfolio_item.id) }}" class="text-emerald-600 hover:text-emerald-900">
+                                    {{ comment.portfolio_item.title }}
+                                </a>
+                            {% else %}
+                                مشروع غير موجود
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm text-gray-900 max-w-md">{{ comment.content }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <span title="{{ comment.created_at }}">{{ comment.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-left rtl:text-right text-sm font-medium">
+                            <div class="flex space-x-2 rtl:space-x-reverse">
+                                {% if not comment.approved and status != 'rejected' %}
+                                <button onclick="approveComment({{ comment.id }})" class="text-emerald-600 hover:text-emerald-900 bg-emerald-100 hover:bg-emerald-200 px-2 py-1 rounded">
+                                    موافقة
+                                </button>
+                                <button onclick="rejectComment({{ comment.id }})" class="text-red-600 hover:text-red-900 bg-red-100 hover:bg-red-200 px-2 py-1 rounded">
+                                    رفض
+                                </button>
+                                {% endif %}
+                                <button onclick="showReplyForm({{ comment.id }})" class="text-blue-600 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 px-2 py-1 rounded">
+                                    رد
+                                </button>
+                                <button type="button" class="text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded delete-comment-item" 
+                                        data-id="{{ comment.id }}" 
+                                        data-title="تعليق {{ comment.author_name }}" 
+                                        data-type="comments">
+                                    حذف
+                                </button>
+                            </div>
+                            
+                            <!-- نموذج الرد على التعليق (مخفي بشكل افتراضي) -->
+                            <div id="reply-form-{{ comment.id }}" class="hidden mt-3">
+                                <div class="bg-gray-50 p-3 rounded-lg">
+                                    <textarea id="reply-content-{{ comment.id }}" rows="3" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm" placeholder="أكتب ردك هنا..."></textarea>
+                                    <div class="flex justify-end mt-2">
+                                        <button onclick="submitReply({{ comment.id }})" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+                                            إرسال الرد
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <!-- عرض الردود إن وجدت -->
+                    {% if comment.replies.count() > 0 %}
+                        {% for reply in comment.replies %}
+                        <tr class="bg-gray-50">
+                            <td class="pl-16 pr-6 py-3 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="ml-4 rtl:mr-4 rtl:ml-0">
+                                        <div class="text-sm font-medium text-gray-900">
+                                            {{ reply.author_name }} <span class="text-xs text-gray-500">(رد)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-3 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">{{ reply.author_email or 'غير متوفر' }}</div>
+                            </td>
+                            <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-900">
+                                -
+                            </td>
+                            <td class="px-6 py-3">
+                                <div class="text-sm text-gray-900 max-w-md">{{ reply.content }}</div>
+                            </td>
+                            <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
+                                <span title="{{ reply.created_at }}">{{ reply.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                            </td>
+                            <td class="px-6 py-3 whitespace-nowrap text-left rtl:text-right text-sm font-medium">
+                                <button type="button" class="text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded delete-comment-item" 
+                                        data-id="{{ reply.id }}" 
+                                        data-title="رد {{ reply.author_name }}" 
+                                        data-type="comments">
+                                    حذف
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="text-center py-10">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+            </svg>
+            <h3 class="mt-2 text-lg font-medium text-gray-900">لا توجد تعليقات</h3>
+            <p class="mt-1 text-base text-gray-500">لم يتم العثور على أي تعليقات في هذه الحالة.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function approveComment(commentId) {
+    if (confirm('هل أنت متأكد من الموافقة على هذا التعليق؟')) {
+        fetch(`/admin/comments/${commentId}/approve`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': "{{ csrf_token() }}"
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // إزالة التعليق من القائمة في حالة قائمة الانتظار
+                if ("{{ status }}" === 'pending') {
+                    document.getElementById(`comment-${commentId}`).remove();
+                    // التحقق مما إذا كانت القائمة فارغة الآن
+                    if (document.querySelectorAll('tbody tr').length === 0) {
+                        location.reload(); // إعادة تحميل الصفحة لعرض رسالة "لا توجد تعليقات"
+                    }
+                } else {
+                    // تحديث لون الخلفية للإشارة إلى النجاح
+                    document.getElementById(`comment-${commentId}`).style.backgroundColor = '#f0fdf4';
+                    setTimeout(() => {
+                        document.getElementById(`comment-${commentId}`).style.backgroundColor = '';
+                    }, 2000);
+                }
+            } else {
+                alert('حدث خطأ أثناء الموافقة على التعليق');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء الموافقة على التعليق');
+        });
+    }
+}
+
+function rejectComment(commentId) {
+    if (confirm('هل أنت متأكد من رفض هذا التعليق؟')) {
+        fetch(`/admin/comments/${commentId}/reject`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': "{{ csrf_token() }}"
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // إزالة التعليق من القائمة في حالة قائمة الانتظار
+                if ("{{ status }}" === 'pending') {
+                    document.getElementById(`comment-${commentId}`).remove();
+                    // التحقق مما إذا كانت القائمة فارغة الآن
+                    if (document.querySelectorAll('tbody tr').length === 0) {
+                        location.reload(); // إعادة تحميل الصفحة لعرض رسالة "لا توجد تعليقات"
+                    }
+                } else {
+                    // تحديث لون الخلفية للإشارة إلى النجاح
+                    document.getElementById(`comment-${commentId}`).style.backgroundColor = '#fef2f2';
+                    setTimeout(() => {
+                        document.getElementById(`comment-${commentId}`).style.backgroundColor = '';
+                    }, 2000);
+                }
+            } else {
+                alert('حدث خطأ أثناء رفض التعليق');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء رفض التعليق');
+        });
+    }
+}
+
+// دالة حذف التعليق تم استبدالها بالنظام الموحد في ملف admin-unified.js
+// وحدنا كل أزرار الحذف على مستوى لوحة الإدارة
+
+function showReplyForm(commentId) {
+    // إخفاء جميع نماذج الرد الأخرى
+    document.querySelectorAll('[id^="reply-form-"]').forEach(form => {
+        form.classList.add('hidden');
+    });
+    
+    // إظهار نموذج الرد المحدد
+    document.getElementById(`reply-form-${commentId}`).classList.remove('hidden');
+}
+
+function submitReply(commentId) {
+    const content = document.getElementById(`reply-content-${commentId}`).value.trim();
+    
+    if (!content) {
+        alert('يرجى كتابة محتوى الرد');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('content', content);
+    
+    fetch(`/admin/comments/${commentId}/reply`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': "{{ csrf_token() }}"
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // إعادة تحميل الصفحة لعرض الرد الجديد
+            location.reload();
+        } else {
+            alert(data.error || 'حدث خطأ أثناء إرسال الرد');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('حدث خطأ أثناء إرسال الرد');
+    });
+}
+</script>
+{% endblock %}

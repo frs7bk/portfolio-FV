@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: portfolio-flask
+    env: python
+    buildCommand: pip install -r render-requirements.txt && python render_setup.py
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 4 app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11
+      - key: DATABASE_URL
+        sync: false
+      - key: FLASK_SECRET_KEY
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+      - key: SENDGRID_API_KEY
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_CHAT_ID
+        sync: false

@@ -1,0 +1,98 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}تعديل مشروع | لوحة التحكم{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row">
+    <!-- Sidebar -->
+    {% include 'admin/sidebar.html' %}
+    
+    <!-- Main Content -->
+    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">
+          <i class="fas fa-edit me-2"></i>
+          تعديل مشروع
+        </h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+          <a href="{{ url_for('admin_portfolio_management') }}" class="btn btn-sm btn-secondary">
+            <i class="fas fa-arrow-right me-1"></i>
+            العودة إلى معرض الأعمال
+          </a>
+        </div>
+      </div>
+
+      {% include 'admin/flash_messages.html' %}
+
+      <!-- Edit Portfolio Item Form -->
+      <div class="card bg-dark border-secondary mb-4">
+        <div class="card-body">
+          <form id="editPortfolioForm" action="{{ url_for('update_portfolio_item', portfolio_id=item.id) }}" method="POST" enctype="multipart/form-data" class="row g-3" data-loading-animation="true">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            
+            <div class="col-md-6">
+              <label for="title" class="form-label">عنوان المشروع *</label>
+              <input type="text" class="form-control bg-dark text-white border-secondary" id="title" name="title" value="{{ item.title }}" required>
+            </div>
+            
+            <div class="col-md-6">
+              <label for="title_en" class="form-label">عنوان المشروع (بالإنجليزية)</label>
+              <input type="text" class="form-control bg-dark text-white border-secondary" id="title_en" name="title_en" value="{{ item.title_en or '' }}">
+            </div>
+            
+            <div class="col-md-6">
+              <label for="category" class="form-label">الفئة *</label>
+              <input type="text" class="form-control bg-dark text-white border-secondary" id="category" name="category" value="{{ item.category }}" required>
+              <div class="form-text text-muted">
+                مثال: تصميم، برمجة، تسويق، الخ.
+              </div>
+            </div>
+            
+            <div class="col-md-6">
+              <label for="link" class="form-label">رابط المشروع</label>
+              <input type="url" class="form-control bg-dark text-white border-secondary" id="link" name="link" value="{{ item.link or '' }}">
+            </div>
+            
+            <div class="col-12">
+              <label for="description" class="form-label">وصف المشروع *</label>
+              <textarea class="form-control bg-dark text-white border-secondary" id="description" name="description" rows="4" required>{{ item.description }}</textarea>
+            </div>
+            
+            <div class="col-12">
+              <label for="description_en" class="form-label">وصف المشروع (بالإنجليزية)</label>
+              <textarea class="form-control bg-dark text-white border-secondary" id="description_en" name="description_en" rows="4">{{ item.description_en or '' }}</textarea>
+            </div>
+            
+            <div class="col-12">
+              <label class="form-label">الصورة الحالية</label>
+              <div class="mb-3">
+                <img src="{{ item.image_url }}" class="img-thumbnail" style="max-height: 200px;" alt="{{ item.title }}">
+              </div>
+            </div>
+            
+            <div class="col-12">
+              <label for="image" class="form-label">تغيير الصورة (اختياري)</label>
+              <input class="form-control bg-dark text-white border-secondary" type="file" id="image" name="image" accept="image/*">
+              <div class="form-text text-muted">
+                اترك هذا الحقل فارغًا إذا كنت لا ترغب في تغيير الصورة الحالية.
+              </div>
+            </div>
+            
+            <div class="col-12 mt-4">
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save me-1"></i>
+                حفظ التغييرات
+              </button>
+              <a href="{{ url_for('admin_portfolio_management') }}" class="btn btn-secondary ms-2">
+                <i class="fas fa-times me-1"></i>
+                إلغاء
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ error_code }} - حدث خطأ</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+      direction: rtl;
+    }
+    .error-container {
+      animation: fadeIn 1s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="bg-black text-white">
+  <div class="min-h-screen flex flex-col">
+    
+    <!-- Navbar -->
+    <nav class="bg-black shadow-xl sticky top-0 z-50">
+      <div class="container mx-auto px-6 py-3">
+        <div class="flex justify-between items-center">
+          <a href="/" class="text-2xl font-bold text-yellow-400">فراس<span class="text-white font-normal">للتصميم</span></a>
+          <div class="flex space-x-4 space-x-reverse">
+            <a href="/" class="px-3 py-2 rounded-md text-white hover:text-yellow-400 transition">الرئيسية</a>
+            <a href="/#services" class="px-3 py-2 rounded-md text-white hover:text-yellow-400 transition">خدماتي</a>
+            <a href="/#about" class="px-3 py-2 rounded-md text-white hover:text-yellow-400 transition">من أنا</a>
+            <a href="/portfolio" class="px-3 py-2 rounded-md text-white hover:text-yellow-400 transition">أعمالي</a>
+            <a href="/#contact" class="px-3 py-2 rounded-md text-white hover:text-yellow-400 transition">تواصل معي</a>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Error Content -->
+    <div class="flex-grow flex items-center justify-center py-20">
+      <div class="error-container text-center max-w-3xl mx-auto px-4">
+        <div class="text-yellow-400 text-9xl font-bold mb-6">{{ error_code }}</div>
+        <h1 class="text-4xl font-bold mb-4">{{ error_message }}</h1>
+        <p class="text-gray-400 text-xl mb-8">نأسف لحدوث هذا الخطأ، يمكنك العودة للصفحة الرئيسية أو المحاولة مرة أخرى.</p>
+        <div class="flex justify-center gap-4">
+          <a href="/" class="px-6 py-3 bg-yellow-400 hover:bg-yellow-500 text-black rounded-full transition shadow-lg">
+            <i class="fas fa-home mr-2"></i> العودة للرئيسية
+          </a>
+          <button onclick="history.back()" class="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-full transition shadow-lg">
+            <i class="fas fa-arrow-right mr-2"></i> العودة للخلف
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 py-10">
+      <div class="container mx-auto px-6">
+        <div class="text-center">
+          <p class="text-gray-400">جميع الحقوق محفوظة &copy; <span id="year">2025</span> فراس للتصميم</p>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script>
+    AOS.init();
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

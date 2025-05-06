@@ -1,0 +1,1732 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>فراس | معرض الأعمال</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.css" />
+  <link rel="stylesheet" href="/static/css/vertical_carousel.css" />
+  <link rel="stylesheet" href="/static/css/liquid_buttons.css" />
+  
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  <script src="https://cdn.lordicon.com/lordicon.js"></script>
+  <script src="https://cdn.ckeditor.com/ckeditor5/34.1.0/classic/ckeditor.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js"></script>
+  <script src="/static/js/testimonials.js" defer></script>
+  <script src="/static/js/admin.js" defer></script>
+  <script src="/static/js/vertical_carousel.js" defer></script>
+  <script src="/static/js/liquid_buttons.js" defer></script>
+  
+  <style>
+    :root {
+      --primary-bg: #030014;
+      --secondary-bg: #070024;
+      --primary-gradient-start: #6366f1; /* indigo-500 */
+      --primary-gradient-end: #a855f7;   /* purple-500 */
+      --accent-purple: #a855f7;
+      --accent-indigo: #6366f1;
+      --accent-cyan: #22d3ee;
+      --glass-bg: rgba(15, 23, 42, 0.7);
+      --border-color: rgba(99, 102, 241, 0.2);
+    }
+    
+    /* تطبيق خلفية بنفسجية داكنة للصفحة */
+    body {
+      background-color: var(--primary-bg);
+      background-image: radial-gradient(circle at center, #070024 0%, #030014 100%);
+      color: #ffffff;
+    }
+    
+    .hover\:shadow-glow:hover {
+      box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+    }
+    
+    /* تأثيرات الفقاعات */
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.5;
+      z-index: 0;
+      transition: all 10s ease;
+      animation: blobFloat 15s ease-in-out infinite alternate;
+    }
+    
+    .blob-purple {
+      width: 500px;
+      height: 500px;
+      background: var(--primary-gradient-end);
+      top: 20%;
+      right: 10%;
+    }
+    
+    .blob-blue {
+      width: 400px;
+      height: 400px;
+      background: var(--primary-gradient-start);
+      bottom: 20%;
+      left: 5%;
+      animation-delay: 2s;
+    }
+    
+    .blob-cyan {
+      width: 350px;
+      height: 350px;
+      background: #06b6d4;
+      bottom: 10%;
+      right: 15%;
+      animation-delay: 4s;
+    }
+    
+    @keyframes blobFloat {
+      0% {
+        transform: translate(0, 0);
+      }
+      50% {
+        transform: translate(-20px, 20px);
+      }
+      100% {
+        transform: translate(20px, -20px);
+      }
+    }
+    
+    /* أنماط التأثيرات الزجاجية */
+    .bg-glass {
+      background-color: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-color);
+    }
+    
+    /* تأثيرات الخلفية */
+    .animated-grid-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      overflow: hidden;
+      background: radial-gradient(ellipse at center, #050428 0%, #030014 70%, #020010 100%);
+    }
+    
+    .grid-pattern {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        linear-gradient(rgba(99, 102, 241, 0.3) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99, 102, 241, 0.3) 1px, transparent 1px);
+      background-size: 40px 40px;
+      opacity: 0.15;
+      animation: gridMove 20s linear infinite;
+    }
+    
+    @keyframes gridMove {
+      0% {
+        transform: translateY(0);
+      }
+      100% {
+        transform: translateY(40px);
+      }
+    }
+    
+    /* تأثيرات النصوص المتدرجة */
+    .gradient-text {
+      background: linear-gradient(to right, var(--primary-gradient-start), var(--primary-gradient-end));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      position: relative;
+      display: inline-block;
+    }
+    
+    .gradient-header {
+      background: linear-gradient(to right, var(--primary-gradient-start), var(--primary-gradient-end));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    
+    .text-gradient {
+      background: linear-gradient(to right, var(--primary-gradient-start), var(--primary-gradient-end));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    
+    /* تأثيرات الدخول المتحركة */
+    .fade-in-up {
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeInUp 0.7s ease forwards;
+    }
+    
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    /* أنماط القائمة العلوية */
+    .eki-navbar {
+      transition: background 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .eki-navbar.scrolled {
+      background: rgba(15, 15, 15, 0.95) !important;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    .nav-link {
+      position: relative;
+      padding-bottom: 0.2rem;
+    }
+    
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: linear-gradient(to right, var(--primary-gradient-start), var(--primary-gradient-end));
+      transition: width 0.3s ease;
+    }
+    
+    .nav-link:hover::after {
+      width: 100%;
+    }
+    
+    /* قسم الرأس الرئيسي */
+    .eki-header {
+      min-height: 80vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    /* أنماط الأقسام */
+    .eki-section {
+      position: relative;
+      overflow: hidden;
+    }
+  </style>
+
+<script>
+function handleImageUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const preview = document.createElement('img');
+    preview.src = reader.result;
+    preview.className = 'mt-2 w-full h-40 object-cover rounded';
+    const input = document.getElementById('newImage');
+    if (input) {
+      input.dataset.url = reader.result;
+      if (!document.getElementById('previewImage')) {
+        preview.id = 'previewImage';
+        input.parentElement.appendChild(preview);
+      } else {
+        document.getElementById('previewImage').src = reader.result;
+      }
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleProfileUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const result = reader.result;
+    const aboutImg = document.querySelector('#about img');
+    const preview = document.createElement('img');
+    preview.src = result;
+    preview.className = 'mt-2 w-32 h-32 rounded-full border-2 border-purple-500';
+    if (aboutImg) aboutImg.src = result;
+    localStorage.setItem('profileImage', result);
+    const existing = document.getElementById('previewProfile');
+    if (!existing) {
+      preview.id = 'previewProfile';
+      input.parentElement.appendChild(preview);
+    } else {
+      existing.src = result;
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+// تم إزالة وظيفة تغيير اللغة
+
+document.addEventListener('DOMContentLoaded', () => {
+  // إعدادات القائمة العلوية المتحركة
+  const navbar = document.querySelector('.eki-navbar');
+  const menuToggle = document.getElementById('menu-toggle');
+  const closeMenu = document.getElementById('close-menu');
+  const mobileMenu = document.getElementById('mobile-menu');
+
+  // التمرير يغير لون خلفية القائمة العلوية
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 10) {
+      navbar.classList.add('scrolled');
+    } else {
+      navbar.classList.remove('scrolled');
+    }
+  });
+
+  // فتح قائمة الهاتف المحمول
+  if(menuToggle) {
+    menuToggle.addEventListener('click', () => {
+      mobileMenu.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    });
+  }
+
+  // إغلاق قائمة الهاتف المحمول
+  if(closeMenu) {
+    closeMenu.addEventListener('click', () => {
+      mobileMenu.classList.add('hidden');
+      document.body.style.overflow = '';
+    });
+  }
+
+  // كود أصلي من الصفحة
+  const savedProfile = localStorage.getItem('profileImage');
+  const aboutImg = document.querySelector('#about img');
+  if (savedProfile && aboutImg) {
+    aboutImg.src = savedProfile;
+  }
+  if (localStorage.getItem('adminAccess') === 'true') {
+    const adminBtn = document.getElementById('adminControlBtn');
+    if (adminBtn) {
+      adminBtn.classList.remove('hidden');
+    }
+  }
+  const hoverTarget = document.querySelector('.glow-hover');
+  if (hoverTarget) {
+    hoverTarget.style.animation = 'floatSpace 10s ease-in-out infinite';
+
+    hoverTarget.addEventListener('mouseenter', () => {
+      hoverTarget.style.transition = 'transform 0.4s ease, filter 0.4s ease';
+      hoverTarget.style.transform = 'scale(1.1)';
+      hoverTarget.style.filter = 'brightness(1.3) drop-shadow(0 0 14px #a855f7)';
+    });
+
+    hoverTarget.addEventListener('mouseleave', () => {
+      hoverTarget.style.transition = 'transform 0.6s ease';
+      hoverTarget.style.transform = 'scale(1)';
+      hoverTarget.style.filter = 'none';
+    });
+
+    let animationTimeout;
+    let currentTransform = { x: 0, y: 0 };
+
+    document.addEventListener('mousemove', (e) => {
+      const rect = hoverTarget.getBoundingClientRect();
+      const mouseX = e.clientX;
+      const mouseY = e.clientY;
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const distance = Math.hypot(mouseX - centerX, mouseY - centerY);
+
+      if (distance < 200) {
+        const deltaX = (mouseX - centerX) / 6;
+        const deltaY = (mouseY - centerY) / 6;
+        currentTransform = { x: deltaX, y: deltaY };
+        hoverTarget.style.transition = 'transform 0.6s ease';
+        hoverTarget.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+        hoverTarget.dataset.lastX = deltaX;
+        hoverTarget.dataset.lastY = deltaY;
+        hoverTarget.style.animation = 'none';
+        if (animationTimeout) clearTimeout(animationTimeout);
+      } else {
+        hoverTarget.style.transition = 'transform 0.6s ease';
+        const resumeX = hoverTarget.dataset.lastX || 0;
+        const resumeY = hoverTarget.dataset.lastY || 0;
+        hoverTarget.style.transform = `translate(${resumeX}px, ${resumeY}px)`;
+        if (animationTimeout) clearTimeout(animationTimeout);
+        animationTimeout = setTimeout(() => {
+          hoverTarget.style.animation = 'floatSpace 10s ease-in-out infinite';
+        }, 600);
+      }
+    });
+
+    hoverTarget.addEventListener('mouseleave', () => {
+      hoverTarget.style.transition = 'transform 1.2s ease-in-out';
+      hoverTarget.style.transform = 'translate(0, 0)';
+      setTimeout(() => {
+        hoverTarget.style.animation = 'floatSpace 10s ease-in-out infinite';
+      }, 800);
+    });
+  }
+
+  // Show intro overlay
+  const introOverlay = document.getElementById('introOverlay');
+  if (introOverlay && !sessionStorage.getItem('introShown')) {
+    introOverlay.classList.remove('hidden');
+    setTimeout(() => {
+      introOverlay.style.transition = 'opacity 1s ease';
+      introOverlay.style.opacity = '0';
+      setTimeout(() => {
+        introOverlay.classList.add('hidden');
+      }, 1000);
+    }, 4000); // Set to exactly 4000ms (4 seconds)
+    sessionStorage.setItem('introShown', 'true');
+  }
+  
+  // Fix canvas error by checking if it exists
+  const welcomeCanvas = document.getElementById('welcomeCanvas');
+  if (welcomeCanvas) {
+    const ctx = welcomeCanvas.getContext('2d');
+    if (ctx) {
+      // Canvas drawing code goes here
+      // This will prevent the "Cannot read properties of null" error
+    }
+  }
+});
+</script>
+  <style>
+  @keyframes floatSpace {
+  0%   { transform: translate(0px, 0px) rotate(0deg); }
+  25%  { transform: translate(5px, -3px) rotate(1deg); }
+  50%  { transform: translate(-4px, 4px) rotate(-1deg); }
+  75%  { transform: translate(3px, -4px) rotate(0.8deg); }
+  100% { transform: translate(0px, 0px) rotate(0deg); }
+}
+
+  .floating-space {
+  animation: floatSpace 8s ease-in-out infinite;
+  display: inline-block;
+  will-change: transform;
+}
+
+  .glow-hover {
+  transition: transform 0.4s ease, filter 0.4s ease;
+  will-change: transform;
+}
+.glow-hover:hover {
+  transform: scale(1.12);
+  filter: brightness(1.3) drop-shadow(0 0 14px #a855f7);
+}
+  /* Instagram Reel-style container styles */
+  .instagram-reel-container {
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .instagram-reel-container:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
+    z-index: 1;
+  }
+  
+  .instagram-reel-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0) 50%);
+    opacity: 0.4;
+    transition: opacity 0.3s ease-in-out;
+    pointer-events: none;
+  }
+  
+  .instagram-reel-container:hover::after {
+    opacity: 0.7;
+  }
+  
+  .aspect-ratio-container {
+    position: relative;
+    width: 100%;
+    height: 0;
+    /* 9:16 aspect ratio (vertical rectangle like Instagram Reels) */
+    padding-top: 177.78%; /* 16/9 * 100% */
+    overflow: hidden;
+  }
+  
+  .aspect-ratio-container img {
+    transition: transform 0.5s ease-in-out;
+  }
+  
+  .instagram-reel-container:hover .aspect-ratio-container img {
+    transform: scale(1.08);
+  }
+  
+  body {
+    font-family: 'Cairo', sans-serif;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Admin Link */
+  .admin-link {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 100;
+    transition: all 0.3s ease;
+  }
+
+  .admin-link:hover {
+    transform: scale(1.1);
+  }
+  
+  /* أنماط كاروسيل الصفحة الرئيسية */
+  .homepage-carousel-container {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+  }
+  
+  .homepage-carousel-slides {
+    display: flex;
+    transition: transform 0.5s ease;
+  }
+  
+  .homepage-carousel-slide {
+    flex-shrink: 0;
+    position: relative;
+  }
+  
+  .carousel-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin: 0 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .carousel-indicator:hover {
+    background-color: rgba(168, 85, 247, 0.8) !important; /* البنفسجي بدلاً من الأصفر */
+  }
+
+  /* Testimonials section */
+  .testimonial-card {
+    background-color: rgba(31, 41, 55, 0.8);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    border: 1px solid rgba(107, 114, 128, 0.3);
+    height: 100%;
+    transition: all 0.3s ease;
+  }
+
+  .testimonial-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    background-color: rgba(31, 41, 55, 0.9);
+  }
+
+  .rating-stars {
+    color: #a855f7; /* البنفسجي بدلاً من الأصفر */
+    margin-bottom: 0.5rem;
+  }
+</style>
+</head>
+<body class="text-white text-right" style="background-color: var(--primary-bg); background-image: radial-gradient(circle at center, #070024 0%, #030014 100%);">
+
+<!-- المؤثرات المتحركة للخلفية -->
+<div class="animated-grid-bg">
+  <div class="grid-pattern"></div>
+  <div class="blob blob-purple"></div>
+  <div class="blob blob-blue"></div>
+  <div class="blob blob-cyan"></div>
+</div>
+
+<!-- ✅ زر تغيير اللغة -->
+<!-- تم نقل زر تغيير اللغة إلى القائمة العلوية -->
+
+<!-- Admin link - hidden by default, revealed with keyboard shortcut -->
+<a href="/admin/login" id="adminLink" class="admin-link hidden bg-glass border border-purple-500 text-white px-4 py-2 rounded-full shadow-lg">
+  <i class="fas fa-user-shield mr-2 text-gradient"></i> <span class="gradient-text">لوحة الإدارة</span>
+</a>
+
+<!-- القائمة العلوية الجديدة بنفس تصميم صفحة المحفظة -->
+<header class="eki-navbar fixed top-0 left-0 right-0 z-40 py-4 px-6">
+  <div class="max-w-6xl mx-auto flex justify-between items-center">
+    <a href="/" class="text-white text-3xl font-bold flex items-center group">
+      <span class="text-gradient bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-600 group-hover:from-indigo-400 group-hover:to-purple-500 transition-all">فراس</span>
+      <span class="mr-1 text-xl text-white group-hover:text-gray-200 transition-all">للتصميم</span>
+    </a>
+
+    <nav class="hidden md:flex space-x-6 space-x-reverse">
+      <a href="/" class="nav-link text-white hover:text-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:bg-clip-text transition-all duration-300 relative after:absolute after:bottom-[-5px] after:right-0 after:h-[2px] after:w-0 after:bg-gradient-to-l after:from-indigo-500 after:to-purple-600 hover:after:w-full after:transition-all after:duration-300">الرئيسية</a>
+      <a href="/#about" class="nav-link text-white hover:text-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:bg-clip-text transition-all duration-300 relative after:absolute after:bottom-[-5px] after:right-0 after:h-[2px] after:w-0 after:bg-gradient-to-l after:from-indigo-500 after:to-purple-600 hover:after:w-full after:transition-all after:duration-300">من أنا</a>
+      <a href="/#services" class="nav-link text-white hover:text-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:bg-clip-text transition-all duration-300 relative after:absolute after:bottom-[-5px] after:right-0 after:h-[2px] after:w-0 after:bg-gradient-to-l after:from-indigo-500 after:to-purple-600 hover:after:w-full after:transition-all after:duration-300">الخدمات</a>
+      <a href="/portfolio" class="nav-link text-white hover:text-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:bg-clip-text transition-all duration-300 relative after:absolute after:bottom-[-5px] after:right-0 after:h-[2px] after:w-0 after:bg-gradient-to-l after:from-indigo-500 after:to-purple-600 hover:after:w-full after:transition-all after:duration-300">معرض الأعمال</a>
+      <a href="/#testimonials" class="nav-link text-white hover:text-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:bg-clip-text transition-all duration-300 relative after:absolute after:bottom-[-5px] after:right-0 after:h-[2px] after:w-0 after:bg-gradient-to-l after:from-indigo-500 after:to-purple-600 hover:after:w-full after:transition-all after:duration-300">آراء العملاء</a>
+      <a href="/#contact" class="nav-link text-white hover:text-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:bg-clip-text transition-all duration-300 relative after:absolute after:bottom-[-5px] after:right-0 after:h-[2px] after:w-0 after:bg-gradient-to-l after:from-indigo-500 after:to-purple-600 hover:after:w-full after:transition-all after:duration-300">تواصل معي</a>
+    </nav>
+
+    <div class="flex items-center space-x-4 space-x-reverse">
+      <!-- تم إزالة زر تغيير اللغة -->
+      
+      <button id="menu-toggle" class="md:hidden text-white text-xl focus:outline-none transition-all hover:text-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:bg-clip-text">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- قائمة الهاتف المحمول (مخفية افتراضيًا) -->
+  <div id="mobile-menu" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/70 backdrop-blur-xl"></div>
+    <div class="relative h-full flex flex-col bg-gradient-to-b from-gray-900/90 to-gray-800/90 backdrop-blur-xl z-10 px-6 py-10">
+      <div class="flex justify-end">
+        <button id="close-menu" class="focus:outline-none text-white text-2xl hover:text-gradient transition-all duration-300 hover:rotate-90">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="flex-1 flex flex-col items-center justify-center">
+        <div class="w-20 h-20 mb-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg shadow-indigo-500/30">
+          <span class="text-white text-3xl font-bold">فراس</span>
+        </div>
+        
+        <nav class="space-y-6 text-center">
+          <a href="/" class="block text-2xl font-bold text-white hover:text-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:bg-clip-text transition-all duration-300 py-2">الرئيسية</a>
+          <a href="/#about" class="block text-2xl font-bold text-white hover:text-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:bg-clip-text transition-all duration-300 py-2">من أنا</a>
+          <a href="/#services" class="block text-2xl font-bold text-white hover:text-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:bg-clip-text transition-all duration-300 py-2">الخدمات</a>
+          <a href="/portfolio" class="block text-2xl font-bold text-white hover:text-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:bg-clip-text transition-all duration-300 py-2">معرض الأعمال</a>
+          <a href="/#testimonials" class="block text-2xl font-bold text-white hover:text-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:bg-clip-text transition-all duration-300 py-2">آراء العملاء</a>
+          <a href="/#contact" class="block text-2xl font-bold text-white hover:text-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:bg-clip-text transition-all duration-300 py-2">تواصل معي</a>
+        </nav>
+      </div>
+
+      <div class="flex justify-center space-x-5 space-x-reverse mt-10">
+        {% if social_media_links %}
+          {% for link in social_media_links %}
+            {% if link.active %}
+              <a href="{{ link.url }}" target="_blank" class="text-gray-300 hover:text-white hover:scale-110 transition-all duration-300 text-xl">
+                <i class="{{ link.icon }}"></i>
+              </a>
+            {% endif %}
+          {% endfor %}
+        {% else %}
+          <a href="#" target="_blank" class="text-gray-300 hover:text-white hover:scale-110 transition-all duration-300 text-xl">
+            <i class="fab fa-instagram"></i>
+          </a>
+          <a href="#" target="_blank" class="text-gray-300 hover:text-white hover:scale-110 transition-all duration-300 text-xl">
+            <i class="fab fa-behance"></i>
+          </a>
+          <a href="#" target="_blank" class="text-gray-300 hover:text-white hover:scale-110 transition-all duration-300 text-xl">
+            <i class="fab fa-linkedin-in"></i>
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ✅ شاشة الترحيب -->
+<div id="introOverlay" class="fixed inset-0 flex flex-col items-center justify-center z-50 hidden">
+  <div class="relative w-full h-full bg-primary-bg overflow-hidden">
+    <!-- خلفية متحركة للترحيب مع الفقاعات المتحركة -->
+    <div class="animated-grid-bg">
+      <div class="grid-pattern"></div>
+      <div class="blob blob-purple welcome-blob"></div>
+      <div class="blob blob-blue welcome-blob"></div>
+      <div class="blob blob-cyan welcome-blob"></div>
+    </div>
+    
+    <!-- لوجو وشكل متحرك EKI متدرج -->
+    <div class="relative z-10 flex flex-col items-center justify-center h-full px-4">
+      <!-- لوجو الترحيب مع تأثير متحرك -->
+      <div class="welcome-logo mb-8 opacity-0 scale-0 relative" style="animation: scaleIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;">
+        <div class="loader-blobs absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-24 h-24">
+          <div class="loader-blob"></div>
+          <div class="loader-blob"></div>
+          <div class="loader-blob"></div>
+        </div>
+        <lord-icon src="https://cdn.lordicon.com/wloilxuq.json" trigger="loop" colors="primary:#6366f1,secondary:#a855f7" style="width:100px;height:100px;z-index:1;position:relative;"></lord-icon>
+      </div>
+      
+      <!-- أول نص مع تأثير متحرك وألوان متدرجة -->
+      <div class="welcome-text text-4xl md:text-6xl font-bold flex items-center gap-3 mb-6 opacity-0 transform translate-y-4" style="animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.3s forwards;">
+        <span class="gradient-text">مرحبًا بك</span>
+      </div>
+      
+      <!-- ثاني نص مع تأثير متحرك وألوان متدرجة مختلفة -->
+      <div class="welcome-text text-3xl md:text-5xl font-bold flex items-center gap-3 mb-6 opacity-0 transform translate-y-4" style="animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.6s forwards;">
+        <span class="text-white">في <span class="gradient-text">معرض أعمالي</span></span>
+      </div>
+      
+      <!-- ثالث نص (الوصف) مع تأثير كتابة متدرجة -->
+      <div class="welcome-text text-xl md:text-2xl text-gray-300 flex items-center gap-3 justify-center opacity-0 transform translate-y-4 max-w-2xl text-center" style="animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.9s forwards;">
+        <span class="typing-text">النتائج العظيمة تبدأ باختيارك الصحيح</span>
+      </div>
+      
+      <!-- زر يظهر بعد فترة قصيرة مع تأثير نيون -->
+      <div class="welcome-text mt-12 opacity-0 transform translate-y-4" style="animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) 1.2s forwards;">
+        <button class="btn-neon px-8 py-3 rounded-lg text-white font-bold">استكشف الآن</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes typing {
+  from { width: 0 }
+  to { width: 100% }
+}
+
+#introOverlay {
+  background: radial-gradient(circle at center, #000 0%, rgba(0,0,0,0.98) 100%);
+}
+
+.welcome-text {
+  text-shadow: 0 0 15px rgba(250, 204, 21, 0.6);
+}
+
+.text-glow {
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+.gradient-text {
+  background: linear-gradient(45deg, #8b5cf6, #a855f7, #6366f1);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  position: relative;
+}
+
+.typing-text {
+  border-right: 3px solid #8b5cf6;
+  white-space: nowrap;
+  overflow: hidden;
+  animation: typing 3.5s steps(40, end);
+}
+
+@keyframes glow {
+  from {
+    text-shadow: 0 0 10px rgba(139, 92, 246, 0.6),
+                 0 0 20px rgba(139, 92, 246, 0.3),
+                 0 0 30px rgba(139, 92, 246, 0.2);
+  }
+  to {
+    text-shadow: 0 0 15px rgba(139, 92, 246, 0.8),
+                 0 0 25px rgba(139, 92, 246, 0.5),
+                 0 0 35px rgba(139, 92, 246, 0.3);
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const canvas = document.getElementById('welcomeCanvas');
+  
+  // Add safety check for canvas element
+  if (!canvas) {
+    console.log("Welcome canvas not found, skipping particle animation");
+    return;
+  }
+  
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    console.log("Could not get 2d context from canvas");
+    return;
+  }
+  
+  let particles = [];
+  const particleCount = 150; // More particles for richer effect
+  const colors = ['#8b5cf6', '#a855f7', '#c084fc', '#6366f1', '#e9d5ff'];
+
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+
+  function createParticle() {
+    return {
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      size: Math.random() * 2.5 + 1.5, // Slightly larger particles
+      speedX: (Math.random() - 0.5) * 1.5, // Slower movement
+      speedY: (Math.random() - 0.5) * 1.5,
+      color: colors[Math.floor(Math.random() * colors.length)]
+    };
+  }
+
+  function initParticles() {
+    particles = [];
+    for(let i = 0; i < particleCount; i++) {
+      particles.push(createParticle());
+    }
+  }
+
+  function drawParticles() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    particles.forEach((p, i) => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fillStyle = p.color;
+      ctx.fill();
+
+      particles.forEach((p2, j) => {
+        if(i !== j) {
+          const dx = p.x - p2.x;
+          const dy = p.y - p2.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+
+          if(distance < 200) { // Increased connection distance
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.strokeStyle = `rgba(139, 92, 246, ${0.25 - (distance/200) * 0.25})`; // Purple opacity
+            ctx.lineWidth = 0.8; // Thicker lines
+            ctx.stroke();
+          }
+        }
+      });
+
+      p.x += p.speedX;
+      p.y += p.speedY;
+
+      if(p.x < 0 || p.x > canvas.width) p.speedX *= -1;
+      if(p.y < 0 || p.y > canvas.height) p.speedY *= -1;
+    });
+
+    requestAnimationFrame(drawParticles);
+  }
+
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+  initParticles();
+  drawParticles();
+
+  // Increase display time
+  const introOverlay = document.getElementById('introOverlay');
+  if (introOverlay && !sessionStorage.getItem('introShown')) {
+    introOverlay.classList.remove('hidden');
+    setTimeout(() => {
+      introOverlay.style.transition = 'opacity 1s ease';
+      introOverlay.style.opacity = '0';
+      setTimeout(() => {
+        introOverlay.classList.add('hidden');
+      }, 1000);
+    }, 4000); // Set to exactly 4000ms (4 seconds)
+    sessionStorage.setItem('introShown', 'true');
+  }
+});
+</script>
+
+<style>
+.welcome-text {
+  opacity: 0;
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.welcome-text:nth-child(1) { animation-delay: 0.1s; }
+.welcome-text:nth-child(2) { animation-delay: 0.3s; }
+.welcome-text:nth-child(3) { animation-delay: 0.5s; }
+
+@keyframes fadeIn {
+  from { 
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.glitch {
+  position: relative;
+  animation: glitch 0.5s linear;
+}
+
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: black;
+  clip: rect(0, 900px, 0, 0);
+}
+
+.glitch::before {
+  left: -2px;
+  text-shadow: 2px 0 #ff00c1;
+  animation: glitch-anim 2s infinite linear alternate-reverse;
+}
+
+.glitch::after {
+  left: 2px;
+  text-shadow: -2px 0 #00fff9;
+  animation: glitch-anim2 2s infinite linear alternate-reverse;
+}
+
+@keyframes glitch {
+  0% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(-2px, -2px); }
+  60% { transform: translate(2px, 2px); }
+  80% { transform: translate(2px, -2px); }
+  100% { transform: translate(0); }
+}
+
+@keyframes glitch-anim {
+  0% { clip: rect(4px, 900px, 56px, 0); }
+  20% { clip: rect(27px, 900px, 23px, 0); }
+  40% { clip: rect(52px, 900px, 7px, 0); }
+  60% { clip: rect(13px, 900px, 45px, 0); }
+  80% { clip: rect(31px, 900px, 16px, 0); }
+  100% { clip: rect(8px, 900px, 37px, 0); }
+}
+
+@keyframes glitch-anim2 {
+  0% { clip: rect(23px, 900px, 41px, 0); }
+  20% { clip: rect(12px, 900px, 33px, 0); }
+  40% { clip: rect(47px, 900px, 3px, 0); }
+  60% { clip: rect(19px, 900px, 28px, 0); }
+  80% { clip: rect(35px, 900px, 11px, 0); }
+  100% { clip: rect(4px, 900px, 51px, 0); }
+}
+</style>
+
+{% block content %}
+
+<!-- قسم الترحيب الرئيسي (Hero) -->
+<!-- Hero Section -->
+<section class="py-20 px-6 relative overflow-hidden eki-section">
+  <div class="absolute inset-0 pointer-events-none opacity-20">
+    <div class="absolute top-1/4 right-1/4 w-64 h-64 bg-gradient-to-br from-indigo-500/30 to-purple-500/30 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-1/4 left-1/4 w-80 h-80 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-full blur-3xl"></div>
+    <div class="absolute top-1/3 left-1/3 w-72 h-72 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 rounded-full blur-3xl animate-pulse"></div>
+  </div>
+
+  <div class="max-w-6xl mx-auto text-center relative z-10">
+    <h1 class="text-5xl md:text-7xl font-bold mb-6 fade-in-up" data-aos="fade-up">
+      <span class="text-white">{{ section_data.get('hero', {}).get('contents', {}).get('title', 'مرحباً بك في') | safe }} </span>
+      <span class="gradient-text glow-hover">{{ section_data.get('hero', {}).get('contents', {}).get('subtitle', 'معرض أعمال فراس') | safe }}</span>
+    </h1>
+    
+    <p class="text-xl text-gray-300 mb-10 max-w-3xl mx-auto leading-relaxed fade-in-up" data-aos="fade-up" data-aos-delay="100">
+      {{ section_data.get('hero', {}).get('contents', {}).get('description', 'خبرة في التصميم الجرافيكي والهوية البصرية مع لمسة من الإبداع والتميّز') | safe }}
+    </p>
+    
+    <!-- إحصائيات الخدمات - بتصميم EKI المحسن -->
+    <div class="flex justify-center gap-8 mb-10" data-aos="fade-up" data-aos-delay="150">
+      <div class="text-center p-6 bg-glass rounded-xl transform transition-all hover:-translate-y-2 hover:shadow-lg duration-300 border border-gray-800">
+        <div class="text-3xl font-bold gradient-text mb-2">5+</div>
+        <div class="text-gray-400">سنوات خبرة</div>
+      </div>
+      <div class="text-center p-6 bg-glass rounded-xl transform transition-all hover:-translate-y-2 hover:shadow-lg duration-300 border border-gray-800">
+        <div class="text-3xl font-bold gradient-text mb-2">100+</div>
+        <div class="text-gray-400">مشروع منجز</div>
+      </div>
+      <div class="text-center p-6 bg-glass rounded-xl transform transition-all hover:-translate-y-2 hover:shadow-lg duration-300 border border-gray-800">
+        <div class="text-3xl font-bold gradient-text mb-2">30+</div>
+        <div class="text-gray-400">عميل راضٍ</div>
+      </div>
+    </div>
+    
+    <div class="flex flex-wrap justify-center gap-4" data-aos="fade-up" data-aos-delay="200">
+      <a href="#services" class="btn-neon px-8 py-3 rounded-lg text-white font-bold">استعراض الخدمات</a>
+      <a href="/portfolio" class="bg-glass hover:bg-gray-800 text-white px-8 py-3 rounded-lg border border-gray-700 hover:border-indigo-500 transition">معرض الأعمال</a>
+    </div>
+  </div>
+</section>
+
+
+
+<!-- من أنا - قسم محدث بأسلوب EKI -->
+<section id="about" class="eki-section py-24 px-6 bg-primary-bg relative overflow-hidden">
+  <!-- فقاعات متحركة لإضافة تأثير بصري -->
+  <div class="absolute w-96 h-96 rounded-full bg-indigo-600 opacity-5 blur-3xl -left-48 top-24"></div>
+  <div class="absolute w-96 h-96 rounded-full bg-purple-600 opacity-5 blur-3xl -right-48 bottom-24"></div>
+  
+  <div class="max-w-5xl mx-auto grid md:grid-cols-2 gap-12 items-center">
+    <div data-aos="fade-left" data-aos-delay="100">
+      <div class="w-80 h-80 relative mx-auto">
+        <!-- حدود المضيئة للصورة -->
+        <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 blur-lg opacity-70 animate-pulse"></div>
+        
+        <!-- صورة الملف الشخصي -->
+        <div class="w-72 h-72 rounded-2xl border-2 border-gray-700 mx-auto overflow-hidden relative z-10 bg-gray-900 flex items-center justify-center floating-space glow-hover" style="animation: floatSpace 15s ease-in-out infinite;">
+          {% if section_data and section_data.about and section_data.about.images and section_data.about.images.profile_image %}
+            <img src="{{ section_data.about.images.profile_image }}" class="w-full h-full object-cover" alt="صورة شخصية">
+          {% else %}
+            <img src="/static/uploads/profile.png" class="w-full h-full object-cover" alt="صورة شخصية">
+          {% endif %}
+          
+          <!-- غطاء شفاف متدرج فوق الصورة -->
+          <div class="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-60"></div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="text-right space-y-8" data-aos="fade-right" data-aos-delay="200">
+      <h2 class="text-4xl font-bold flex items-center gap-3 mb-6">
+        <lord-icon src="https://cdn.lordicon.com/eszyyflr.json" trigger="loop" colors="primary:#6366f1,secondary:#a855f7" style="width:45px;height:45px"></lord-icon>
+        <span class="gradient-text">من أنا؟</span>
+      </h2>
+      
+      <div class="space-y-4">
+        <p class="text-lg text-gray-300 leading-relaxed">
+          أنا <strong class="text-white">{{ section_data.get('about', {}).get('contents', {}).get('name', 'فراس') | safe }}</strong>، {{ section_data.get('about', {}).get('contents', {}).get('description', 'مصمم جرافيك جزائري متخصص في تقديم حلول بصرية عالية الاحترافية.') | safe }}
+        </p>
+        
+        <p class="text-lg text-gray-300 leading-relaxed">
+          {{ section_data.get('about', {}).get('contents', {}).get('description2', 'أعمل على تصميم الشعارات، الهويات، الفلايرز، أغلفة الكتب وأكثر من ذلك. هدفي هو مساعدتك في إيصال رسالتك بشكل مميز وأنيق.') | safe }}
+        </p>
+      </div>
+      
+      <div class="flex flex-wrap gap-4 mt-8">
+        <a href="{{ section_data.get('about', {}).get('contents', {}).get('cv_link', 'cv-firas.pdf') }}" download class="btn-neon px-6 py-3 rounded-lg flex items-center gap-2">
+          <i class="fas fa-file-download"></i>
+          <span>{{ section_data.get('about', {}).get('contents', {}).get('cv_text', 'تحميل السيرة الذاتية') | safe }}</span>
+        </a>
+        
+        <a href="#contact" class="bg-glass hover:bg-gray-800 text-white px-6 py-3 rounded-lg border border-gray-700 hover:border-indigo-500 transition flex items-center gap-2">
+          <i class="fas fa-envelope"></i>
+          <span>{{ section_data.get('about', {}).get('contents', {}).get('contact_text', 'تواصل معي') | safe }}</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- الخدمات بأسلوب EKI -->
+<section id="services" class="eki-section py-24 px-4 bg-primary-bg relative overflow-hidden">
+  <!-- تأثيرات الخلفية -->
+  <div class="absolute w-full h-full top-0 left-0 overflow-hidden">
+    <div class="absolute w-80 h-80 rounded-full bg-indigo-600 opacity-5 blur-3xl -left-20 top-40"></div>
+    <div class="absolute w-80 h-80 rounded-full bg-purple-600 opacity-5 blur-3xl -right-20 bottom-40"></div>
+    <div class="absolute w-60 h-60 rounded-full bg-cyan-600 opacity-5 blur-3xl left-1/4 bottom-20"></div>
+  </div>
+
+  <div class="max-w-6xl mx-auto relative z-10">
+    <!-- عنوان القسم -->
+    <div class="text-center mb-16" data-aos="fade-up">
+      <h2 class="text-4xl font-bold gradient-text flex items-center justify-center gap-3 mb-6">
+        <lord-icon src="https://cdn.lordicon.com/nocovwne.json" trigger="loop" colors="primary:#6366f1,secondary:#a855f7" style="width:45px;height:45px"></lord-icon>
+        <span>الخدمات التي أقدمها</span>
+      </h2>
+      <p class="text-gray-300 max-w-3xl mx-auto">
+        خدمات احترافية مصممة بدقة لتلبية احتياجاتك في مجال التصميم الجرافيكي والهوية البصرية
+      </p>
+    </div>
+    
+    <!-- بطاقات الخدمات بتصميم زجاجي متدرج -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {% if services %}
+        {% for service in services %}
+          <div class="service-card bg-glass backdrop-blur-lg border border-gray-800 rounded-2xl p-8 hover:border-indigo-500 transition-all hover:shadow-glow shadow-xl" style="background-color: rgba(20, 20, 30, 0.3);" data-aos="fade-up" data-aos-delay="{{ loop.index * 100 }}">
+            <div class="icon-container w-20 h-20 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center mb-6">
+              {% if 'logo' in service.service_type %}
+                <lord-icon src="https://cdn.lordicon.com/qhgmphtg.json" trigger="hover" colors="primary:#6366f1,secondary:#a855f7" style="width:64px;height:64px"></lord-icon>
+              {% elif 'brand' in service.service_type %}
+                <lord-icon src="https://cdn.lordicon.com/gqdnbnwt.json" trigger="hover" colors="primary:#6366f1,secondary:#a855f7" style="width:64px;height:64px"></lord-icon>
+              {% elif 'print' in service.service_type %}
+                <lord-icon src="https://cdn.lordicon.com/wloilxuq.json" trigger="hover" colors="primary:#6366f1,secondary:#a855f7" style="width:64px;height:64px"></lord-icon>
+              {% elif 'web' in service.service_type %}
+                <lord-icon src="https://cdn.lordicon.com/tsnvgrkp.json" trigger="hover" colors="primary:#6366f1,secondary:#a855f7" style="width:64px;height:64px"></lord-icon>
+              {% elif 'social' in service.service_type %}
+                <lord-icon src="https://cdn.lordicon.com/masykznr.json" trigger="hover" colors="primary:#6366f1,secondary:#a855f7" style="width:64px;height:64px"></lord-icon>
+              {% elif 'book' in service.service_type %}
+                <lord-icon src="https://cdn.lordicon.com/rjzlnunf.json" trigger="hover" colors="primary:#6366f1,secondary:#a855f7" style="width:64px;height:64px"></lord-icon>
+              {% elif 'instagram' in service.service_type %}
+                <lord-icon src="https://cdn.lordicon.com/gpqfwdij.json" trigger="hover" colors="primary:#6366f1,secondary:#a855f7" style="width:64px;height:64px"></lord-icon>
+              {% else %}
+                <lord-icon src="https://cdn.lordicon.com/vnxmkugx.json" trigger="hover" colors="primary:#6366f1,secondary:#a855f7" style="width:64px;height:64px"></lord-icon>
+              {% endif %}
+            </div>
+            
+            <h3 class="text-xl font-bold mb-3 gradient-text">{{ service.title }}</h3>
+            <p class="text-gray-300 mb-6">{{ service.subtitle }}</p>
+            
+            <a href="/service/{{ service.service_type }}" class="btn-neon px-5 py-2 rounded-lg inline-flex items-center gap-2">
+              <span>عرض المزيد</span>
+              <i class="fas fa-arrow-left"></i>
+            </a>
+          </div>
+        {% endfor %}
+      {% else %}
+        <!-- خدمة 1 (الافتراضية) -->
+        <div class="service-card bg-glass backdrop-blur-lg border border-gray-800 rounded-2xl p-8 hover:border-indigo-500 transition-all hover:shadow-glow shadow-xl" style="background-color: rgba(20, 20, 30, 0.3);" data-aos="fade-up" data-aos-delay="100">
+          <div class="icon-container w-20 h-20 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center mb-6">
+            <lord-icon src="https://cdn.lordicon.com/dtgezzsi.json" trigger="hover" colors="primary:#6366f1,secondary:#a855f7" style="width:64px;height:64px"></lord-icon>
+          </div>
+          
+          <h3 class="text-xl font-bold mb-3 gradient-text">تصميم الشعارات</h3>
+          <p class="text-gray-300 mb-6">تصميم شعارات فريدة تعكس هوية مشروعك وتساعد في تميزك عن المنافسين.</p>
+          
+          <a href="/service/logo-design" class="btn-neon px-5 py-2 rounded-lg inline-flex items-center gap-2">
+            <span>عرض المزيد</span>
+            <i class="fas fa-arrow-left"></i>
+          </a>
+        </div>
+        
+        <!-- خدمة 2 (الافتراضية) -->
+        <div class="service-card bg-glass backdrop-blur-lg border border-gray-800 rounded-2xl p-8 hover:border-indigo-500 transition-all hover:shadow-glow shadow-xl" style="background-color: rgba(20, 20, 30, 0.3);" data-aos="fade-up" data-aos-delay="200">
+          <div class="icon-container w-20 h-20 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center mb-6">
+            <lord-icon src="https://cdn.lordicon.com/gqdnbnwt.json" trigger="hover" colors="primary:#6366f1,secondary:#a855f7" style="width:64px;height:64px"></lord-icon>
+          </div>
+          
+          <h3 class="text-xl font-bold mb-3 gradient-text">الهوية البصرية</h3>
+          <p class="text-gray-300 mb-6">تطوير هوية بصرية كاملة مع دليل استخدام يضمن اتساق علامتك التجارية في كل نقاط التواصل.</p>
+          
+          <a href="/service/logo-brand" class="btn-neon px-5 py-2 rounded-lg inline-flex items-center gap-2">
+            <span>عرض المزيد</span>
+            <i class="fas fa-arrow-left"></i>
+          </a>
+        </div>
+        
+        <!-- خدمة 3 (الافتراضية) -->
+        <div class="service-card bg-glass backdrop-blur-lg border border-gray-800 rounded-2xl p-8 hover:border-indigo-500 transition-all hover:shadow-glow shadow-xl" style="background-color: rgba(20, 20, 30, 0.3);" data-aos="fade-up" data-aos-delay="300">
+          <div class="icon-container w-20 h-20 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center mb-6">
+            <lord-icon src="https://cdn.lordicon.com/wloilxuq.json" trigger="hover" colors="primary:#6366f1,secondary:#a855f7" style="width:64px;height:64px"></lord-icon>
+          </div>
+          
+          <h3 class="text-xl font-bold mb-3 gradient-text">المطبوعات</h3>
+          <p class="text-gray-300 mb-6">تصميم مختلف المطبوعات مثل البروشورات، الفلايرز، الكتالوجات وكروت العمل بتصاميم جذابة.</p>
+          
+          <a href="/service/print" class="btn-neon px-5 py-2 rounded-lg inline-flex items-center gap-2">
+            <span>عرض المزيد</span>
+            <i class="fas fa-arrow-left"></i>
+          </a>
+        </div>
+      {% endif %}
+    </div>
+    
+    <!-- تأثير الخط المتحرك -->
+    <div class="absolute -bottom-10 w-full h-px overflow-hidden">
+      <div class="w-full h-px bg-gradient-to-r from-transparent via-indigo-500 to-transparent animate-pulse"></div>
+    </div>
+  </div>
+</section>
+
+<!-- معرض أعمالي - كاروسيل انستغرام -->
+<section class="py-20 px-6 relative eki-section">
+  <!-- تأثيرات الخلفية -->
+  <div class="absolute inset-0 pointer-events-none opacity-15">
+    <div class="absolute top-1/3 right-1/4 w-72 h-72 bg-gradient-to-br from-indigo-500/30 to-purple-500/30 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-1/4 left-1/3 w-80 h-80 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-full blur-3xl"></div>
+  </div>
+  
+  <!-- عنصر تأثير شبكي في الخلفية -->
+  <div class="absolute inset-0 z-0 opacity-5">
+    <div class="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f10_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f10_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+  </div>
+  
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-12" data-aos="fade-up">
+      <h2 class="text-4xl font-bold gradient-text glow-hover flex items-center justify-center gap-3 mb-6">
+        <lord-icon src="https://cdn.lordicon.com/kxoxiwrf.json" trigger="loop" colors="primary:#6366f1,secondary:#a855f7" style="width:45px;height:45px"></lord-icon>
+        <span>معرض أعمالي</span>
+      </h2>
+      <p class="text-gray-300 max-w-3xl mx-auto leading-relaxed">
+        مجموعة من أحدث الأعمال والتصاميم الحصرية التي قمت بتنفيذها للعملاء
+      </p>
+    </div>
+    
+    {% if homepage_carousel_items and homepage_carousel_items|length > 0 %}
+      <!-- كاروسيل انستغرام العمودي -->
+      <div class="vertical-carousel-section py-10" data-aos="fade-up">
+        <div class="vertical-carousel-container">
+          <!-- Swiper container -->
+          <div class="swiper vertical-carousel">
+            <div class="swiper-wrapper">
+              {% for slide in homepage_carousel_items %}
+                <div class="swiper-slide">
+                  <div class="vertical-slide bg-glass rounded-xl overflow-hidden border border-gray-800">
+                    <!-- Instagram 4:5 aspect ratio container -->
+                    <div class="aspect-ratio-4-5">
+                      <img src="{{ url_for('static', filename='uploads/carousel/' + slide.image_filename) }}" 
+                           alt="{{ slide.title or 'صورة معرض' }}" 
+                           class="w-full h-full object-cover object-center">
+                    </div>
+                    {% if slide.title or slide.caption %}
+                      <div class="slide-caption text-right p-4 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
+                        {% if slide.title %}
+                          <h3 class="text-xl font-bold gradient-text">{{ slide.title }}</h3>
+                        {% endif %}
+                        {% if slide.caption %}
+                          <p class="text-sm mt-2 text-gray-300">{{ slide.caption }}</p>
+                        {% endif %}
+                      </div>
+                    {% endif %}
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+            
+            <!-- Navigation arrows -->
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+            
+            <!-- Pagination dots -->
+            <div class="swiper-pagination"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- زر عرض جميع المشاريع -->
+      <div class="text-center mt-12" data-aos="fade-up" data-aos-delay="300">
+        <a href="/portfolio" class="btn-neon px-8 py-3 rounded-lg inline-flex items-center gap-2">
+          <span>عرض جميع المشاريع</span>
+          <i class="fas fa-arrow-left"></i>
+        </a>
+      </div>
+    {% else %}
+      <div class="text-center text-gray-400 py-16" data-aos="fade-up">
+        <p class="mb-8">لا توجد صور في المعرض حالياً</p>
+        <a href="/portfolio" class="btn-neon px-8 py-3 rounded-lg inline-flex items-center gap-2">
+          <span>عرض جميع المشاريع</span>
+          <i class="fas fa-arrow-left"></i>
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- Instagram-Style Carousel Script -->
+<script src="{{ url_for('static', filename='js/vertical_carousel.js') }}"></script>
+
+<script>
+// تعريف وظيفة عرض المشروع للحفاظ على التوافق مع الملفات الأخرى
+window.viewPortfolio = function(portfolioId) {
+  if (!portfolioId) return;
+
+  fetch(`/portfolio/${portfolioId}/view`, { 
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest'
+    }
+  })
+  .then(response => response.json())
+  .then(data => console.log('View recorded:', data))
+  .catch(error => console.error('Error recording view:', error));
+};
+</script>
+
+<!-- آراء العملاء -->
+<section id="testimonials" class="eki-section py-20 px-4 bg-primary-bg">
+  <div class="max-w-6xl mx-auto">
+    <h2 class="text-3xl font-bold gradient-header text-center mb-12 flex items-center justify-center gap-3" data-aos="fade-up">
+      <lord-icon src="https://cdn.lordicon.com/hbvgknxo.json" trigger="loop" style="width:40px;height:40px"></lord-icon>
+      <span>آراء العملاء</span>
+    </h2>
+
+    <div class="relative mb-10">
+      <div class="testimonials-container grid grid-cols-1 md:grid-cols-3 gap-6">
+        {% if testimonials %}
+          {% for testimonial in testimonials if testimonial.approved %}
+          <div class="testimonial-card bg-glass backdrop-blur-lg border border-gray-800 rounded-xl p-6 hover:border-indigo-500 transition-all hover:shadow-glow shadow-xl" style="background-color: rgba(30, 30, 30, 0.5);" data-aos="fade-up" data-aos-delay="{{ loop.index * 100 }}">
+            <div class="rating-display mb-3" data-rating="{{ testimonial.rating }}"></div>
+            <p class="text-gray-300 mb-4">"{{ testimonial.content }}"</p>
+            <div class="flex items-center justify-between">
+              <div>
+                <h4 class="text-lg font-bold">{{ testimonial.name }}</h4>
+                <p class="text-purple-400 text-sm">{{ testimonial.company }}</p>
+              </div>
+              <div class="text-gray-500 text-sm">
+                {{ testimonial.created_at.strftime('%Y-%m-%d') }}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="col-span-3 text-center py-10">
+            <p class="text-gray-400">لا توجد تقييمات حتى الآن. كن أول من يضيف تقييماً!</p>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- أزرار التنقل -->
+      <button id="prevTestimonial" class="absolute left-0 top-1/2 transform -translate-y-1/2 bg-gray-900 hover:bg-gray-800 text-white p-2 rounded-full focus:outline-none">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      <button id="nextTestimonial" class="absolute right-0 top-1/2 transform -translate-y-1/2 bg-gray-900 hover:bg-gray-800 text-white p-2 rounded-full focus:outline-none">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
+
+    <div class="bg-glass backdrop-blur-lg border border-gray-800 rounded-xl p-8 hover:border-indigo-500 transition-all shadow-xl" style="background-color: rgba(30, 30, 30, 0.5);" data-aos="fade-up">
+      <h3 class="text-xl font-bold mb-4 text-center">شاركنا رأيك في خدماتنا</h3>
+
+      <style>
+        /* أنماط الحقول الزجاجية */
+        .testimonial-glass-input {
+          background-color: rgba(30, 30, 30, 0.5) !important;
+          backdrop-filter: blur(8px) !important;
+          border: 1px solid rgba(75, 85, 99, 0.4) !important;
+          border-radius: 12px !important;
+          color: white !important;
+          padding: 12px 16px !important;
+          transition: all 0.3s ease !important;
+        }
+        .testimonial-glass-input:hover {
+          border-color: rgba(99, 102, 241, 0.4) !important;
+          box-shadow: 0 0 8px rgba(99, 102, 241, 0.2) !important;
+        }
+        .testimonial-glass-input:focus {
+          outline: none !important;
+          border-color: rgba(99, 102, 241, 0.8) !important;
+          box-shadow: 0 0 12px rgba(99, 102, 241, 0.3) !important;
+        }
+      </style>
+      <form id="testimonialForm" method="post" action="{{ url_for('add_testimonial') }}" class="space-y-4">
+        {{ form.csrf_token }}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-gray-400 mb-2">الاسم <span class="text-indigo-400">*</span></label>
+            <input type="text" name="name" class="testimonial-glass-input w-full" style="background-color: rgba(30, 30, 30, 0.5) !important; border: 1px solid rgba(75, 85, 99, 0.4) !important; color: white !important;" required>
+          </div>
+          <div>
+            <label class="block text-gray-400 mb-2">الشركة</label>
+            <input type="text" name="company" class="testimonial-glass-input w-full" style="background-color: rgba(30, 30, 30, 0.5) !important; border: 1px solid rgba(75, 85, 99, 0.4) !important; color: white !important;">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-gray-400 mb-2">التقييم</label>
+          <div class="flex text-2xl">
+            <i class="fas fa-star rating-star text-indigo-400 cursor-pointer" data-value="1"></i>
+            <i class="fas fa-star rating-star text-indigo-400 cursor-pointer" data-value="2"></i>
+            <i class="fas fa-star rating-star text-indigo-400 cursor-pointer" data-value="3"></i>
+            <i class="fas fa-star rating-star text-indigo-400 cursor-pointer" data-value="4"></i>
+            <i class="fas fa-star rating-star text-indigo-400 cursor-pointer" data-value="5"></i>
+            <input type="hidden" name="rating" value="5">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-gray-400 mb-2">التعليق <span class="text-indigo-400">*</span></label>
+          <textarea name="content" rows="4" class="testimonial-glass-input w-full" style="background-color: rgba(30, 30, 30, 0.5) !important; border: 1px solid rgba(75, 85, 99, 0.4) !important; color: white !important;" required></textarea>
+        </div>
+
+        <div class="text-center">
+          <button type="submit" class="liquid-button bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold px-6 py-3 rounded-full transition shadow-lg hover:shadow-indigo-500/50">إرسال التقييم</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- تواصل معي -->
+<section id="contact" class="eki-section py-20 px-4 bg-secondary-bg">
+  <div class="max-w-5xl mx-auto">
+    <h2 class="text-3xl font-bold gradient-header text-center mb-12 flex items-center justify-center gap-3" data-aos="fade-up">
+      <lord-icon src="https://cdn.lordicon.com/diihvcfp.json" trigger="loop" style="width:40px;height:40px"></lord-icon>
+      <span>تواصل معي</span>
+    </h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+      <div class="space-y-8" data-aos="fade-left">
+        <div class="flex items-center gap-4">
+          <div class="text-purple-400 text-2xl">
+            <lord-icon src="https://cdn.lordicon.com/cnbtojmk.json" trigger="hover" style="width:48px;height:48px"></lord-icon>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold mb-1">البريد الإلكتروني</h3>
+            <p class="text-gray-300">{{ contact_info.get('email', 'info@firas-designs.com') }}</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-4">
+          <div class="text-purple-400 text-2xl">
+            <lord-icon src="https://cdn.lordicon.com/tftaqjwp.json" trigger="hover" style="width:48px;height:48px"></lord-icon>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold mb-1">الهاتف</h3>
+            <p class="text-gray-300">{{ contact_info.get('phone', '+213 770 123 456') }}</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-4">
+          <div class="text-purple-400 text-2xl">
+            <lord-icon src="https://cdn.lordicon.com/osuxyevn.json" trigger="hover" style="width:48px;height:48px"></lord-icon>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold mb-1">العنوان</h3>
+            <p class="text-gray-300">{{ contact_info.get('address', 'الجزائر العاصمة، الجزائر') }}</p>
+          </div>
+        </div>
+
+        <div class="flex gap-4 mt-8">
+          {% if social_media_links %}
+            {% for link in social_media_links %}
+              {% if link.active %}
+                <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer" class="social-icon-link group">
+                  <div class="w-12 h-12 rounded-full bg-glass border border-gray-800 text-white flex items-center justify-center transform hover:scale-110 transition-all duration-300 overflow-hidden group-hover:border-indigo-500">
+                    <i class="{{ link.icon }} text-xl group-hover:text-gradient"></i>
+                    <div class="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-500 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+                  </div>
+                </a>
+              {% endif %}
+            {% endfor %}
+          {% else %}
+            <a href="#" class="social-icon-link group">
+              <div class="w-12 h-12 rounded-full bg-glass border border-gray-800 text-white flex items-center justify-center transform hover:scale-110 transition-all duration-300 overflow-hidden group-hover:border-indigo-500">
+                <i class="fab fa-instagram text-xl group-hover:text-gradient"></i>
+                <div class="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-500 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+              </div>
+            </a>
+            <a href="#" class="social-icon-link group">
+              <div class="w-12 h-12 rounded-full bg-glass border border-gray-800 text-white flex items-center justify-center transform hover:scale-110 transition-all duration-300 overflow-hidden group-hover:border-indigo-500">
+                <i class="fab fa-behance text-xl group-hover:text-gradient"></i>
+                <div class="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-500 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+              </div>
+            </a>
+            <a href="#" class="social-icon-link group">
+              <div class="w-12 h-12 rounded-full bg-glass border border-gray-800 text-white flex items-center justify-center transform hover:scale-110 transition-all duration-300 overflow-hidden group-hover:border-indigo-500">
+                <i class="fab fa-dribbble text-xl group-hover:text-gradient"></i>
+                <div class="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-500 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+              </div>
+            </a>
+            <a href="#" class="social-icon-link group">
+              <div class="w-12 h-12 rounded-full bg-glass border border-gray-800 text-white flex items-center justify-center transform hover:scale-110 transition-all duration-300 overflow-hidden group-hover:border-indigo-500">
+                <i class="fab fa-linkedin-in text-xl group-hover:text-gradient"></i>
+                <div class="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-500 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+              </div>
+            </a>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="bg-glass backdrop-blur-lg border border-gray-800 rounded-xl p-8 hover:border-indigo-500 transition-all shadow-xl" style="background-color: rgba(30, 30, 30, 0.5);" data-aos="fade-right">
+        <h3 class="text-xl font-bold mb-6">أرسل لي رسالة</h3>
+        <form id="contactForm" method="post" action="/messaging/submit-contact" class="space-y-4">
+          <div id="contactFormAlert" class="hidden rounded-lg p-3 mb-4"></div>
+          <div>
+            <label class="block text-gray-400 mb-2">الاسم <span class="text-indigo-400">*</span></label>
+            <input type="text" name="name" class="w-full bg-glass text-white px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-gray-800 transition-all hover:border-indigo-500/50" required>
+          </div>
+
+          <div>
+            <label class="block text-gray-400 mb-2">البريد الإلكتروني <span class="text-indigo-400">*</span></label>
+            <input type="email" name="email" class="w-full bg-glass text-white px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-gray-800 transition-all hover:border-indigo-500/50" required>
+          </div>
+
+          <div>
+            <label class="block text-gray-400 mb-2">الموضوع</label>
+            <input type="text" name="subject" id="subjectField" class="w-full bg-glass text-white px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-gray-800 transition-all hover:border-indigo-500/50">
+          </div>
+
+          <div>
+            <label class="block text-gray-400 mb-2">رقم الهاتف</label>
+            <input type="text" name="phone" class="w-full bg-glass text-white px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-gray-800 transition-all hover:border-indigo-500/50">
+          </div>
+
+          <div>
+            <label class="block text-gray-400 mb-2">الرسالة <span class="text-indigo-400">*</span></label>
+            <textarea name="message" rows="4" class="w-full bg-glass text-white px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-gray-800 transition-all hover:border-indigo-500/50" required></textarea>
+          </div>
+
+          <div>
+            <button type="submit" class="btn-neon w-full text-white font-bold py-3 rounded-lg">إرسال الرسالة</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="eki-footer py-12 px-6 relative overflow-hidden">
+  <!-- خلفية متحركة للتذييل -->
+  <div class="absolute inset-0 pointer-events-none opacity-50">
+    <div class="absolute bottom-0 left-1/4 w-64 h-64 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-full blur-3xl"></div>
+    <div class="absolute top-1/4 right-1/4 w-80 h-80 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-3xl"></div>
+  </div>
+  
+  <div class="max-w-6xl mx-auto relative z-10">
+    <div class="flex flex-col md:flex-row justify-between items-center">
+      <div class="mb-8 md:mb-0 text-center md:text-right">
+        <a href="/" class="inline-block group">
+          <h2 class="text-3xl font-bold mb-2">
+            <span class="text-gradient bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-600 group-hover:from-indigo-400 group-hover:to-purple-500 transition-all">فراس</span>
+            <span class="mr-1 text-xl text-white group-hover:text-gray-200 transition-all">للتصميم</span>
+          </h2>
+        </a>
+        <p class="text-gray-300 mt-2 max-w-md hover:text-white transition-colors duration-300">تصاميم إبداعية تنقل رؤيتك إلى الواقع مع لمسة من الإبداع والتميّز</p>
+      </div>
+
+      <div class="flex flex-wrap justify-center gap-5">
+        <a href="/" class="nav-link text-gray-300 hover:text-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:bg-clip-text transition-all duration-300 relative after:absolute after:bottom-[-5px] after:right-0 after:h-[2px] after:w-0 after:bg-gradient-to-l after:from-indigo-500 after:to-purple-600 hover:after:w-full after:transition-all after:duration-300">الرئيسية</a>
+        <a href="#about" class="nav-link text-gray-300 hover:text-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:bg-clip-text transition-all duration-300 relative after:absolute after:bottom-[-5px] after:right-0 after:h-[2px] after:w-0 after:bg-gradient-to-l after:from-indigo-500 after:to-purple-600 hover:after:w-full after:transition-all after:duration-300">من أنا</a>
+        <a href="#services" class="nav-link text-gray-300 hover:text-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:bg-clip-text transition-all duration-300 relative after:absolute after:bottom-[-5px] after:right-0 after:h-[2px] after:w-0 after:bg-gradient-to-l after:from-indigo-500 after:to-purple-600 hover:after:w-full after:transition-all after:duration-300">الخدمات</a>
+        <a href="/portfolio" class="nav-link text-gray-300 hover:text-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:bg-clip-text transition-all duration-300 relative after:absolute after:bottom-[-5px] after:right-0 after:h-[2px] after:w-0 after:bg-gradient-to-l after:from-indigo-500 after:to-purple-600 hover:after:w-full after:transition-all after:duration-300">معرض الأعمال</a>
+        <a href="#testimonials" class="nav-link text-gray-300 hover:text-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:bg-clip-text transition-all duration-300 relative after:absolute after:bottom-[-5px] after:right-0 after:h-[2px] after:w-0 after:bg-gradient-to-l after:from-indigo-500 after:to-purple-600 hover:after:w-full after:transition-all after:duration-300">آراء العملاء</a>
+        <a href="#contact" class="nav-link text-gray-300 hover:text-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:bg-clip-text transition-all duration-300 relative after:absolute after:bottom-[-5px] after:right-0 after:h-[2px] after:w-0 after:bg-gradient-to-l after:from-indigo-500 after:to-purple-600 hover:after:w-full after:transition-all after:duration-300">تواصل معي</a>
+      </div>
+    </div>
+
+    <!-- أيقونات وسائل التواصل الاجتماعي -->
+    <div class="flex justify-center my-10">
+      <div class="grid grid-cols-4 md:grid-cols-7 gap-5">
+        {% if social_media_links %}
+          {% for link in social_media_links %}
+            {% if link.active %}
+              <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer" class="social-icon-link flex flex-col items-center group">
+                <div class="w-12 h-12 rounded-full bg-glass border border-gray-800 text-white flex items-center justify-center transform hover:scale-110 transition-all duration-300 overflow-hidden group-hover:border-indigo-500">
+                  <i class="{{ link.icon }} text-xl group-hover:text-gradient"></i>
+                  <div class="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-500 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+                </div>
+                <span class="text-xs text-gray-400 mt-2 group-hover:text-gradient transition-colors duration-300">{{ link.name }}</span>
+              </a>
+            {% endif %}
+          {% endfor %}
+        {% else %}
+          <!-- فيسبوك (سيظهر فقط إذا لم تكن هناك روابط في قاعدة البيانات) -->
+          <a href="#" target="_blank" class="social-icon-link flex flex-col items-center group">
+            <div class="w-12 h-12 rounded-full bg-glass border border-gray-800 text-white flex items-center justify-center transform hover:scale-110 transition-all duration-300 overflow-hidden group-hover:border-indigo-500">
+              <i class="fab fa-facebook-f text-xl group-hover:text-gradient"></i>
+              <div class="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-500 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+            </div>
+            <span class="text-xs text-gray-400 mt-2 group-hover:text-gradient transition-colors duration-300">فيسبوك</span>
+          </a>
+
+          <!-- تلغرام -->
+          <a href="#" target="_blank" class="social-icon-link flex flex-col items-center group">
+            <div class="w-12 h-12 rounded-full bg-glass border border-gray-800 text-white flex items-center justify-center transform hover:scale-110 transition-all duration-300 overflow-hidden group-hover:border-indigo-500">
+              <i class="fab fa-telegram-plane text-xl group-hover:text-gradient"></i>
+              <div class="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-500 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+            </div>
+            <span class="text-xs text-gray-400 mt-2 group-hover:text-gradient transition-colors duration-300">تلغرام</span>
+          </a>
+
+          <!-- واتساب -->
+          <a href="#" target="_blank" class="social-icon-link flex flex-col items-center group">
+            <div class="w-12 h-12 rounded-full bg-glass border border-gray-800 text-white flex items-center justify-center transform hover:scale-110 transition-all duration-300 overflow-hidden group-hover:border-indigo-500">
+              <i class="fab fa-whatsapp text-xl group-hover:text-gradient"></i>
+              <div class="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-500 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+            </div>
+            <span class="text-xs text-gray-400 mt-2 group-hover:text-gradient transition-colors duration-300">واتساب</span>
+          </a>
+
+          <!-- إكس (تويتر) -->
+          <a href="#" target="_blank" class="social-icon-link flex flex-col items-center group">
+            <div class="w-12 h-12 rounded-full bg-glass border border-gray-800 text-white flex items-center justify-center transform hover:scale-110 transition-all duration-300 overflow-hidden group-hover:border-indigo-500">
+              <i class="fab fa-twitter text-xl group-hover:text-gradient"></i>
+              <div class="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-500 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+            </div>
+            <span class="text-xs text-gray-400 mt-2 group-hover:text-gradient transition-colors duration-300">X</span>
+          </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <hr class="border-gray-800 my-8">
+
+    <div class="text-center text-gray-500 text-sm">
+      <p>جميع الحقوق محفوظة &copy; 2025 - فراس للتصميم</p>
+    </div>
+  </div>
+</footer>
+
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+  AOS.init({
+    duration: 800,
+    once: true
+  });
+
+  // استرجاع معلومات الخدمة المختارة
+  document.addEventListener('DOMContentLoaded', function() {
+    // التحقق من وجود خدمة مختارة
+    const selectedService = sessionStorage.getItem('selectedService');
+    
+    // تحقق إذا كان المستخدم قد انتقل إلى هذه الصفحة من زر طلب الخدمة
+    const fromServiceRequest = sessionStorage.getItem('fromServiceRequest');
+    
+    if (selectedService) {
+      // تعيين قيمة حقل الموضوع
+      const subjectField = document.getElementById('subjectField');
+      if (subjectField) {
+        subjectField.value = 'استفسار عن خدمة: ' + selectedService;
+      }
+
+      // التمرير إلى قسم الاتصال فقط إذا كانت الصفحة مفتوحة بناءً على طلب المستخدم
+      if (fromServiceRequest === 'true') {
+        const contactSection = document.getElementById('contact');
+        if (contactSection) {
+          contactSection.scrollIntoView({ behavior: 'smooth' });
+        }
+        // مسح العلامة بعد الاستخدام
+        sessionStorage.removeItem('fromServiceRequest');
+      }
+      
+      // مسح قيمة الخدمة المختارة من التخزين بعد 10 دقائق
+      setTimeout(() => {
+        sessionStorage.removeItem('selectedService');
+      }, 10 * 60 * 1000); // 10 دقائق بالمللي ثانية
+    }
+
+    // معالجة نموذج الاتصال
+    const contactForm = document.getElementById('contactForm');
+    if (contactForm) {
+      contactForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(contactForm);
+        const alertBox = document.getElementById('contactFormAlert');
+        
+        fetch('/messaging/submit-contact', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            alertBox.className = 'bg-green-100 text-green-700 border border-green-200 rounded-lg p-3 mb-4';
+            alertBox.innerHTML = data.message;
+            contactForm.reset();
+          } else {
+            alertBox.className = 'bg-red-100 text-red-700 border border-red-200 rounded-lg p-3 mb-4';
+            alertBox.innerHTML = data.error || 'حدث خطأ أثناء إرسال النموذج، يرجى المحاولة مرة أخرى.';
+          }
+          alertBox.classList.remove('hidden');
+          
+          // إخفاء رسالة التنبيه بعد 5 ثوانٍ
+          setTimeout(() => {
+            alertBox.classList.add('hidden');
+          }, 5000);
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alertBox.className = 'bg-red-100 text-red-700 border border-red-200 rounded-lg p-3 mb-4';
+          alertBox.innerHTML = 'حدث خطأ في الاتصال بالخادم، يرجى المحاولة مرة أخرى.';
+          alertBox.classList.remove('hidden');
+        });
+      });
+    }
+  });
+</script>
+
+<!-- سكريبت التحكم في كاروسيل الصفحة الرئيسية -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // التحقق من وجود عناصر الكاروسيل
+    const carousel = document.querySelector('.homepage-carousel-container');
+    if (!carousel) return;
+    
+    const slides = document.querySelectorAll('.homepage-carousel-slide');
+    if (slides.length === 0) return;
+    
+    const slidesWrapper = document.querySelector('.homepage-carousel-slides');
+    const prevButton = document.getElementById('prevSlide');
+    const nextButton = document.getElementById('nextSlide');
+    const indicators = document.querySelectorAll('.carousel-indicator');
+    
+    let currentIndex = 0;
+    const slideWidth = 100; // النسبة المئوية لعرض الشريحة
+    let slideInterval;
+    
+    // تعيين عرض حاوية الشرائح بناءً على عدد الشرائح
+    slidesWrapper.style.width = `${slides.length * 100}%`;
+    
+    // تعيين عرض كل شريحة
+    slides.forEach(slide => {
+      slide.style.width = `${slideWidth / slides.length}%`;
+    });
+    
+    // تحديد المؤشر النشط
+    function setActiveIndicator() {
+      indicators.forEach((indicator, idx) => {
+        if (idx === currentIndex) {
+          indicator.classList.add('bg-purple-400', 'bg-opacity-100');
+          indicator.classList.remove('bg-white', 'bg-opacity-50');
+        } else {
+          indicator.classList.remove('bg-purple-400', 'bg-opacity-100');
+          indicator.classList.add('bg-white', 'bg-opacity-50');
+        }
+      });
+    }
+    
+    // الانتقال إلى شريحة محددة
+    function goToSlide(index) {
+      currentIndex = index;
+      slidesWrapper.style.transform = `translateX(${-currentIndex * (100 / slides.length)}%)`;
+      setActiveIndicator();
+    }
+    
+    // الانتقال إلى الشريحة التالية
+    function goToNextSlide() {
+      currentIndex = (currentIndex + 1) % slides.length;
+      goToSlide(currentIndex);
+    }
+    
+    // الانتقال إلى الشريحة السابقة
+    function goToPrevSlide() {
+      currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+      goToSlide(currentIndex);
+    }
+    
+    // إضافة مستمعات الأحداث للأزرار
+    if (prevButton) prevButton.addEventListener('click', goToPrevSlide);
+    if (nextButton) nextButton.addEventListener('click', goToNextSlide);
+    
+    // إضافة مستمعات الأحداث للمؤشرات
+    indicators.forEach((indicator, idx) => {
+      indicator.addEventListener('click', () => goToSlide(idx));
+    });
+    
+    // تشغيل التنقل التلقائي
+    function startAutoSlide() {
+      slideInterval = setInterval(goToNextSlide, 5000); // تغيير الشريحة كل 5 ثوانٍ
+    }
+    
+    // إيقاف التنقل التلقائي عند تمرير المؤشر فوق الكاروسيل
+    carousel.addEventListener('mouseenter', () => {
+      clearInterval(slideInterval);
+    });
+    
+    // إعادة تشغيل التنقل التلقائي عند مغادرة المؤشر للكاروسيل
+    carousel.addEventListener('mouseleave', startAutoSlide);
+    
+    // تهيئة العرض الأول والتنقل التلقائي
+    setActiveIndicator();
+    startAutoSlide();
+  });
+</script>
+
+{% endblock %}

@@ -1,0 +1,2123 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ service.title }} - فراس للتصميم{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/glass-fields.css') }}?v={{ range(1000, 9999) | random }}">
+<script>
+// نظام عرض الصور المُحسّن لصفحة الخدمات
+// دالة فتح العارض
+function openGalleryModal(imageSrc, caption) {
+  const modal = document.getElementById('galleryModal');
+  const modalImage = document.getElementById('galleryModalImage');
+  
+  if (!modal || !modalImage) {
+    console.error('عناصر النافذة المنبثقة غير موجودة');
+    return;
+  }
+  
+  // تجهيز الصورة
+  modalImage.style.opacity = '0';
+  modalImage.style.transform = 'scale(0.9)';
+  
+  // تعيين مصدر الصورة
+  modalImage.src = imageSrc;
+  modalImage.alt = caption || '';
+  
+  // إظهار النافذة المنبثقة
+  modal.style.display = 'flex';
+  setTimeout(() => {
+    modal.classList.remove('hidden');
+    modal.style.opacity = '1';
+    
+    // تأثير حركي على الصورة
+    setTimeout(() => {
+      modalImage.style.opacity = '1';
+      modalImage.style.transform = 'scale(1)';
+    }, 100);
+  }, 10);
+  
+  // إيقاف التمرير في الصفحة
+  document.body.style.overflow = 'hidden';
+  
+  // تحديث العنوان إذا كان متوفرًا
+  const captionElement = document.getElementById('galleryModalCaption');
+  if (captionElement && caption) {
+    captionElement.textContent = caption;
+    captionElement.style.display = 'block';
+  } else if (captionElement) {
+    captionElement.style.display = 'none';
+  }
+  
+  // إضافة تأثير زوم عند النقر على الصورة
+  modalImage.onclick = function() {
+    if (this.classList.contains('zoomed')) {
+      this.classList.remove('zoomed');
+      this.style.transform = 'scale(1)';
+    } else {
+      this.classList.add('zoomed');
+      this.style.transform = 'scale(1.5)';
+    }
+  };
+}
+</script>
+{% endblock %}
+
+{% block styles %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/smooth-animations.css') }}?v={{ range(1000, 9999) | random }}" />
+  <style>
+    /* تأثير التمرير السلس على مستوى الصفحة */
+    html {
+      scroll-behavior: smooth;
+    }
+    
+    /* تنسيقات النافذة المنبثقة المحسنة للصور */
+    #galleryModal {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .modal-background {
+      background-position: center;
+      transform: scale(1.1);
+      transition: all 0.5s ease-out;
+    }
+    
+    #modalContainer {
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+    
+    /* تأثيرات تنقل الصور */
+    #galleryModalImage {
+      transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transform-origin: center;
+      will-change: transform, opacity;
+    }
+    
+    /* تنسيقات شريط الصور المصغرة */
+    #thumbnailStrip {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(99, 102, 241, 0.5) rgba(17, 24, 39, 0.3);
+    }
+    
+    #thumbnailStrip::-webkit-scrollbar {
+      height: 6px;
+    }
+    
+    #thumbnailStrip::-webkit-scrollbar-track {
+      background: rgba(17, 24, 39, 0.3);
+      border-radius: 6px;
+    }
+    
+    #thumbnailStrip::-webkit-scrollbar-thumb {
+      background-color: rgba(99, 102, 241, 0.5);
+      border-radius: 6px;
+    }
+    
+    .thumbnail-item {
+      transition: all 0.2s ease-out;
+    }
+    
+    .thumbnail-item.active {
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.8);
+    }
+    
+    /* تنسيقات بيانات EXIF */
+    #exifData {
+      backdrop-filter: blur(4px);
+      font-size: 0.75rem;
+    }
+    
+    /* تنسيقات أزرار المشاركة */
+    .share-buttons button {
+      transition: all 0.2s;
+    }
+    
+    .share-buttons button:hover {
+      transform: translateY(-2px);
+    }
+    
+    /* تنسيقات إضافية لدعم اللمس */
+    .touch-controls {
+      position: fixed;
+      bottom: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 1rem;
+      z-index: 60;
+    }
+    
+    @media (min-width: 768px) {
+      .touch-controls {
+        display: none;
+      }
+    }
+    
+    /* تأثير نبض للتلميح للمستخدم */
+    @keyframes pulse-hint {
+      0%, 100% { opacity: 0.7; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.1); }
+    }
+    
+    .pulse-hint {
+      animation: pulse-hint 2s infinite;
+    }
+    
+    /* تحسينات للهواتف المحمولة */
+    @media (max-width: 640px) {
+      #prevImageBtn, #nextImageBtn {
+        opacity: 0.7 !important;
+        transform: none !important;
+        position: absolute;
+        top: 50%;
+        margin-top: -20px;
+        width: 40px;
+        height: 40px;
+      }
+      
+      #prevImageBtn {
+        left: 5px;
+      }
+      
+      #nextImageBtn {
+        right: 5px;
+      }
+    }
+    
+    /* تأثير الظهور لقسم نموذج طلب الخدمة */
+    @keyframes highlightAnimation {
+      0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+      50% { box-shadow: 0 0 30px 10px rgba(99, 102, 241, 0.4); }
+      100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+    }
+    
+    /* تأثير ظهور عناصر القسم بعد التمرير إليه */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .highlight-section .bg-glass {
+      animation: highlightAnimation 1s ease-in-out;
+    }
+    
+    .form-highlight {
+      animation: fadeInUp 0.8s ease-out forwards;
+    }
+    
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .hero-gradient {
+      background: linear-gradient(to bottom, var(--primary-bg), var(--secondary-bg));
+    }
+    .custom-shadow {
+      box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+    }
+    /* تنسيقات معرض الصور */
+    #galleryModal {
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    /* تحسينات إضافية لتجربة المستخدم */
+    .service-section {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.8s cubic-bezier(0.5, 0, 0, 1), transform 0.8s cubic-bezier(0.5, 0, 0, 1);
+      will-change: transform, opacity;
+    }
+    
+    .service-section.animated {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .service-image {
+      transition: transform 0.5s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+      will-change: transform, box-shadow;
+    }
+    
+    .service-image:hover {
+      transform: scale(1.03);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3), 0 0 15px rgba(99, 102, 241, 0.3);
+    }
+    
+    .feature-item {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .feature-item:hover {
+      transform: translateX(-5px);
+    }
+    
+    .feature-item:hover i {
+      transform: scale(1.2);
+      color: var(--gradient-start);
+    }
+    
+    .feature-item i {
+      transition: transform 0.3s ease, color 0.3s ease;
+    }
+    
+    .liquid-button {
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .liquid-button:after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.1), rgba(255,255,255,0));
+      transform: translateX(-100%);
+    }
+    
+    .liquid-button:hover:after {
+      transform: translateX(100%);
+      transition: transform 0.8s ease;
+    }
+    
+    /* تأثير البقع الضوئية المتحركة في الخلفية */
+    .blob-container {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: -1;
+    }
+    
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.3;
+      transition: all 10s cubic-bezier(0.19, 1, 0.22, 1);
+    }
+    
+    .blob-purple {
+      background: rgba(139, 92, 246, 0.3);
+      width: 500px;
+      height: 500px;
+      top: -200px;
+      right: -200px;
+      animation: blobFloat1 30s infinite alternate ease-in-out;
+    }
+    
+    .blob-blue {
+      background: rgba(59, 130, 246, 0.2);
+      width: 600px;
+      height: 600px;
+      bottom: -250px;
+      left: -200px;
+      animation: blobFloat2 25s infinite alternate ease-in-out;
+    }
+    
+    @keyframes blobFloat1 {
+      0% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(-100px, 150px) scale(1.3); }
+      100% { transform: translate(100px, 50px) scale(1.1); }
+    }
+    
+    @keyframes blobFloat2 {
+      0% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(150px, -70px) scale(1.2); }
+      100% { transform: translate(50px, -150px) scale(0.9); }
+    }
+  </style>
+{% endblock %}
+
+{% block extra_styles %}
+<style>
+    /* أنماط للحقول الزجاجية */
+    #phone, 
+    #budget_select, 
+    #timeline_select,
+    #budget, 
+    #timeline {
+        background: rgba(17, 24, 39, 0.3) !important; /* خلفية شفافة */
+        backdrop-filter: blur(8px) !important; /* تأثير التمويه */
+        -webkit-backdrop-filter: blur(8px) !important; /* دعم سفاري */
+        border: 1px solid rgba(99, 102, 241, 0.2) !important; /* حدود بلون أرجواني شفاف */
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important; /* ظل خفيف */
+        color: white !important;
+        transition: all 0.3s ease !important;
+    }
+
+    #phone:focus, 
+    #budget_select:focus, 
+    #timeline_select:focus,
+    #budget:focus, 
+    #timeline:focus {
+        border-color: rgba(99, 102, 241, 0.5) !important; /* حدود أكثر وضوحاً عند التركيز */
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25), 0 4px 15px rgba(0, 0, 0, 0.3) !important; /* تأثير توهج عند التركيز */
+        background: rgba(17, 24, 39, 0.5) !important; /* خلفية أغمق قليلاً عند التركيز */
+    }
+
+    /* تأثيرات إضافية عند تحريك المؤشر فوق الحقول */
+    #phone:hover, 
+    #budget_select:hover, 
+    #timeline_select:hover,
+    #budget:hover, 
+    #timeline:hover {
+        border-color: rgba(99, 102, 241, 0.4) !important;
+        transform: translateY(-1px); /* ارتفاع طفيف عند تحريك المؤشر */
+    }
+
+    /* تصحيح لعرض القوائم المنسدلة في مختلف المتصفحات */
+    #budget_select, #timeline_select {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23a855f7' viewBox='0 0 16 16'%3E%3Cpath d='M8 10.5a.5.5 0 0 1-.354-.146l-4-4a.5.5 0 1 1 .708-.708L8 9.293l3.646-3.647a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.354.146z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        padding-right: 30px !important;
+    }
+    
+    #galleryModal.hidden {
+      display: none !important;
+    }
+    
+    #galleryModalImage {
+      max-height: 80vh;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    }
+    
+    #closeGalleryModal {
+      transition: all 0.2s ease;
+      top: 16px !important;
+    }
+    
+    #closeGalleryModal:hover {
+      transform: rotate(90deg);
+    }
+    
+    .gallery-item {
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+    
+    .gallery-item:hover img {
+      transform: scale(1.05);
+    }
+    
+    .gallery-item img {
+      transition: all 0.3s ease;
+    }
+    
+    /* Responsive styles for mobile */
+    @media (max-width: 768px) {
+      .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+      }
+      
+      .mobile-full-width {
+        width: 100% !important;
+      }
+      
+      .mobile-stack {
+        flex-direction: column !important;
+      }
+      
+      .mobile-text-center {
+        text-align: center !important;
+      }
+      
+      .sticky-sidebar {
+        position: static !important;
+        top: auto !important;
+      }
+      
+      .mobile-my-4 {
+        margin-top: 1rem !important;
+        margin-bottom: 1rem !important;
+      }
+      
+      .mobile-px-4 {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+      }
+      
+      /* Fix for overlapping modals in service pages */
+      .modal {
+        z-index: 9999 !important;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+      }
+      
+      .modal-content {
+        position: relative;
+        z-index: 10000 !important;
+        background-color: #1f2937;
+        border-radius: 0.5rem;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        width: 100%;
+        max-width: 500px;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+      
+      .modal-backdrop {
+        z-index: 9990 !important;
+      }
+      
+      /* Fix for view more section overlap */
+      .view-more-section {
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+      }
+      
+      .view-more-content {
+        max-height: 300px;
+        overflow: hidden;
+        transition: max-height 0.5s ease;
+      }
+      
+      .view-more-content.expanded {
+        max-height: 3000px;
+      }
+      
+      .view-more-gradient {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 100px;
+        background: linear-gradient(to top, #1f2937, transparent);
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+      }
+      
+      .view-more-gradient.hidden {
+        opacity: 0;
+      }
+      
+      .fixed-button {
+        bottom: 20px !important;
+        right: 20px !important;
+        top: auto !important;
+        left: auto !important;
+      }
+      
+      /* Social media icons styling */
+      .social-icons {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+      
+      .social-icon {
+        color: #9CA3AF;
+        font-size: 1.25rem;
+        transition: all 0.3s ease;
+      }
+      
+      .social-icon:hover {
+        transform: translateY(-3px);
+      }
+      
+      .social-icon.facebook:hover {
+        color: #1877F2;
+      }
+      
+      .social-icon.twitter:hover {
+        color: #1DA1F2;
+      }
+      
+      .social-icon.telegram:hover {
+        color: #0088cc;
+      }
+      
+      .social-icon.whatsapp:hover {
+        color: #25D366;
+      }
+      
+      .social-icon.linkedin:hover {
+        color: #0A66C2;
+      }
+      
+      .social-icon.khamsat:hover, 
+      .social-icon.mostaql:hover, 
+      .social-icon.freelancer:hover {
+        color: #FCD34D;
+      }
+    }
+</style>
+{% endblock %}
+
+
+
+{% block content %}
+
+<script>
+// تطبيق مظهر زجاجي على حقول النموذج
+document.addEventListener('DOMContentLoaded', function() {
+  // تحديد العناصر التي سيتم تعديلها
+  const fields = ['phone', 'budget_select', 'timeline_select', 'budget', 'timeline'];
+  
+  // تطبيق الأنماط بشكل متكرر حتى يتم تحميل العناصر بالكامل
+  const applyGlassEffect = function() {
+    fields.forEach(id => {
+      const field = document.getElementById(id);
+      if (field) {
+        // إزالة الخلفية الحالية وإضافة النمط الزجاجي
+        field.style.background = 'rgba(17, 24, 39, 0.1)';
+        field.style.backdropFilter = 'blur(8px)';
+        field.style.webkitBackdropFilter = 'blur(8px)';
+        field.style.border = '1px solid rgba(99, 102, 241, 0.3)';
+        field.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.1)';
+      }
+    });
+  };
+  
+  // تطبيق التأثير عند تحميل الصفحة
+  applyGlassEffect();
+  
+  // تطبيق التأثير مرة أخرى بعد تحميل الصفحة بشكل كامل
+  setTimeout(applyGlassEffect, 500);
+});
+</script>
+
+<!-- Hero Section -->
+<section class="py-16 px-6 hero-gradient relative overflow-hidden eki-section">
+  <div class="absolute inset-0 pointer-events-none opacity-20">
+    <div class="absolute top-1/4 right-1/4 w-64 h-64 bg-gradient-to-br from-indigo-500/30 to-purple-500/30 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-1/4 left-1/4 w-80 h-80 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-full blur-3xl"></div>
+    <div class="absolute top-1/3 left-1/3 w-72 h-72 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 rounded-full blur-3xl animate-pulse"></div>
+  </div>
+
+  <div class="max-w-6xl mx-auto">
+    <div class="grid md:grid-cols-2 gap-12 items-center">
+      <div class="text-right relative z-10" data-aos="fade-right">
+        <h1 class="text-4xl md:text-5xl font-extrabold gradient-text mb-6">{{ service.title }}</h1>
+        <p class="text-xl text-gray-300 mb-8">{{ service.subtitle }}</p>
+        <div class="flex justify-start mb-6">
+          <div class="bg-glass backdrop-blur-sm border border-gray-700 px-4 py-2 rounded-lg font-bold text-xl text-white">
+            السعر: <span class="gradient-text">{{ service.price }}</span>
+          </div>
+        </div>
+        <a href="#service-request-section" class="liquid-button inline-block bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold px-8 py-3 rounded-full transition shadow-lg hover:shadow-indigo-500/50" onclick="sessionStorage.setItem('selectedService', '{{ service.title }}'); sessionStorage.setItem('fromServiceRequest', 'true');">
+          طلب الخدمة الآن
+        </a>
+      </div>
+      <div class="relative z-10" data-aos="fade-left" data-aos-delay="200">
+        <div class="relative group cursor-pointer main-service-image overflow-hidden rounded-lg shadow-xl">
+          {% if service.image_filename %}
+            <img src="/static/uploads/services/{{ service.image_filename }}" alt="{{ service.title }}" class="w-full h-auto rounded-lg shadow-xl custom-shadow border border-gray-800 hover:border-indigo-500/30 transition-all" 
+                 onclick="openGalleryModal('/static/uploads/services/{{ service.image_filename }}', '{{ service.title }}')">
+          {% elif service.image_url %}
+            <img src="{{ service.image_url }}" alt="{{ service.title }}" class="w-full h-auto rounded-lg shadow-xl custom-shadow border border-gray-800 hover:border-indigo-500/30 transition-all"
+                 onclick="openGalleryModal('{{ service.image_url }}', '{{ service.title }}')">
+          {% else %}
+            <img src="/static/uploads/services/default-service.svg" alt="{{ service.title }}" class="w-full h-auto rounded-lg shadow-xl custom-shadow border border-gray-800 hover:border-indigo-500/30 transition-all"
+                 onclick="openGalleryModal('/static/uploads/services/default-service.svg', '{{ service.title }}')">
+          {% endif %}
+          
+          <!-- زر التكبير للعرض في النافذة المنبثقة -->
+          <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black bg-opacity-30">
+            <button onclick="openGalleryModal('{% if service.image_filename %}/static/uploads/services/{{ service.image_filename }}{% elif service.image_url %}{{ service.image_url }}{% else %}/static/uploads/services/default-service.svg{% endif %}', '{{ service.title }}')" class="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-full w-12 h-12 flex items-center justify-center transform transition hover:scale-110 shadow-lg" aria-label="عرض الصورة بالحجم الكامل">
+              <i class="fas fa-search-plus text-xl"></i>
+            </button>
+          </div>
+        </div>
+        
+        <div class="absolute -bottom-4 -right-4 bg-glass border border-indigo-500/50 backdrop-blur-md text-white px-4 py-2 rounded-lg font-bold shadow-lg shadow-indigo-500/20">
+          <i class="fas fa-clock mr-1 text-indigo-400"></i> {{ service.delivery_time }}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Service Details -->
+<section class="py-16 px-6 eki-section">
+  <div class="max-w-6xl mx-auto">
+    <div class="grid md:grid-cols-3 gap-12">
+      <!-- Main Content -->
+      <div class="md:col-span-2">
+        <div id="service-details" class="service-section bg-glass backdrop-blur-md border border-gray-800 hover:border-indigo-500/30 rounded-xl p-8 mb-8 transition-all shadow-lg" data-aos="fade-up">
+          <h2 class="text-2xl font-bold mb-6 gradient-header flex items-center gap-3">
+            <lord-icon src="https://cdn.lordicon.com/nocovwne.json" trigger="hover" colors="primary:#6366f1,secondary:#a855f7" style="width:30px;height:30px"></lord-icon>
+            <span>تفاصيل الخدمة</span>
+          </h2>
+          <div class="text-gray-300 space-y-4 text-lg leading-relaxed">
+            {{ service.description|safe }}
+          </div>
+        </div>
+        
+        <div id="service-features" class="service-section bg-glass backdrop-blur-md border border-gray-800 hover:border-indigo-500/30 rounded-xl p-8 mb-8 transition-all shadow-lg" data-aos="fade-up" data-aos-delay="100">
+          <h2 class="text-2xl font-bold mb-6 gradient-header flex items-center gap-3">
+            <lord-icon src="https://cdn.lordicon.com/wloilxuq.json" trigger="hover" colors="primary:#6366f1,secondary:#a855f7" style="width:30px;height:30px"></lord-icon>
+            <span>مميزات الخدمة</span>
+          </h2>
+          <ul class="space-y-3 text-gray-300">
+            {% for feature in service.features %}
+              <li class="flex items-start gap-3">
+                <div class="text-indigo-400 mt-1"><i class="fas fa-check-circle"></i></div>
+                <div>{{ feature }}</div>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+        
+        <!-- Gallery -->
+        {% if service.gallery %}
+        <div id="service-gallery" class="service-section bg-glass backdrop-blur-md border border-gray-800 hover:border-indigo-500/30 rounded-xl p-8 transition-all shadow-lg" data-aos="fade-up" data-aos-delay="200">
+          <h2 class="text-2xl font-bold mb-6 gradient-header flex items-center gap-3">
+            <lord-icon src="https://cdn.lordicon.com/vixtkkbk.json" trigger="hover" colors="primary:#6366f1,secondary:#a855f7" style="width:30px;height:30px"></lord-icon>
+            <span>معرض الأعمال</span>
+          </h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for item in service.gallery %}
+              <div class="gallery-item portfolio-item rounded-lg overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-xl relative group">
+                <img src="{{ item.image }}" alt="{{ item.caption }}" class="w-full h-64 object-cover transition-all duration-500 group-hover:brightness-90">
+                <div class="item-overlay absolute inset-0 flex items-end justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+                  <div class="bg-glass backdrop-blur-sm w-full p-3 text-center text-white">
+                    <p class="font-medium">{{ item.caption }}</p>
+                  </div>
+                </div>
+                <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <button onclick="openGalleryModal('{{ item.image }}', '{{ item.caption }}')" class="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-full w-12 h-12 flex items-center justify-center transform transition hover:scale-110 shadow-lg">
+                    <i class="fas fa-search-plus text-xl"></i>
+                  </button>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+        
+        <!-- Gallery Modal - Enhanced Version -->
+        </div>
+        {% endif %}
+        
+        <!-- نافذة معرض الصور دائمًا موجودة لجميع الحالات -->
+        <!-- نظام عرض الصور المتطور -->
+        <div id="galleryModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-90" style="display: none; opacity: 0;">
+          <div class="w-full h-full flex items-center justify-center px-4">
+            <div class="relative w-auto h-auto max-w-6xl mx-auto p-4 rounded-xl bg-gray-900/30 backdrop-blur-sm" id="modalContainer">
+              <!-- زر الإغلاق -->
+              <button id="closeGalleryModal" class="gallery-close-btn absolute top-16 right-4 bg-red-600 hover:bg-red-700 text-white rounded-full w-12 h-12 flex items-center justify-center z-30 shadow-lg transition-all duration-300 hover:scale-110 focus:outline-none">
+                <i class="fas fa-times text-xl"></i>
+              </button>
+              
+              <!-- أزرار التنقل بين الصور -->
+              <button id="prevImageBtn" class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-gray-800/80 hover:bg-indigo-600 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg opacity-70 hover:opacity-100 transition-all duration-300 focus:outline-none">
+                <i class="fas fa-chevron-left text-xl"></i>
+              </button>
+              
+              <button id="nextImageBtn" class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-gray-800/80 hover:bg-indigo-600 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg opacity-70 hover:opacity-100 transition-all duration-300 focus:outline-none">
+                <i class="fas fa-chevron-right text-xl"></i>
+              </button>
+              
+              <!-- حاوية الصورة الرئيسية -->
+              <div class="image-container bg-transparent rounded-lg overflow-hidden relative">
+                <img id="galleryModalImage" src="" alt="" class="max-h-[75vh] max-w-full object-contain mx-auto shadow-xl rounded transition-all duration-300" style="opacity: 0; transform: scale(0.9);">
+                
+                <!-- عنوان الصورة -->
+                <div id="galleryModalCaption" class="absolute bottom-0 left-0 right-0 bg-black/70 text-white py-2 px-4 text-center font-semibold text-lg opacity-90 transition-all duration-300 backdrop-blur-sm rounded-b-lg"></div>
+              </div>
+              
+              <!-- شريط الصور المصغرة -->
+              <div id="thumbnailStrip" class="flex space-x-2 mt-4 pb-2 overflow-x-auto no-scrollbar">
+                <!-- سيتم ملؤه بواسطة JavaScript -->
+              </div>
+              
+              <!-- زر المشاركة -->
+              <div class="absolute top-4 left-4 share-buttons flex space-x-2">
+                <button class="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg focus:outline-none" title="مشاركة">
+                  <i class="fas fa-share-alt"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- أزرار التحكم للأجهزة اللوحية والجوال -->
+          <div class="touch-controls">
+            <button class="bg-gray-800/90 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg">
+              <i class="fas fa-minus"></i>
+            </button>
+            <button class="bg-gray-800/90 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg">
+              <i class="fas fa-plus"></i>
+            </button>
+            <button class="bg-gray-800/90 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg">
+              <i class="fas fa-rotate"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Sidebar -->
+      <div class="md:col-span-1">
+        <!-- Package details -->
+        <div class="bg-glass backdrop-blur-md border border-gray-800 hover:border-indigo-500/30 rounded-xl p-6 mb-8 md:sticky top-24 transition-all shadow-lg" data-aos="fade-up">
+          <h3 class="text-xl font-bold mb-4 gradient-header">الباقة تشمل</h3>
+          <ul class="space-y-3 text-gray-300">
+            {% for item in service.package_includes %}
+              <li class="flex items-center gap-2">
+                <i class="fas fa-check text-indigo-400"></i>
+                <span>{{ item }}</span>
+              </li>
+            {% endfor %}
+          </ul>
+          
+          <hr class="border-gray-700 my-4">
+          
+          <div class="space-y-3">
+            <div class="flex justify-between">
+              <span class="text-gray-400">مدة التسليم:</span>
+              <span class="font-bold text-white">{{ service.delivery_time }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-400">عدد التعديلات:</span>
+              <span class="font-bold text-white">{{ service.revisions }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-400">التنسيقات المتاحة:</span>
+              <span class="font-bold text-white">{{ service.formats }}</span>
+            </div>
+          </div>
+          
+          <hr class="border-gray-700 my-4">
+          
+          <div class="text-2xl font-bold gradient-text text-center mb-4">
+            {{ service.price }}
+          </div>
+          
+          <a href="#service-request-section" class="liquid-button block w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold py-3 rounded-lg text-center transition-all shadow-lg hover:shadow-indigo-500/50 mb-3" onclick="sessionStorage.setItem('selectedService', '{{ service.title }}'); sessionStorage.setItem('fromServiceRequest', 'true');">
+            <i class="fas fa-shopping-cart mr-2"></i> طلب الخدمة الآن
+          </a>
+          
+          <a href="https://wa.me/{{ contact_info.phone|default('+213770123456')|replace(' ', '')|replace('-', '')|replace('+', '') }}?text=مرحباً،%20أرغب%20في%20الاستفسار%20عن%20خدمة%20{{ service.title|urlencode }}" target="_blank" class="block w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-3 rounded-lg text-center transition-all shadow-lg hover:shadow-green-500/50">
+            <i class="fab fa-whatsapp mr-2"></i> تواصل عبر واتساب
+          </a>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- خدمات أخرى -->
+<section class="py-16 px-6 eki-section relative overflow-hidden">
+  <div class="absolute inset-0 pointer-events-none opacity-10">
+    <div class="absolute top-1/4 left-1/4 w-72 h-72 bg-gradient-to-br from-indigo-500/30 to-purple-500/30 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-1/3 right-1/3 w-64 h-64 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-full blur-3xl"></div>
+  </div>
+
+  <div class="max-w-6xl mx-auto relative z-10">
+    <h2 class="text-3xl font-bold gradient-text text-center mb-12 flex items-center justify-center gap-3" data-aos="fade-up">
+      <lord-icon src="https://cdn.lordicon.com/zzcjjxew.json" trigger="loop" colors="primary:#6366f1,secondary:#a855f7" style="width:40px;height:40px"></lord-icon>
+      <span>خدمات أخرى</span>
+    </h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {% for service in services %}
+        {% if service.service_type != service_type %}
+          <div class="bg-glass backdrop-blur-md border border-gray-800 hover:border-indigo-500/30 rounded-xl shadow-lg overflow-hidden relative transition-all transform hover:-translate-y-2 hover:shadow-indigo-500/20" data-aos="fade-up" data-aos-delay="{{ loop.index * 100 }}">
+            <div class="h-48 overflow-hidden">
+              {% if service.image_filename %}
+                <img src="/static/uploads/services/{{ service.image_filename }}" alt="{{ service.title }}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+              {% elif service.image_url %}
+                <img src="{{ service.image_url }}" alt="{{ service.title }}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+              {% else %}
+                <img src="/static/uploads/services/default-service.svg" alt="{{ service.title }}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+              {% endif %}
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-bold mb-2 text-white">{{ service.title }}</h3>
+              <p class="text-gray-300 mb-4 text-sm line-clamp-2">{{ service.subtitle }}</p>
+              <div class="flex justify-between items-center">
+                <span class="gradient-text font-bold">{{ service.price }}</span>
+                <a href="/service/{{ service.service_type }}" class="text-gray-300 hover:text-indigo-400 flex items-center gap-1 transition-colors">
+                  <span>المزيد</span>
+                  <i class="fas fa-chevron-left text-xs"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- Call to Action -->
+<!-- قسم نموذج طلب الخدمة -->
+<section id="service-request-section" class="py-16 px-6 eki-section relative overflow-hidden scroll-mt-20 service-section">
+  <div class="absolute inset-0 pointer-events-none opacity-10">
+    <div class="absolute bottom-1/4 right-1/4 w-64 h-64 bg-gradient-to-br from-indigo-500/30 to-purple-500/30 rounded-full blur-3xl"></div>
+    <div class="absolute top-1/3 left-1/3 w-72 h-72 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-full blur-3xl"></div>
+  </div>
+
+  <div class="max-w-4xl mx-auto relative z-10">
+    <div class="bg-glass backdrop-blur-md border border-gray-800 hover:border-indigo-500/30 rounded-xl p-8 shadow-lg transition-all duration-500 hover-3d transform hover:scale-[1.01]" data-aos="fade-up">
+      <div class="hover-glow"></div>
+      <h2 class="text-2xl font-bold gradient-text mb-6 text-center form-highlight staggered-item">طلب خدمة {{ service.title }}</h2>
+      <p class="text-gray-300 mb-8 text-center form-highlight staggered-item" style="animation-delay: 0.15s;">أرسل طلبك الآن وسنتواصل معك في أقرب وقت ممكن</p>
+      
+      <!-- رمز متحرك لجذب الانتباه -->
+      <div class="flex justify-center mb-8 form-highlight staggered-item" style="animation-delay: 0.3s;">
+        <lord-icon
+          src="https://cdn.lordicon.com/raayvuis.json"
+          trigger="loop"
+          delay="1000"
+          colors="primary:#6366f1,secondary:#a855f7"
+          style="width:100px;height:100px">
+        </lord-icon>
+      </div>
+      
+      <!-- رسائل النظام -->
+      <div class="message-container mb-6"></div>
+      
+      <!-- نموذج طلب الخدمة -->
+      <form id="service-request-form" class="space-y-6">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="service_type" value="{{ service_type }}">
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- الاسم -->
+          <div>
+            <label for="name" class="block text-gray-300 mb-2">الاسم <span class="text-indigo-400">*</span></label>
+            <input type="text" id="name" name="name" class="w-full px-4 py-2 bg-gray-800/70 backdrop-blur-sm border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-white transition-all" required>
+          </div>
+          
+          <!-- البريد الإلكتروني -->
+          <div>
+            <label for="email" class="block text-gray-300 mb-2">البريد الإلكتروني <span class="text-indigo-400">*</span></label>
+            <input type="email" id="email" name="email" class="w-full px-4 py-2 bg-gray-800/70 backdrop-blur-sm border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-white transition-all" required>
+          </div>
+          
+          <!-- رقم الهاتف -->
+          <div>
+            <label for="phone" class="block text-gray-300 mb-2">رقم الهاتف</label>
+            <input type="tel" id="phone" name="phone" class="w-full px-4 py-2 bg-transparent backdrop-blur-sm border border-indigo-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-white transition-all shadow-lg" style="box-shadow: 0 4px 15px rgba(99, 102, 241, 0.1);">
+          </div>
+          
+          <!-- الميزانية المتوقعة -->
+          <div>
+            <label for="budget_select" class="block text-gray-300 mb-2">الميزانية المتوقعة</label>
+            <div class="flex flex-col space-y-2">
+              <select id="budget_select" class="w-full px-4 py-2 bg-transparent backdrop-blur-sm border border-indigo-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-white transition-all shadow-lg" style="box-shadow: 0 4px 15px rgba(99, 102, 241, 0.1);">
+                <option value="">-- اختر الميزانية أو أدخلها بنفسك --</option>
+                <option value="أقل من 100 دولار">أقل من 100 دولار</option>
+                <option value="100 - 300 دولار">100 - 300 دولار</option>
+                <option value="300 - 500 دولار">300 - 500 دولار</option>
+                <option value="500 - 1000 دولار">500 - 1000 دولار</option>
+                <option value="أكثر من 1000 دولار">أكثر من 1000 دولار</option>
+                <option value="custom">إدخال ميزانية مخصصة...</option>
+              </select>
+              <input type="text" id="budget" name="budget" class="hidden w-full px-4 py-2 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-white transition-all" placeholder="أدخل الميزانية المتوقعة...">
+            </div>
+          </div>
+        </div>
+        
+        <!-- الموعد النهائي المتوقع -->
+        <div>
+          <label for="timeline_select" class="block text-gray-300 mb-2">الموعد النهائي المتوقع</label>
+          <div class="flex flex-col space-y-2">
+            <select id="timeline_select" class="w-full px-4 py-2 bg-gray-800/70 backdrop-blur-sm border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-white transition-all">
+              <option value="">-- اختر الموعد النهائي أو أدخله بنفسك --</option>
+              <option value="عاجل (خلال 24 ساعة)">عاجل (خلال 24 ساعة)</option>
+              <option value="خلال أسبوع">خلال أسبوع</option>
+              <option value="خلال أسبوعين">خلال أسبوعين</option>
+              <option value="خلال شهر">خلال شهر</option>
+              <option value="أكثر من شهر">أكثر من شهر</option>
+              <option value="custom">إدخال موعد مخصص...</option>
+            </select>
+            <input type="text" id="timeline" name="timeline" class="hidden w-full px-4 py-2 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-white transition-all" placeholder="أدخل الموعد النهائي المتوقع...">
+          </div>
+        </div>
+        
+        <!-- تفاصيل الطلب -->
+        <div>
+          <label for="details" class="block text-gray-300 mb-2">تفاصيل الطلب <span class="text-indigo-400">*</span></label>
+          <textarea id="details" name="details" rows="6" class="w-full px-4 py-2 bg-transparent backdrop-blur-sm border border-indigo-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-white transition-all shadow-lg" style="box-shadow: 0 4px 15px rgba(99, 102, 241, 0.1);" required></textarea>
+          <p class="text-xs text-gray-400 mt-2">يرجى وصف المشروع بالتفصيل وذكر أية متطلبات خاصة تحتاجها</p>
+        </div>
+        
+        <div class="text-center">
+          <button type="submit" class="liquid-button bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white px-8 py-3 rounded-full text-lg font-bold transition-all shadow-lg hover:shadow-indigo-500/50">
+            إرسال الطلب <i class="fas fa-paper-plane mr-2"></i>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- قسم "جاهز للبدء" -->
+<section class="py-16 px-6 eki-section relative overflow-hidden">
+  <div class="absolute inset-0 pointer-events-none opacity-20">
+    <div class="absolute bottom-1/4 left-1/4 w-96 h-96 bg-gradient-to-br from-indigo-500/30 to-purple-500/30 rounded-full blur-3xl"></div>
+    <div class="absolute top-1/3 right-1/4 w-80 h-80 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-full blur-3xl"></div>
+  </div>
+  
+  <div class="max-w-4xl mx-auto text-center relative z-10">
+    <h2 class="text-3xl font-bold gradient-text mb-4" data-aos="fade-up">جاهز للبدء؟</h2>
+    <p class="text-xl text-gray-300 mb-8" data-aos="fade-up" data-aos-delay="100">احصل على تصاميم احترافية تلبي احتياجاتك وتعكس هويتك بأفضل شكل ممكن</p>
+    <div class="flex flex-wrap justify-center gap-4" data-aos="fade-up" data-aos-delay="200">
+      <a href="/#contact" class="liquid-button bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white px-8 py-3 rounded-full text-lg font-bold transition-all shadow-lg hover:shadow-indigo-500/50">تواصل معي الآن</a>
+      <a href="/#services" class="bg-glass backdrop-blur-sm border border-gray-800 hover:border-indigo-500/30 text-white px-8 py-3 rounded-full text-lg font-bold transition-all shadow-lg hover:shadow-indigo-500/20">استكشف خدمات أخرى</a>
+    </div>
+  </div>
+</section>
+
+
+<script src="{{ url_for('static', filename='js/smooth-effects.js') }}?v={{ range(1000, 9999) | random }}"></script>
+<script>
+function toggleLanguage() {
+  window.location.href = "/en/service/{{ service_type }}";
+}
+
+// Mobile menu toggle functionality
+document.addEventListener('DOMContentLoaded', function() {
+  const menuToggle = document.getElementById('menu-toggle');
+  const mobileMenu = document.getElementById('mobile-menu');
+  
+  if (menuToggle && mobileMenu) {
+    menuToggle.addEventListener('click', function() {
+      mobileMenu.classList.toggle('hidden');
+      // Change icon
+      const icon = menuToggle.querySelector('i');
+      if (icon) {
+        if (mobileMenu.classList.contains('hidden')) {
+          icon.classList.remove('fa-times');
+          icon.classList.add('fa-bars');
+        } else {
+          icon.classList.remove('fa-bars');
+          icon.classList.add('fa-times');
+        }
+      }
+    });
+  }
+  
+  // إضافة تأثير ظهور الأقسام عند التمرير
+  const serviceAnimateObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('animated');
+          serviceAnimateObserver.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.15 }
+  );
+  
+  // مراقبة جميع أقسام الخدمة لتفعيل التأثيرات
+  document.querySelectorAll('.service-section').forEach(section => {
+    serviceAnimateObserver.observe(section);
+  });
+  
+  // تهيئة تأثير الاقتراب ثلاثي الأبعاد للبطاقات
+  document.querySelectorAll('.hover-3d').forEach(card => {
+    card.addEventListener('mousemove', e => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      const xPercent = x / rect.width;
+      const yPercent = y / rect.height;
+      
+      const rotateX = (0.5 - yPercent) * 8;
+      const rotateY = (xPercent - 0.5) * 8;
+      
+      card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+      
+      const glow = card.querySelector('.hover-glow');
+      if (glow) {
+        glow.style.background = `radial-gradient(circle at ${xPercent * 100}% ${yPercent * 100}%, rgba(99, 102, 241, 0.2), transparent)`;
+      }
+    });
+    
+    card.addEventListener('mouseleave', () => {
+      card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0)';
+      
+      const glow = card.querySelector('.hover-glow');
+      if (glow) {
+        glow.style.background = 'transparent';
+      }
+    });
+  });
+  
+  // إضافة تأثيرات hover لعناصر المميزات
+  document.querySelectorAll('.feature-item').forEach(item => {
+    const icon = item.querySelector('i');
+    if (icon) {
+      item.addEventListener('mouseenter', () => {
+        icon.classList.add('feature-hover');
+      });
+      
+      item.addEventListener('mouseleave', () => {
+        icon.classList.remove('feature-hover');
+      });
+    }
+  });
+  
+  // إضافة البقع الضوئية المتحركة في الخلفية
+  const sections = document.querySelectorAll('.eki-section');
+  sections.forEach(section => {
+    const blobContainer = document.createElement('div');
+    blobContainer.className = 'blob-container';
+    
+    const blobPurple = document.createElement('div');
+    blobPurple.className = 'blob blob-purple';
+    
+    const blobBlue = document.createElement('div');
+    blobBlue.className = 'blob blob-blue';
+    
+    blobContainer.appendChild(blobPurple);
+    blobContainer.appendChild(blobBlue);
+    
+    // إضافة البقع الضوئية فقط إذا لم تكن موجودة بالفعل
+    if (!section.querySelector('.blob-container')) {
+      section.appendChild(blobContainer);
+    }
+  });
+});
+</script>
+
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="/static/js/service-request.js"></script>
+<script>
+  AOS.init({
+    duration: 800,
+    once: true
+  });
+  
+  // دالة التمرير إلى نموذج طلب الخدمة
+  function scrollToServiceForm() {
+    console.log("تم استدعاء دالة التمرير");
+    
+    // الحصول على موقع عنصر النموذج
+    const formSection = document.getElementById('service-request-section');
+    if (formSection) {
+      console.log("تم العثور على قسم النموذج", formSection);
+      
+      // الحصول على موقع العنصر من أعلى الصفحة
+      const yOffset = formSection.getBoundingClientRect().top + window.pageYOffset;
+      
+      // التمرير إلى الموقع المحدد
+      window.scrollTo({
+        top: yOffset,
+        behavior: 'smooth'
+      });
+      
+      // تمييز النموذج
+      console.log("جاري التمرير إلى النموذج");
+      setTimeout(function() {
+        formSection.style.boxShadow = "0 0 30px 10px rgba(251, 191, 36, 0.4)";
+        setTimeout(function() {
+          formSection.style.boxShadow = "";
+        }, 2000);
+      }, 1000);
+    } else {
+      console.error("لم يتم العثور على قسم النموذج!");
+    }
+  }
+  
+  // تخزين معلومات الصور الحالية
+  let currentImageIndex = 0;
+  let serviceImages = [];
+  
+  // دالة جمع جميع صور الخدمة
+  function collectServiceImages() {
+    serviceImages = [];
+    // جمع صور المعرض
+    document.querySelectorAll('.gallery-image').forEach(img => {
+      serviceImages.push({
+        src: img.getAttribute('data-full-image') || img.src,
+        caption: img.alt || img.getAttribute('data-caption') || ''
+      });
+    });
+    
+    // جمع صور المقالة أيضاً
+    document.querySelectorAll('.service-content img').forEach(img => {
+      if (!img.closest('.gallery-image-grid')) { // تجنب تكرار صور المعرض
+        serviceImages.push({
+          src: img.src,
+          caption: img.alt || ''
+        });
+      }
+    });
+    
+    return serviceImages;
+  }
+  
+  // دالة توليد الصور المصغرة
+  function generateThumbnails() {
+    const thumbnailStrip = document.getElementById('thumbnailStrip');
+    if (!thumbnailStrip) return;
+    
+    thumbnailStrip.innerHTML = '';
+    
+    serviceImages.forEach((image, index) => {
+      const thumbnail = document.createElement('div');
+      thumbnail.className = `thumbnail-item h-16 w-16 rounded overflow-hidden cursor-pointer transition-all duration-300 ${index === currentImageIndex ? 'ring-2 ring-indigo-500 shadow-md scale-110' : 'opacity-70 hover:opacity-100'}`;
+      thumbnail.innerHTML = `<img src="${image.src}" alt="${image.caption}" class="w-full h-full object-cover">`;
+      
+      thumbnail.addEventListener('click', () => {
+        currentImageIndex = index;
+        showImage(index);
+      });
+      
+      thumbnailStrip.appendChild(thumbnail);
+    });
+    
+    // عرض شريط الصور المصغرة بعد التوليد
+    setTimeout(() => {
+      thumbnailStrip.style.opacity = '1';
+    }, 300);
+  }
+  
+  // استخراج معلومات EXIF من الصورة (جلب بيانات وهمية في الوقت الحالي)
+  function extractExifData(imageSrc) {
+    // في الإصدارات الإنتاجية يمكن استخدام مكتبة لاستخراج بيانات EXIF حقيقية
+    // للتبسيط، سنستخدم بيانات وهمية مبنية على نوع الصورة
+    
+    // تعريف أنواع الكاميرات والعدسات المحتملة
+    const cameras = ['Canon EOS R5', 'Nikon Z7 II', 'Sony A7R IV', 'Fujifilm X-T4'];
+    const lenses = ['24-70mm f/2.8', '70-200mm f/2.8', '16-35mm f/4', '85mm f/1.4'];
+    const settings = ['ISO 100, f/8, 1/125s', 'ISO 400, f/2.8, 1/500s', 'ISO 200, f/4, 1/60s'];
+    
+    // استخدام هاش بسيط لاختيار قيم ثابتة بناءً على مسار الصورة
+    const hash = hashString(imageSrc);
+    
+    return {
+      camera: cameras[hash % cameras.length],
+      lens: lenses[(hash + 1) % lenses.length],
+      settings: settings[(hash + 2) % settings.length],
+      date: new Date().toLocaleDateString('ar-SA')
+    };
+  }
+  
+  // دالة هاش بسيطة للنص
+  function hashString(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = ((hash << 5) - hash) + str.charCodeAt(i);
+      hash |= 0;
+    }
+    return Math.abs(hash);
+  }
+  
+  // عرض معلومات EXIF
+  function displayExifData(imageSrc) {
+    const exifContainer = document.getElementById('exifData');
+    if (!exifContainer) return;
+    
+    const exifInfo = extractExifData(imageSrc);
+    
+    document.getElementById('exifCamera').textContent = exifInfo.camera;
+    document.getElementById('exifLens').textContent = exifInfo.lens;
+    document.getElementById('exifSettings').textContent = exifInfo.settings;
+    document.getElementById('exifDate').textContent = exifInfo.date;
+    
+    // عرض معلومات EXIF بتأثير سلس
+    setTimeout(() => {
+      exifContainer.style.transform = 'translateY(0)';
+      exifContainer.style.opacity = '1';
+    }, 500);
+  }
+  
+  // إخفاء معلومات EXIF
+  function hideExifData() {
+    const exifContainer = document.getElementById('exifData');
+    if (!exifContainer) return;
+    
+    exifContainer.style.transform = 'translateY(100%)';
+    exifContainer.style.opacity = '0';
+  }
+  
+  // تم نقل الدالة openGalleryModal إلى النطاق العالمي
+  
+  // دالة لعرض صورة محددة بناءً على الفهرس
+  function showImage(index) {
+    if (index < 0 || index >= serviceImages.length) return;
+    
+    const image = serviceImages[index];
+    const modalImage = document.getElementById('galleryModalImage');
+    const modalCaption = document.getElementById('galleryModalCaption');
+    const modalBackground = document.querySelector('.modal-background');
+    
+    // تطبيق تأثير انتقالي
+    modalImage.style.opacity = '0.5';
+    modalImage.style.transform = 'scale(0.95)';
+    
+    // تحميل الصورة الجديدة
+    const img = new Image();
+    img.onload = function() {
+      // تعيين الخلفية
+      if (modalBackground) {
+        modalBackground.style.backgroundImage = `url(${image.src})`;
+      }
+      
+      // تعيين مصدر الصورة والوصف
+      modalImage.src = image.src;
+      modalImage.alt = image.caption;
+      modalCaption.textContent = image.caption;
+      
+      // ضبط حدود الصورة
+      if (img.width > window.innerWidth * 0.9 || img.height > window.innerHeight * 0.9) {
+        const widthRatio = window.innerWidth * 0.9 / img.width;
+        const heightRatio = window.innerHeight * 0.9 / img.height;
+        const ratio = Math.min(widthRatio, heightRatio);
+        
+        modalImage.style.maxWidth = img.width * ratio + 'px';
+        modalImage.style.maxHeight = img.height * ratio + 'px';
+        modalImage.style.width = 'auto';
+        modalImage.style.height = 'auto';
+      } else {
+        modalImage.style.width = img.width + 'px';
+        modalImage.style.height = img.height + 'px';
+      }
+      
+      // إظهار الصورة بتأثير سلس
+      setTimeout(() => {
+        modalImage.style.opacity = '1';
+        modalImage.style.transform = 'scale(1)';
+      }, 50);
+      
+      // عرض معلومات EXIF
+      displayExifData(image.src);
+      
+      // تحديث الصور المصغرة لتمييز الصورة الحالية
+      updateThumbnailSelection();
+      
+      // إعداد مشاركة الصورة
+      setupShareButtons(image.src, image.caption);
+    };
+    
+    img.src = image.src;
+    
+    // تحديث أزرار التنقل
+    updateNavigationButtons();
+  }
+  
+  // تحديث تحديد الصور المصغرة
+  function updateThumbnailSelection() {
+    const thumbnails = document.querySelectorAll('.thumbnail-item');
+    thumbnails.forEach((thumbnail, idx) => {
+      if (idx === currentImageIndex) {
+        thumbnail.classList.add('ring-2', 'ring-indigo-500', 'shadow-md', 'scale-110');
+        thumbnail.classList.remove('opacity-70');
+      } else {
+        thumbnail.classList.remove('ring-2', 'ring-indigo-500', 'shadow-md', 'scale-110');
+        thumbnail.classList.add('opacity-70');
+      }
+    });
+    
+    // تمرير لجعل الصورة المصغرة الحالية مرئية
+    const thumbnailStrip = document.getElementById('thumbnailStrip');
+    const activeThumb = thumbnails[currentImageIndex];
+    if (thumbnailStrip && activeThumb) {
+      thumbnailStrip.scrollTo({
+        left: activeThumb.offsetLeft - thumbnailStrip.offsetWidth / 2 + activeThumb.offsetWidth / 2,
+        behavior: 'smooth'
+      });
+    }
+  }
+  
+  // تحديث أزرار التنقل
+  function updateNavigationButtons() {
+    const prevBtn = document.getElementById('prevImageBtn');
+    const nextBtn = document.getElementById('nextImageBtn');
+    
+    if (prevBtn) {
+      if (currentImageIndex <= 0) {
+        prevBtn.classList.add('opacity-30', 'cursor-not-allowed');
+        prevBtn.classList.remove('lg:opacity-50', 'hover:opacity-100');
+      } else {
+        prevBtn.classList.remove('opacity-30', 'cursor-not-allowed');
+        prevBtn.classList.add('lg:opacity-50', 'hover:opacity-100');
+      }
+    }
+    
+    if (nextBtn) {
+      if (currentImageIndex >= serviceImages.length - 1) {
+        nextBtn.classList.add('opacity-30', 'cursor-not-allowed');
+        nextBtn.classList.remove('lg:opacity-50', 'hover:opacity-100');
+      } else {
+        nextBtn.classList.remove('opacity-30', 'cursor-not-allowed');
+        nextBtn.classList.add('lg:opacity-50', 'hover:opacity-100');
+      }
+    }
+  }
+  
+  // إعداد أزرار المشاركة
+  function setupShareButtons(imageSrc, caption) {
+    const pageUrl = window.location.href;
+    const shareText = `${caption} - ${document.title}`;
+    
+    // زر فيسبوك
+    const fbBtn = document.querySelector('.share-facebook');
+    if (fbBtn) {
+      fbBtn.onclick = () => {
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}`, '_blank');
+      };
+    }
+    
+    // زر تويتر
+    const twitterBtn = document.querySelector('.share-twitter');
+    if (twitterBtn) {
+      twitterBtn.onclick = () => {
+        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(pageUrl)}`, '_blank');
+      };
+    }
+    
+    // زر واتساب
+    const whatsappBtn = document.querySelector('.share-whatsapp');
+    if (whatsappBtn) {
+      whatsappBtn.onclick = () => {
+        window.open(`https://wa.me/?text=${encodeURIComponent(shareText + ' ' + pageUrl)}`, '_blank');
+      };
+    }
+    
+    // زر نسخ الرابط
+    const copyLinkBtn = document.getElementById('copyImageLink');
+    if (copyLinkBtn) {
+      copyLinkBtn.onclick = () => {
+        // نسخ رابط الصفحة مع هاش للصورة
+        navigator.clipboard.writeText(pageUrl)
+          .then(() => {
+            // إظهار رسالة نجاح مؤقتة
+            const originalTitle = copyLinkBtn.getAttribute('title');
+            copyLinkBtn.setAttribute('title', 'تم نسخ الرابط!');
+            copyLinkBtn.classList.add('text-green-400');
+            
+            setTimeout(() => {
+              copyLinkBtn.setAttribute('title', originalTitle);
+              copyLinkBtn.classList.remove('text-green-400');
+            }, 2000);
+          })
+          .catch(err => {
+            console.error('فشل نسخ الرابط: ', err);
+          });
+      };
+    }
+  }
+  
+  // إعداد تفاعلات اللمس للهواتف المحمولة
+  function setupTouchInteractions() {
+    const imageContainer = document.querySelector('.image-container');
+    if (!imageContainer) {
+      console.warn('عنصر حاوية الصورة (image-container) غير موجود');
+      return;
+    }
+    
+    let startX = 0;
+    let startY = 0;
+    let initialPinchDistance = 0;
+    let currentScale = 1;
+    let lastScale = 1;
+    let isPinching = false;
+    
+    // منع سلوك التكبير الافتراضي للمتصفح
+    imageContainer.addEventListener('touchmove', function(e) {
+      if (e.touches.length >= 2) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+    
+    // معالجة بداية اللمس
+    imageContainer.addEventListener('touchstart', function(e) {
+      const image = document.getElementById('galleryModalImage');
+      if (!image) return;
+      
+      if (e.touches.length === 1) {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        isPinching = false;
+      } else if (e.touches.length === 2) {
+        // منع التكبير الافتراضي للمتصفح عند بدء حركة التكبير
+        e.preventDefault();
+        
+        isPinching = true;
+        // حساب المسافة الأولية بين الإصبعين للتكبير/التصغير
+        initialPinchDistance = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        
+        // استخدام الحجم الحالي كنقطة بداية
+        const transform = window.getComputedStyle(image).getPropertyValue('transform');
+        if (transform && transform !== 'none') {
+          const values = transform.split('(')[1].split(')')[0].split(',');
+          const a = parseFloat(values[0]);
+          const b = parseFloat(values[1]);
+          lastScale = Math.sqrt(a * a + b * b);
+        } else {
+          lastScale = 1;
+        }
+        currentScale = lastScale;
+        console.log('بدء التكبير من مقياس: ' + lastScale);
+      }
+    }, { passive: false });
+    
+    // معالجة حركة اللمس
+    imageContainer.addEventListener('touchmove', function(e) {
+      const image = document.getElementById('galleryModalImage');
+      if (!image) return;
+      
+      if (e.touches.length === 2 && isPinching) {
+        try {
+          // منع التمرير الافتراضي للصفحة
+          e.preventDefault();
+          
+          const currentPinchDistance = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+          );
+          
+          if (initialPinchDistance > 0) {
+            // حساب الحجم الجديد بناءً على المسافة بين الإصبعين
+            const pinchRatio = currentPinchDistance / initialPinchDistance;
+            const newScale = Math.max(0.5, Math.min(4.0, lastScale * pinchRatio));
+            currentScale = newScale;
+            
+            // تطبيق التكبير
+            image.style.transform = `scale(${newScale})`;
+            console.log('تكبير الصورة إلى: ' + newScale);
+          }
+        } catch (err) {
+          console.error('خطأ في معالجة حركة التكبير:', err);
+        }
+      }
+    }, { passive: false });
+    
+    // معالجة نهاية اللمس
+    imageContainer.addEventListener('touchend', function(e) {
+      if (e.changedTouches.length === 1 && !isPinching) {
+        // التعامل مع التمرير للصور التالية/السابقة
+        const endX = e.changedTouches[0].clientX;
+        const endY = e.changedTouches[0].clientY;
+        
+        const diffX = endX - startX;
+        const diffY = endY - startY;
+        
+        // إذا كانت الحركة أفقية بشكل كافٍ وليست عمودية كثيرًا
+        if (Math.abs(diffX) > 50 && Math.abs(diffY) < 50) {
+          if (diffX > 0 && currentImageIndex > 0) {
+            // سحب لليمين = الصورة السابقة
+            currentImageIndex--;
+            showImage(currentImageIndex);
+          } else if (diffX < 0 && currentImageIndex < serviceImages.length - 1) {
+            // سحب لليسار = الصورة التالية
+            currentImageIndex++;
+            showImage(currentImageIndex);
+          }
+        }
+      }
+      
+      // تحديث حالة التكبير عند انتهاء اللمس
+      const image = document.getElementById('galleryModalImage');
+      if (image) {
+        try {
+          // حفظ المقياس الحالي بعد التكبير/التصغير
+          const transformValue = window.getComputedStyle(image).transform;
+          if (transformValue && transformValue !== 'none') {
+            // استخراج مقياس X من مصفوفة التحويل
+            try {
+              const matrix = new DOMMatrix(transformValue);
+              lastScale = matrix.m11; // استخراج مقياس X
+              currentScale = lastScale;
+              console.log('تم تحديث مقياس الصورة إلى: ' + lastScale);
+            } catch (err) {
+              // التعامل بأمان مع الأجهزة/المتصفحات التي لا تدعم DOMMatrix
+              const values = transformValue.split('(')[1].split(')')[0].split(',');
+              if (values.length >= 1) {
+                const a = parseFloat(values[0]);
+                const b = parseFloat(values[1]);
+                lastScale = Math.sqrt(a * a + b * b);
+                currentScale = lastScale;
+                console.log('تم تحديث مقياس الصورة (بديل) إلى: ' + lastScale);
+              }
+            }
+          }
+        } catch (err) {
+          console.error('خطأ في تحديث مقياس الصورة:', err);
+        }
+      }
+      
+      // إعادة تعيين متغيرات التكبير
+      initialPinchDistance = 0;
+      isPinching = false;
+    }, { passive: false });
+  }
+  
+  // دالة لإغلاق النافذة المنبثقة
+  // دالة إغلاق النافذة المنبثقة بتأثير حركي
+  function closeGalleryModal() {
+    const modal = document.getElementById('galleryModal');
+    const modalImage = document.getElementById('galleryModalImage');
+    
+    if (!modal) return;
+    
+    // تأثير تلاشي للصورة أولاً
+    if (modalImage) {
+      modalImage.style.opacity = '0';
+      modalImage.style.transform = 'scale(0.9)';
+    }
+    
+    // تأثير تلاشي للنافذة
+    setTimeout(() => {
+      modal.style.opacity = '0';
+      
+      // إغلاق النافذة بعد انتهاء التأثير
+      setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+        document.body.style.overflow = ''; // استعادة التمرير
+        
+        // إعادة تعيين حالة الصورة
+        if (modalImage) {
+          modalImage.classList.remove('zoomed');
+          modalImage.style.transform = '';
+          modalImage.onclick = null;
+        }
+      }, 300);
+    }, 50);
+    
+    // إعادة تعيين الصورة
+    const image = document.getElementById('galleryModalImage');
+    if (image) {
+      image.style.maxWidth = '';
+      image.style.maxHeight = '';
+    }
+  }
+  
+  // معالجة أزرار "عرض المزيد" لتجنب تداخل العناصر
+  document.addEventListener('DOMContentLoaded', function() {
+    // تهيئة نموذج طلب الخدمة للحقول المخصصة
+    const budgetSelect = document.getElementById('budget_select');
+    const timelineSelect = document.getElementById('timeline_select');
+    const budgetInput = document.getElementById('budget');
+    const timelineInput = document.getElementById('timeline');
+    
+    // إضافة معالجة تغيير القائمة المنسدلة للميزانية
+    if (budgetSelect && budgetInput) {
+      budgetSelect.addEventListener('change', function() {
+        if (this.value === 'custom') {
+          budgetInput.classList.remove('hidden');
+          budgetInput.classList.add('bg-gray-800/70', 'backdrop-blur-sm');
+          budgetInput.focus();
+        } else {
+          budgetInput.classList.add('hidden');
+          if (this.value) {
+            budgetInput.value = this.value;
+          }
+        }
+      });
+    }
+    
+    // إضافة معالجة تغيير القائمة المنسدلة للموعد النهائي
+    if (timelineSelect && timelineInput) {
+      timelineSelect.addEventListener('change', function() {
+        if (this.value === 'custom') {
+          timelineInput.classList.remove('hidden');
+          timelineInput.classList.add('bg-gray-800/70', 'backdrop-blur-sm');
+          timelineInput.focus();
+        } else {
+          timelineInput.classList.add('hidden');
+          if (this.value) {
+            timelineInput.value = this.value;
+          }
+        }
+      });
+    }
+  
+    // تهيئة نظام عرض الصور المتطور
+    const closeModalBtn = document.getElementById('closeGalleryModal');
+    const galleryModal = document.getElementById('galleryModal');
+    const prevImageBtn = document.getElementById('prevImageBtn');
+    const nextImageBtn = document.getElementById('nextImageBtn');
+    const thumbnailStrip = document.getElementById('thumbnailStrip');
+    
+    // قائمة الصور
+    let galleryImages = [];
+    let currentImageIndex = 0;
+    
+    // جمع جميع صور المعرض في الصفحة
+    function collectGalleryImages() {
+      galleryImages = [];
+      const galleryItems = document.querySelectorAll('.gallery-item img');
+      
+      if (galleryItems.length > 0) {
+        galleryItems.forEach(item => {
+          galleryImages.push({
+            src: item.src,
+            caption: item.alt || ''
+          });
+        });
+      } else {
+        // إذا لم نجد عناصر محددة بفئة gallery-item، ابحث عن أي صور للخدمة
+        const serviceImages = document.querySelectorAll('.service-detail-content img, .service-images img');
+        serviceImages.forEach(item => {
+          // تجاهل الصور التي تحتوي على فئات خاصة أو صور صغيرة
+          if (!item.classList.contains('icon') && !item.classList.contains('thumbnail') && 
+              !item.parentElement.classList.contains('ignore-gallery')) {
+            galleryImages.push({
+              src: item.src,
+              caption: item.alt || ''
+            });
+          }
+        });
+      }
+      
+      // طباعة عدد الصور التي تم جمعها
+      console.log(`تم العثور على ${galleryImages.length} صورة في المعرض`);
+      return galleryImages;
+    }
+    
+    // عرض صورة بناءً على فهرسها
+    function showImage(index) {
+      if (galleryImages.length === 0) {
+        collectGalleryImages();
+      }
+      
+      if (index < 0) index = galleryImages.length - 1;
+      if (index >= galleryImages.length) index = 0;
+      
+      currentImageIndex = index;
+      const image = galleryImages[index];
+      const modalImage = document.getElementById('galleryModalImage');
+      const captionElement = document.getElementById('galleryModalCaption');
+      
+      // تأثير تلاشي للصورة الحالية
+      if (modalImage) {
+        modalImage.style.opacity = '0';
+        modalImage.style.transform = 'scale(0.9)';
+        
+        setTimeout(() => {
+          // تغيير الصورة
+          modalImage.src = image.src;
+          modalImage.alt = image.caption || '';
+          
+          // تحديث العنوان
+          if (captionElement) {
+            if (image.caption) {
+              captionElement.textContent = image.caption;
+              captionElement.style.display = 'block';
+            } else {
+              captionElement.style.display = 'none';
+            }
+          }
+          
+          // تحديث الصور المصغرة
+          updateThumbnails();
+          
+          // إظهار الصورة الجديدة بتأثير
+          setTimeout(() => {
+            modalImage.style.opacity = '1';
+            modalImage.style.transform = 'scale(1)';
+          }, 50);
+        }, 250);
+      }
+    }
+    
+    // تحديث شريط الصور المصغرة
+    function updateThumbnails() {
+      if (!thumbnailStrip || galleryImages.length <= 1) return;
+      
+      // مسح المحتوى الحالي
+      thumbnailStrip.innerHTML = '';
+      
+      // إنشاء الصور المصغرة
+      galleryImages.forEach((image, idx) => {
+        const thumbnail = document.createElement('div');
+        thumbnail.className = `thumbnail-item cursor-pointer w-16 h-16 rounded overflow-hidden shrink-0 ${idx === currentImageIndex ? 'active' : ''}`;
+        thumbnail.innerHTML = `<img src="${image.src}" alt="thumbnail" class="w-full h-full object-cover">`;
+        
+        thumbnail.addEventListener('click', () => showImage(idx));
+        thumbnailStrip.appendChild(thumbnail);
+      });
+      
+      // تمرير للصورة النشطة
+      const activeThumbnail = thumbnailStrip.querySelector('.active');
+      if (activeThumbnail) {
+        activeThumbnail.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
+    }
+    
+    // ربط أزرار التنقل بالوظائف
+    if (closeModalBtn) {
+      closeModalBtn.addEventListener('click', closeGalleryModal);
+    }
+    
+    if (prevImageBtn) {
+      prevImageBtn.addEventListener('click', () => {
+        showImage(currentImageIndex - 1);
+      });
+    }
+    
+    if (nextImageBtn) {
+      nextImageBtn.addEventListener('click', () => {
+        showImage(currentImageIndex + 1);
+      });
+    }
+    
+    // تعديل دالة فتح معرض الصور للعمل مع النظام الجديد
+    window.openGalleryModal = function(imageSrc, caption) {
+      // جمع صور المعرض
+      collectGalleryImages();
+      
+      // البحث عن فهرس الصورة المطلوبة
+      let index = 0;
+      for (let i = 0; i < galleryImages.length; i++) {
+        if (galleryImages[i].src === imageSrc) {
+          index = i;
+          break;
+        }
+      }
+      
+      currentImageIndex = index;
+      
+      // فتح المعرض وعرض الصورة المطلوبة
+      const modal = document.getElementById('galleryModal');
+      if (modal) {
+        modal.style.display = 'flex';
+        setTimeout(() => {
+          modal.classList.remove('hidden');
+          modal.style.opacity = '1';
+          showImage(index);
+        }, 10);
+      }
+      
+      // إيقاف التمرير في الصفحة
+      document.body.style.overflow = 'hidden';
+    }
+    
+    // إغلاق النافذة المنبثقة عند النقر خارج الصورة
+    if (galleryModal) {
+      galleryModal.addEventListener('click', function(e) {
+        if (e.target === galleryModal) {
+          closeGalleryModal();
+        }
+      });
+    }
+    
+    // إضافة دعم لمفاتيح التنقل
+    document.addEventListener('keydown', function(e) {
+      if (galleryModal && !galleryModal.classList.contains('hidden')) {
+        if (e.key === 'Escape') {
+          closeGalleryModal();
+          e.preventDefault();
+        } else if (e.key === 'ArrowLeft') {
+          showImage(currentImageIndex - 1);
+          e.preventDefault();
+        } else if (e.key === 'ArrowRight') {
+          showImage(currentImageIndex + 1);
+          e.preventDefault();
+        }
+      }
+    });
+    
+    // إضافة النقر على الصور في صفحة الخدمة لفتح المعرض
+    const serviceImages = document.querySelectorAll('.service-detail-content img, .service-images img');
+    serviceImages.forEach((img) => {
+      // تجاهل الصور التي تحتوي على فئات خاصة أو صور صغيرة
+      if (!img.classList.contains('icon') && !img.classList.contains('thumbnail') && 
+          !img.parentElement.classList.contains('ignore-gallery')) {
+        img.classList.add('cursor-pointer', 'gallery-trigger');
+        
+        img.addEventListener('click', () => {
+          openGalleryModal(img.src, img.alt || '');
+        });
+      }
+    });
+    
+    // أزرار التحكم اللمسي
+    const touchMinusBtn = document.querySelector('.touch-controls button:nth-child(1)');
+    const touchPlusBtn = document.querySelector('.touch-controls button:nth-child(2)');
+    const touchRotateBtn = document.querySelector('.touch-controls button:nth-child(3)');
+    
+    // إذا كانت موجودة، أضف معالجات الأحداث
+    if (touchMinusBtn) {
+      touchMinusBtn.addEventListener('click', () => {
+        const modalImage = document.getElementById('galleryModalImage');
+        if (modalImage) {
+          let scale = 1;
+          const transform = window.getComputedStyle(modalImage).transform;
+          if (transform && transform !== 'none') {
+            const matrix = new DOMMatrix(transform);
+            scale = matrix.m11 - 0.2; // تقليل التكبير بمقدار 0.2
+          } else {
+            scale = 0.8;
+          }
+          
+          if (scale < 0.5) scale = 0.5; // الحد الأدنى للتصغير
+          modalImage.style.transform = `scale(${scale})`;
+        }
+      });
+    }
+    
+    if (touchPlusBtn) {
+      touchPlusBtn.addEventListener('click', () => {
+        const modalImage = document.getElementById('galleryModalImage');
+        if (modalImage) {
+          let scale = 1;
+          const transform = window.getComputedStyle(modalImage).transform;
+          if (transform && transform !== 'none') {
+            const matrix = new DOMMatrix(transform);
+            scale = matrix.m11 + 0.2; // زيادة التكبير بمقدار 0.2
+          } else {
+            scale = 1.2;
+          }
+          
+          if (scale > 4) scale = 4; // الحد الأقصى للتكبير
+          modalImage.style.transform = `scale(${scale})`;
+        }
+      });
+    }
+    
+    if (touchRotateBtn) {
+      let rotation = 0;
+      touchRotateBtn.addEventListener('click', () => {
+        const modalImage = document.getElementById('galleryModalImage');
+        if (modalImage) {
+          rotation += 90;
+          if (rotation >= 360) rotation = 0;
+          modalImage.style.transform = `rotate(${rotation}deg)`;
+        }
+      });
+    }
+    
+    // تهيئة روابط التمرير لنموذج طلب الخدمة
+    const serviceFormLinks = document.querySelectorAll('a[href="#service-request-section"]');
+    console.log("تم العثور على " + serviceFormLinks.length + " روابط للتمرير إلى نموذج طلب الخدمة");
+    
+    // إضافة معالج للنقر على روابط التمرير
+    serviceFormLinks.forEach(link => {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        const targetId = this.getAttribute('href').substring(1);
+        const targetSection = document.getElementById(targetId);
+        
+        if (targetSection) {
+          // التمرير بسلاسة إلى القسم المطلوب
+          targetSection.scrollIntoView({ behavior: 'smooth' });
+          
+          // إضافة تأثير وميض للفت الانتباه
+          setTimeout(() => {
+            targetSection.querySelector('.bg-gray-800').style.boxShadow = "0 0 30px 10px rgba(251, 191, 36, 0.5)";
+            setTimeout(() => {
+              targetSection.querySelector('.bg-gray-800').style.boxShadow = "";
+            }, 2000);
+          }, 800);
+          
+          // تخزين الخدمة المحددة (إذا كانت موجودة في المتصفح)
+          const serviceTitle = '{{ service.title }}';
+          try {
+            sessionStorage.setItem('selectedService', serviceTitle);
+          } catch (error) {
+            console.error("خطأ في تخزين الخدمة المحددة:", error);
+          }
+        }
+      });
+    });
+    
+    // تهيئة زر طلب الخدمة (للأزرار القديمة التي لا تزال تستخدم الدالة)
+    const scrollButtons = document.querySelectorAll('button[onclick*="scrollToServiceForm"]');
+    console.log("تم العثور على " + scrollButtons.length + " زر للتمرير إلى نموذج طلب الخدمة");
+    
+    scrollButtons.forEach(button => {
+      // إعادة تعيين معالج النقر
+      const originalOnclick = button.getAttribute('onclick');
+      button.removeAttribute('onclick');
+      
+      button.addEventListener('click', function(e) {
+        e.preventDefault();
+        console.log("تم النقر على زر طلب الخدمة");
+        
+        // العثور على قسم نموذج طلب الخدمة
+        const formSection = document.getElementById('service-request-section');
+        if (formSection) {
+          console.log("تم العثور على قسم النموذج", formSection);
+          
+          // حساب الموقع للتمرير
+          const offset = formSection.offsetTop - 100; // إضافة هامش علوي للتجربة الأفضل
+          
+          // التمرير إلى الموقع
+          window.scrollTo({
+            top: offset,
+            behavior: 'smooth'
+          });
+          
+          // إضافة تأثير بصري
+          setTimeout(() => {
+            formSection.style.boxShadow = "0 0 30px 10px rgba(251, 191, 36, 0.4)";
+            setTimeout(() => {
+              formSection.style.boxShadow = "";
+            }, 2000);
+          }, 1000);
+          
+          // تنفيذ أي كود إضافي من معالج النقر الأصلي
+          if (originalOnclick && originalOnclick.includes('sessionStorage.setItem')) {
+            try {
+              // استخراج اسم الخدمة وتخزينه
+              const serviceTitle = '{{ service.title }}';
+              sessionStorage.setItem('selectedService', serviceTitle);
+              sessionStorage.setItem('fromServiceRequest', 'true');
+              console.log("تم تخزين الخدمة المحددة:", serviceTitle);
+            } catch (error) {
+              console.error("خطأ في تخزين الخدمة المحددة:", error);
+            }
+          }
+        } else {
+          console.error("لم يتم العثور على قسم نموذج طلب الخدمة!");
+        }
+      });
+    });
+    
+    // البحث عن جميع عناصر زر "عرض المزيد"
+    const viewMoreButtons = document.querySelectorAll('.view-more-btn');
+    
+    viewMoreButtons.forEach(button => {
+      // البحث عن القسم المرتبط بالزر
+      const sectionId = button.getAttribute('data-section');
+      const section = document.getElementById(sectionId);
+      
+      if (section) {
+        const content = section.querySelector('.view-more-content');
+        const gradient = section.querySelector('.view-more-gradient');
+        
+        // في حالة عدم وجود عناصر المحتوى أو التدرج، نقوم بإنشائها ديناميكيًا
+        if (!content) {
+          // تغليف محتوى القسم في عنصر جديد
+          const contentWrapper = document.createElement('div');
+          contentWrapper.className = 'view-more-content';
+          
+          // نقل جميع عناصر القسم إلى العنصر الجديد
+          while (section.firstChild) {
+            if (section.firstChild !== button) {
+              contentWrapper.appendChild(section.firstChild);
+            } else {
+              section.removeChild(section.firstChild);
+            }
+          }
+          
+          // إضافة العنصر الجديد إلى القسم
+          section.appendChild(contentWrapper);
+          section.appendChild(button);
+          
+          // إضافة تدرج للإشارة إلى وجود محتوى إضافي
+          const gradientElem = document.createElement('div');
+          gradientElem.className = 'view-more-gradient';
+          section.appendChild(gradientElem);
+        }
+      }
+      
+      // إضافة معالج النقر على الزر
+      button.addEventListener('click', function() {
+        const section = document.getElementById(button.getAttribute('data-section'));
+        
+        if (section) {
+          const content = section.querySelector('.view-more-content');
+          const gradient = section.querySelector('.view-more-gradient');
+          
+          if (content) {
+            // تبديل حالة القسم بين موسع ومطوي
+            content.classList.toggle('expanded');
+            
+            // تحديث نص الزر
+            if (content.classList.contains('expanded')) {
+              button.innerHTML = 'عرض أقل <i class="fas fa-chevron-up mr-1"></i>';
+              if (gradient) gradient.classList.add('hidden');
+            } else {
+              button.innerHTML = 'عرض المزيد <i class="fas fa-chevron-down mr-1"></i>';
+              if (gradient) gradient.classList.remove('hidden');
+              
+              // التمرير إلى أعلى القسم
+              section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }
+        }
+      });
+    });
+    
+    // تحديد العناصر التي تحتاج إلى زر "عرض المزيد" بناءً على الارتفاع
+    const longSections = document.querySelectorAll('.service-section');
+    longSections.forEach(section => {
+      // تجاهل قسم نموذج طلب الخدمة
+      if (section.querySelector('#service-request-form')) {
+        return; // تخطي هذا القسم
+      }
+      
+      if (section.offsetHeight > 300 && !section.querySelector('.view-more-btn')) {
+        // إضافة الفئات المطلوبة
+        section.classList.add('view-more-section');
+        
+        // إنشاء عنصر المحتوى والتدرج إذا لم يكن موجوداً
+        if (!section.querySelector('.view-more-content')) {
+          const contentWrapper = document.createElement('div');
+          contentWrapper.className = 'view-more-content';
+          
+          // نقل جميع عناصر القسم إلى العنصر الجديد
+          while (section.firstChild) {
+            contentWrapper.appendChild(section.firstChild);
+          }
+          
+          // إضافة العنصر الجديد إلى القسم
+          section.appendChild(contentWrapper);
+          
+          // إضافة تدرج
+          const gradient = document.createElement('div');
+          gradient.className = 'view-more-gradient';
+          section.appendChild(gradient);
+          
+          // إضافة زر عرض المزيد
+          const button = document.createElement('button');
+          button.className = 'view-more-btn mt-4 text-purple-400 hover:text-purple-300 transition';
+          button.setAttribute('data-section', section.id);
+          button.innerHTML = 'عرض المزيد <i class="fas fa-chevron-down mr-1"></i>';
+          section.appendChild(button);
+          
+          // إضافة معالج النقر
+          button.addEventListener('click', function() {
+            const content = section.querySelector('.view-more-content');
+            const gradient = section.querySelector('.view-more-gradient');
+            
+            if (content) {
+              content.classList.toggle('expanded');
+              
+              if (content.classList.contains('expanded')) {
+                button.innerHTML = 'عرض أقل <i class="fas fa-chevron-up mr-1"></i>';
+                if (gradient) gradient.classList.add('hidden');
+              } else {
+                button.innerHTML = 'عرض المزيد <i class="fas fa-chevron-down mr-1"></i>';
+                if (gradient) gradient.classList.remove('hidden');
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }
+            }
+          });
+        }
+      }
+    });
+  });
+</script>
+
+{% endblock %}

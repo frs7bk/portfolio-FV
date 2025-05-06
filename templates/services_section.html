@@ -1,0 +1,109 @@
+<!-- الخدمات -->
+<section id="services" class="py-20 px-4 bg-black">
+  <div class="max-w-6xl mx-auto">
+    <h2 class="text-3xl font-bold text-purple-400 text-center mb-12 flex items-center justify-center gap-3" data-aos="fade-up">
+      <lord-icon src="https://cdn.lordicon.com/nocovwne.json" trigger="loop" style="width:40px;height:40px"></lord-icon>
+      <span>الخدمات التي أقدمها</span>
+    </h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {% if services %}
+        {% for service in services %}
+          <div class="bg-gray-900 rounded-xl transition-transform transform hover:scale-105 overflow-hidden" data-aos="fade-up" data-aos-delay="{{ loop.index * 100 }}">
+            <!-- Service Image -->
+            <div class="h-48 overflow-hidden">
+              {% if service.image_filename %}
+                <img src="/static/uploads/services/{{ service.image_filename }}" alt="{{ service.title }}" class="w-full h-full object-cover">
+              {% elif service.image_url and service.image_url != "/static/uploads/services/default-service.svg" %}
+                <img src="{{ service.image_url }}" alt="{{ service.title }}" class="w-full h-full object-cover">
+              {% else %}
+                {% if 'logo' in service.service_type %}
+                  <img src="/static/uploads/services/default-logo-design.svg" alt="{{ service.title }}" class="w-full h-full object-contain p-4">
+                {% else %}
+                  <img src="/static/uploads/services/default-service.svg" alt="{{ service.title }}" class="w-full h-full object-contain p-4">
+                {% endif %}
+              {% endif %}
+            </div>
+            <div class="p-6">
+              <div class="text-4xl text-purple-400 mb-4">
+                <!-- استخدام أيقونة مناسبة بناءً على نوع الخدمة -->
+                {% if 'logo' in service.service_type %}
+                  <lord-icon src="https://cdn.lordicon.com/qhgmphtg.json" trigger="hover" style="width:64px;height:64px"></lord-icon>
+                {% elif 'brand' in service.service_type %}
+                  <lord-icon src="https://cdn.lordicon.com/gqdnbnwt.json" trigger="hover" style="width:64px;height:64px"></lord-icon>
+                {% elif 'print' in service.service_type %}
+                  <lord-icon src="https://cdn.lordicon.com/wloilxuq.json" trigger="hover" style="width:64px;height:64px"></lord-icon>
+                {% elif 'web' in service.service_type %}
+                  <lord-icon src="https://cdn.lordicon.com/tsnvgrkp.json" trigger="hover" style="width:64px;height:64px"></lord-icon>
+                {% elif 'social' in service.service_type %}
+                  <lord-icon src="https://cdn.lordicon.com/masykznr.json" trigger="hover" style="width:64px;height:64px"></lord-icon>
+                {% elif 'book' in service.service_type %}
+                  <lord-icon src="https://cdn.lordicon.com/rjzlnunf.json" trigger="hover" style="width:64px;height:64px"></lord-icon>
+                {% else %}
+                  <lord-icon src="https://cdn.lordicon.com/vnxmkugx.json" trigger="hover" style="width:64px;height:64px"></lord-icon>
+                {% endif %}
+              </div>
+              <h3 class="text-xl font-bold mb-3">{{ service.title }}</h3>
+              <p class="text-gray-300">{{ service.subtitle }}</p>
+              <a href="/service/{{ service.service_type }}" class="inline-block mt-4 px-4 py-2 bg-purple-500 hover:bg-purple-400 text-white rounded-full transition">
+                <span>عرض المزيد</span>
+                <i class="fas fa-arrow-left mr-1"></i>
+              </a>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <!-- خدمة 1 (الافتراضية) -->
+        <div class="bg-gray-900 rounded-xl transition-transform transform hover:scale-105 overflow-hidden" data-aos="fade-up" data-aos-delay="100">
+          <div class="h-48 overflow-hidden">
+            <img src="/static/uploads/services/default-logo-design.svg" alt="تصميم الشعارات" class="w-full h-full object-cover">
+          </div>
+          <div class="p-6">
+            <div class="text-4xl text-purple-400 mb-4">
+              <lord-icon src="https://cdn.lordicon.com/qhgmphtg.json" trigger="hover" style="width:64px;height:64px"></lord-icon>
+            </div>
+            <h3 class="text-xl font-bold mb-3">تصميم الشعارات</h3>
+            <p class="text-gray-300">تصميم شعار فريد يعكس هوية علامتك التجارية ويميزها عن المنافسين.</p>
+            <a href="/service/logo-design" class="inline-block mt-4 px-4 py-2 bg-purple-500 hover:bg-purple-400 text-white rounded-full transition">
+              <span>عرض المزيد</span>
+              <i class="fas fa-arrow-left mr-1"></i>
+            </a>
+          </div>
+        </div>
+        <!-- خدمة 2 (الافتراضية) -->
+        <div class="bg-gray-900 rounded-xl transition-transform transform hover:scale-105 overflow-hidden" data-aos="fade-up" data-aos-delay="200">
+          <div class="h-48 overflow-hidden">
+            <img src="/static/uploads/services/default-brand-identity.svg" alt="الهوية البصرية" class="w-full h-full object-cover">
+          </div>
+          <div class="p-6">
+            <div class="text-4xl text-purple-400 mb-4">
+              <lord-icon src="https://cdn.lordicon.com/gqdnbnwt.json" trigger="hover" style="width:64px;height:64px"></lord-icon>
+            </div>
+            <h3 class="text-xl font-bold mb-3">الهوية البصرية</h3>
+            <p class="text-gray-300">تطوير هوية بصرية كاملة مع دليل استخدام يضمن اتساق علامتك التجارية في كل نقاط التواصل.</p>
+            <a href="/service/brand-identity" class="inline-block mt-4 px-4 py-2 bg-purple-500 hover:bg-purple-400 text-white rounded-full transition">
+              <span>عرض المزيد</span>
+              <i class="fas fa-arrow-left mr-1"></i>
+            </a>
+          </div>
+        </div>
+        <!-- خدمة 3 (الافتراضية) -->
+        <div class="bg-gray-900 rounded-xl transition-transform transform hover:scale-105 overflow-hidden" data-aos="fade-up" data-aos-delay="300">
+          <div class="h-48 overflow-hidden">
+            <img src="/static/uploads/services/default-print.svg" alt="المطبوعات" class="w-full h-full object-cover">
+          </div>
+          <div class="p-6">
+            <div class="text-4xl text-purple-400 mb-4">
+              <lord-icon src="https://cdn.lordicon.com/wloilxuq.json" trigger="hover" style="width:64px;height:64px"></lord-icon>
+            </div>
+            <h3 class="text-xl font-bold mb-3">المطبوعات</h3>
+            <p class="text-gray-300">تصميم مختلف المطبوعات مثل البروشورات، الفلايرز، الكتالوجات وكروت العمل بتصاميم جذابة.</p>
+            <a href="/service/print" class="inline-block mt-4 px-4 py-2 bg-purple-500 hover:bg-purple-400 text-white rounded-full transition">
+              <span>عرض المزيد</span>
+              <i class="fas fa-arrow-left mr-1"></i>
+            </a>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</section>

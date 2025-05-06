@@ -1,0 +1,476 @@
+
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}إدارة الشرائح | لوحة التحكم{% endblock %}
+
+{% block page_title %}إدارة الشرائح الرئيسية{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-end mb-3">
+  <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addCarouselModal">
+    <i class="fas fa-plus-circle me-1"></i> إضافة شريحة جديدة
+  </button>
+</div>
+
+      <!-- Carousel Items Table -->
+      <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
+          <thead>
+            <tr>
+              <th>الصورة</th>
+              <th>العنوان</th>
+              <th>الوصف</th>
+              <th>الترتيب</th>
+              <th>الحالة</th>
+              <th>الإجراءات</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in homepage_carousel_items %}
+            <tr>
+              <td>
+                <img src="{{ item.image_path }}" class="img-thumbnail" style="max-height: 50px;">
+              </td>
+              <td>{{ item.title }}</td>
+              <td>{{ item.caption }}</td>
+              <td>{{ item.order }}</td>
+              <td>
+                <span class="badge {{ 'bg-success' if item.active else 'bg-danger' }}">
+                  {{ 'نشط' if item.active else 'غير نشط' }}
+                </span>
+              </td>
+              <td>
+                <button class="btn btn-sm btn-primary edit-carousel" 
+                        data-id="{{ item.id }}">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-sm btn-danger delete-carousel-item" 
+                        data-id="{{ item.id }}" data-title="{{ item.title|default('الشريحة') }}" data-type="carousel">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="6" class="text-center">
+                <p class="my-3">لا توجد شرائح حالياً</p>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Add Modal (Custom Style) -->
+      <div class="modal custom-modal" id="addCarouselModal" tabindex="-1">
+        <div class="custom-modal-dialog">
+          <div class="custom-modal-content">
+            <div class="custom-modal-header">
+              <h5 class="custom-modal-title">إضافة شريحة جديدة</h5>
+              <button type="button" class="custom-close-btn" data-dismiss-custom="modal">×</button>
+            </div>
+            <form action="{{ url_for('add_homepage_carousel_item') }}" method="POST" enctype="multipart/form-data" id="addCarouselForm">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <div class="custom-modal-body">
+                <div class="custom-form-group">
+                  <label class="custom-form-label">العنوان</label>
+                  <input type="text" name="title" class="custom-form-control">
+                </div>
+                <div class="custom-form-group">
+                  <label class="custom-form-label">العنوان (إنجليزي)</label>
+                  <input type="text" name="title_en" class="custom-form-control">
+                </div>
+                <div class="custom-form-group">
+                  <label class="custom-form-label">الوصف</label>
+                  <textarea name="caption" class="custom-form-control"></textarea>
+                </div>
+                <div class="custom-form-group">
+                  <label class="custom-form-label">الوصف (إنجليزي)</label>
+                  <textarea name="caption_en" class="custom-form-control"></textarea>
+                </div>
+                <div class="custom-form-group">
+                  <label class="custom-form-label">الصورة</label>
+                  <input type="file" name="image" class="custom-form-control" accept="image/*" required>
+                </div>
+                <div class="custom-form-group">
+                  <label class="custom-form-label">الترتيب</label>
+                  <input type="number" name="order" class="custom-form-control" value="0" min="0">
+                </div>
+                <div class="custom-form-check">
+                  <input type="checkbox" id="activeCheck" name="active" class="custom-check-input" checked>
+                  <label class="custom-check-label" for="activeCheck">نشط</label>
+                </div>
+              </div>
+              <div class="custom-modal-footer">
+                <button type="button" class="custom-btn custom-btn-secondary" data-dismiss-custom="modal">إلغاء</button>
+                <button type="submit" class="custom-btn custom-btn-primary">إضافة</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Edit Modal (Custom Style) -->
+      <div class="modal custom-modal" id="editCarouselModal" tabindex="-1">
+        <div class="custom-modal-dialog">
+          <div class="custom-modal-content">
+            <div class="custom-modal-header">
+              <h5 class="custom-modal-title">تعديل الشريحة</h5>
+              <button type="button" class="custom-close-btn" data-dismiss-custom="modal">×</button>
+            </div>
+            <form id="editCarouselForm" method="POST" enctype="multipart/form-data">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <div class="custom-modal-body">
+                <div class="custom-form-group">
+                  <label class="custom-form-label">العنوان</label>
+                  <input type="text" name="title" class="custom-form-control">
+                </div>
+                <div class="custom-form-group">
+                  <label class="custom-form-label">العنوان (إنجليزي)</label>
+                  <input type="text" name="title_en" class="custom-form-control">
+                </div>
+                <div class="custom-form-group">
+                  <label class="custom-form-label">الوصف</label>
+                  <textarea name="caption" class="custom-form-control"></textarea>
+                </div>
+                <div class="custom-form-group">
+                  <label class="custom-form-label">الوصف (إنجليزي)</label>
+                  <textarea name="caption_en" class="custom-form-control"></textarea>
+                </div>
+                <div class="custom-form-group">
+                  <label class="custom-form-label">الصورة الحالية</label>
+                  <img id="currentImage" src="" class="img-thumbnail d-block mb-2" style="max-height: 100px;">
+                  <input type="file" name="image" class="custom-form-control" accept="image/*">
+                </div>
+                <div class="custom-form-group">
+                  <label class="custom-form-label">الترتيب</label>
+                  <input type="number" name="order" class="custom-form-control" min="0">
+                </div>
+                <div class="custom-form-check">
+                  <input type="checkbox" id="editActiveCheck" name="active" class="custom-check-input">
+                  <label class="custom-check-label" for="editActiveCheck">نشط</label>
+                </div>
+              </div>
+              <div class="custom-modal-footer">
+                <button type="button" class="custom-btn custom-btn-secondary" data-dismiss-custom="modal">إلغاء</button>
+                <button type="submit" class="custom-btn custom-btn-primary">حفظ التغييرات</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Delete Modal (Custom Style) -->
+      <div class="modal custom-modal" id="deleteCarouselModal" tabindex="-1">
+        <div class="custom-modal-dialog">
+          <div class="custom-modal-content">
+            <div class="custom-modal-header">
+              <h5 class="custom-modal-title">حذف الشريحة</h5>
+              <button type="button" class="custom-close-btn" data-dismiss-custom="modal">×</button>
+            </div>
+            <div class="custom-modal-body">
+              <p>هل أنت متأكد من حذف هذه الشريحة؟</p>
+            </div>
+            <div class="custom-modal-footer">
+              <button type="button" class="custom-btn custom-btn-secondary" data-dismiss-custom="modal">إلغاء</button>
+              <form id="deleteCarouselForm" method="POST" style="display: inline;">
+                <button type="submit" class="custom-btn custom-btn-danger">حذف</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+<style>
+/* تصميم النوافذ المنبثقة المخصص */
+.custom-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.custom-modal.active {
+  display: flex;
+}
+
+.custom-modal-dialog {
+  position: relative;
+  width: 90%;
+  max-width: 500px;
+  margin: auto;
+  z-index: 2001;
+}
+
+.custom-modal-content {
+  position: relative;
+  background-color: #1e293b;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(99, 102, 241, 0.5);
+  color: white;
+  overflow: hidden;
+  z-index: 2002;
+}
+
+.custom-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid rgba(99, 102, 241, 0.3);
+  background: linear-gradient(to right, #111827, #1e293b);
+}
+
+.custom-modal-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: white;
+}
+
+.custom-close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.custom-close-btn:hover {
+  color: white;
+}
+
+.custom-modal-body {
+  padding: 20px;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+}
+
+.custom-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 15px 20px;
+  border-top: 1px solid rgba(99, 102, 241, 0.3);
+  background: linear-gradient(to right, #111827, #1e293b);
+  gap: 10px;
+}
+
+/* تصميم حقول النموذج */
+.custom-form-group {
+  margin-bottom: 15px;
+}
+
+.custom-form-label {
+  display: block;
+  margin-bottom: 5px;
+  color: #e2e8f0;
+  font-weight: 500;
+}
+
+.custom-form-control {
+  width: 100%;
+  padding: 10px 12px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(99, 102, 241, 0.5);
+  border-radius: 4px;
+  color: #111827;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.custom-form-control:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3);
+  outline: none;
+}
+
+.custom-form-check {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.custom-check-input {
+  margin: 0;
+  margin-right: 8px;
+  height: 16px;
+  width: 16px;
+}
+
+.custom-check-label {
+  color: #e2e8f0;
+}
+
+/* تصميم الأزرار */
+.custom-btn {
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.custom-btn-primary {
+  background-color: #4f46e5;
+  color: white;
+}
+
+.custom-btn-primary:hover {
+  background-color: #4338ca;
+}
+
+.custom-btn-secondary {
+  background-color: #4b5563;
+  color: white;
+}
+
+.custom-btn-secondary:hover {
+  background-color: #374151;
+}
+
+.custom-btn-danger {
+  background-color: #dc2626;
+  color: white;
+}
+
+.custom-btn-danger:hover {
+  background-color: #b91c1c;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // إزالة النظام القديم لطبقة overlay التي تسبب المشكلة
+  const clearOldModals = () => {
+    const oldOverlays = document.querySelectorAll('.modal-backdrop');
+    oldOverlays.forEach(overlay => overlay.remove());
+  };
+  
+  clearOldModals();
+  
+  // نظام النوافذ المنبثقة الجديد
+  function setupCustomModals() {
+    // دالة لفتح النافذة المنبثقة المخصصة
+    function openCustomModal(modalId) {
+      clearOldModals();
+      const modal = document.getElementById(modalId);
+      if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden'; // منع التمرير في الصفحة
+      }
+    }
+    
+    // دالة لإغلاق النافذة المنبثقة المخصصة
+    function closeCustomModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = ''; // استعادة التمرير في الصفحة
+      }
+    }
+    
+    // إغلاق جميع النوافذ المنبثقة المخصصة
+    function closeAllCustomModals() {
+      const modals = document.querySelectorAll('.custom-modal');
+      modals.forEach(modal => {
+        modal.classList.remove('active');
+      });
+      document.body.style.overflow = '';
+    }
+    
+    // إضافة معالجات أحداث لأزرار الإغلاق
+    const closeButtons = document.querySelectorAll('[data-dismiss-custom="modal"]');
+    closeButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const modal = this.closest('.custom-modal');
+        if (modal) {
+          modal.classList.remove('active');
+          document.body.style.overflow = '';
+        }
+      });
+    });
+    
+    // إضافة معالج للنقر خارج النافذة المنبثقة لإغلاقها
+    document.querySelectorAll('.custom-modal').forEach(modal => {
+      modal.addEventListener('click', function(event) {
+        if (event.target === this) {
+          this.classList.remove('active');
+          document.body.style.overflow = '';
+        }
+      });
+    });
+    
+    // إعداد زر إضافة شريحة جديدة
+    const addButton = document.querySelector('[data-bs-target="#addCarouselModal"]');
+    if (addButton) {
+      // استبدال الحدث الأصلي
+      const newAddButton = addButton.cloneNode(true);
+      addButton.parentNode.replaceChild(newAddButton, addButton);
+      
+      // إضافة حدث جديد
+      newAddButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        openCustomModal('addCarouselModal');
+      });
+    }
+    
+    // إعداد أزرار تعديل الشرائح
+    document.querySelectorAll('.edit-carousel').forEach(button => {
+      // استبدال الحدث الأصلي
+      const newEditButton = button.cloneNode(true);
+      button.parentNode.replaceChild(newEditButton, button);
+      
+      // إضافة حدث جديد
+      newEditButton.addEventListener('click', function() {
+        const id = this.dataset.id;
+        fetch(`/admin/api/homepage-carousel/${id}`)
+          .then(response => response.json())
+          .then(data => {
+            const form = document.getElementById('editCarouselForm');
+            form.action = `/admin/homepage-carousel/${id}/edit`;
+            form.querySelector('[name=title]').value = data.title || '';
+            form.querySelector('[name=title_en]').value = data.title_en || '';
+            form.querySelector('[name=caption]').value = data.caption || '';
+            form.querySelector('[name=caption_en]').value = data.caption_en || '';
+            form.querySelector('[name=order]').value = data.order || 0;
+            form.querySelector('[name=active]').checked = data.active;
+            document.getElementById('currentImage').src = data.image_path;
+            
+            // إظهار النافذة المنبثقة المخصصة
+            openCustomModal('editCarouselModal');
+          });
+      });
+    });
+    
+    // إعداد أزرار حذف الشرائح
+    document.querySelectorAll('.delete-carousel').forEach(button => {
+      // استبدال الحدث الأصلي
+      const newDeleteButton = button.cloneNode(true);
+      button.parentNode.replaceChild(newDeleteButton, button);
+      
+      // إضافة حدث جديد
+      newDeleteButton.addEventListener('click', function() {
+        const id = this.dataset.id;
+        const form = document.getElementById('deleteCarouselForm');
+        form.action = `/admin/homepage-carousel/${id}/delete`;
+        
+        // إظهار النافذة المنبثقة المخصصة
+        openCustomModal('deleteCarouselModal');
+      });
+    });
+  }
+  
+  // تشغيل إعداد النوافذ المنبثقة المخصصة
+  setupCustomModals();
+});
+</script>
+{% endblock %}

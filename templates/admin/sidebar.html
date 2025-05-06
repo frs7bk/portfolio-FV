@@ -1,0 +1,231 @@
+<div class="pt-4 pb-2 px-3">
+  <!-- عنوان لوحة الإدارة بتأثير جديد -->
+  <h3 class="gradient-text text-center mb-4 glow-hover">لوحة الإدارة</h3>
+  <!-- بروفايل المسؤول مع تأثير -->
+  <div class="text-center mb-4">
+    <div class="admin-profile-container mx-auto relative">
+      <!-- خلفية متوهجة -->
+      <div class="absolute inset-0 rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 blur-sm opacity-70 animate-pulse"></div>
+      <!-- الصورة -->
+      <img src="/static/uploads/admin-profile.jpg" onerror="this.src='https://source.unsplash.com/400x300/?about,person'" alt="Admin" class="rounded-full relative z-10 border-2 border-purple-500 p-1" width="80" height="80">
+    </div>
+    <div class="mt-2 text-white">مرحباً، <strong class="gradient-text">{{ current_user.username }}</strong></div>
+  </div>
+  <hr class="border border-purple-500/30">
+</div>
+
+<!-- القائمة الرئيسية موحدة لجميع صفحات الإدارة -->
+<ul class="nav flex-column px-2 py-3 admin-main-menu">
+  <!-- لوحة التحكم الرئيسية -->
+  <li class="nav-item" data-aos="fade-left" data-aos-delay="100">
+    <a class="nav-link menu-item {% if request.endpoint == 'admin_dashboard' %}active{% endif %}" href="{{ url_for('admin_dashboard') }}">
+      <lord-icon src="https://cdn.lordicon.com/bhfjfgqz.json" trigger="hover" colors="primary:#6366f1,secondary:#a855f7" style="width:25px;height:25px"></lord-icon>
+      <span>لوحة التحكم</span>
+    </a>
+  </li>
+  
+  <!-- مجموعة إدارة المحتوى -->
+  <li class="nav-item nav-group" data-aos="fade-left" data-aos-delay="150">
+    <a class="nav-link menu-item {% if request.endpoint == 'admin_content' or request.endpoint == 'admin_service_content' %}active{% endif %}" href="#content_management" data-bs-toggle="collapse" role="button" aria-expanded="{% if request.endpoint == 'admin_content' or request.endpoint == 'admin_service_content' %}true{% else %}false{% endif %}" aria-controls="content_management">
+      <lord-icon src="https://cdn.lordicon.com/wloilxuq.json" trigger="hover" colors="primary:#6366f1,secondary:#a855f7" style="width:25px;height:25px"></lord-icon>
+      <span>إدارة المحتوى</span>
+      <i class="fas fa-chevron-down float-end mt-1 fs-6"></i>
+    </a>
+    <div class="collapse {% if request.endpoint == 'admin_content' or request.endpoint == 'admin_service_content' %}show{% endif %}" id="content_management">
+      <ul class="nav flex-column ms-3 mt-2">
+        <li class="nav-item">
+          <a class="nav-link submenu-item {% if request.endpoint == 'admin_content' %}active{% endif %}" href="{{ url_for('admin_content') }}">
+            <i class="fas fa-file-alt me-2 text-indigo-500"></i>
+            <span>محتوى الموقع</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link submenu-item {% if request.endpoint == 'admin_service_content' %}active{% endif %}" href="{{ url_for('admin_service_content') }}">
+            <i class="fas fa-briefcase me-2 text-indigo-500"></i>
+            <span>الخدمات</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </li>
+  
+  <!-- مجموعة معرض الأعمال -->
+  <li class="nav-item nav-group" data-aos="fade-left" data-aos-delay="200">
+    <a class="nav-link menu-item {% if request.endpoint == 'admin_portfolio_management' or request.endpoint == 'admin_carousel_management' or request.endpoint == 'admin_portfolio_comments' or request.endpoint == 'add_portfolio_item' %}active{% endif %}" href="#portfolio_management" data-bs-toggle="collapse" role="button" aria-expanded="{% if request.endpoint == 'admin_portfolio_management' or request.endpoint == 'admin_carousel_management' or request.endpoint == 'admin_portfolio_comments' or request.endpoint == 'add_portfolio_item' %}true{% else %}false{% endif %}" aria-controls="portfolio_management">
+      <lord-icon src="https://cdn.lordicon.com/vixtkkbk.json" trigger="hover" colors="primary:#6366f1,secondary:#a855f7" style="width:25px;height:25px"></lord-icon>
+      <span>معرض الأعمال</span>
+      <i class="fas fa-chevron-down float-end mt-1 fs-6"></i>
+    </a>
+    <div class="collapse {% if request.endpoint == 'admin_portfolio_management' or request.endpoint == 'admin_carousel_management' or request.endpoint == 'admin_portfolio_comments' or request.endpoint == 'add_portfolio_item' %}show{% endif %}" id="portfolio_management">
+      <ul class="nav flex-column ms-3 mt-2">
+        <li class="nav-item">
+          <a class="nav-link submenu-item {% if request.endpoint == 'admin_portfolio_management' or request.endpoint == 'add_portfolio_item' %}active{% endif %}" href="{{ url_for('admin_portfolio_management') }}">
+            <i class="fas fa-images me-2 text-indigo-500"></i>
+            <span>المشاريع</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link submenu-item {% if request.endpoint == 'admin_carousel_management' %}active{% endif %}" href="{{ url_for('admin_carousel_management') }}">
+            <i class="fas fa-sliders-h me-2 text-indigo-500"></i>
+            <span>الكاروسيل</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link submenu-item {% if request.endpoint == 'views_analytics' %}active{% endif %}" href="{{ url_for('views_analytics') }}">
+            <i class="fas fa-chart-line me-2 text-indigo-500"></i>
+            <span>تحليلات المشاهدات</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </li>
+  
+  <!-- مجموعة التواصل -->
+  <li class="nav-item nav-group" data-aos="fade-left" data-aos-delay="250">
+    <a class="nav-link menu-item {% if request.endpoint == 'admin_social_media' or request.endpoint == 'admin_contact_info' or request.endpoint == 'messaging.admin_messages' or request.endpoint == 'messaging.admin_service_requests' %}active{% endif %}" href="#communication" data-bs-toggle="collapse" role="button" aria-expanded="{% if request.endpoint == 'admin_social_media' or request.endpoint == 'admin_contact_info' or request.endpoint == 'messaging.admin_messages' or request.endpoint == 'messaging.admin_service_requests' %}true{% else %}false{% endif %}" aria-controls="communication">
+      <lord-icon src="https://cdn.lordicon.com/psnhyobz.json" trigger="hover" colors="primary:#6366f1,secondary:#a855f7" style="width:25px;height:25px"></lord-icon>
+      <span>التواصل</span>
+      <i class="fas fa-chevron-down float-end mt-1 fs-6"></i>
+    </a>
+    <div class="collapse {% if request.endpoint == 'admin_social_media' or request.endpoint == 'admin_contact_info' or request.endpoint == 'messaging.admin_messages' or request.endpoint == 'messaging.admin_service_requests' %}show{% endif %}" id="communication">
+      <ul class="nav flex-column ms-3 mt-2">
+        <li class="nav-item">
+          <a class="nav-link submenu-item {% if request.endpoint == 'messaging.admin_messages' %}active{% endif %}" href="{{ url_for('messaging.admin_messages') }}">
+            <i class="fas fa-envelope me-2 text-indigo-500"></i>
+            <span>الرسائل الواردة</span>
+            <span class="badge bg-gradient-to-r from-indigo-500 to-purple-500 rounded-pill ms-2 unread-messages-count">0</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link submenu-item {% if request.endpoint == 'messaging.admin_service_requests' %}active{% endif %}" href="{{ url_for('messaging.admin_service_requests') }}">
+            <i class="fas fa-clipboard-list me-2 text-indigo-500"></i>
+            <span>طلبات الخدمة</span>
+            <span class="badge bg-gradient-to-r from-indigo-500 to-purple-500 rounded-pill ms-2 new-requests-count">0</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link submenu-item {% if request.endpoint == 'admin_social_media' %}active{% endif %}" href="{{ url_for('admin_social_media') }}">
+            <i class="fas fa-share-alt me-2 text-indigo-500"></i>
+            <span>وسائل التواصل</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link submenu-item {% if request.endpoint == 'admin_contact_info' %}active{% endif %}" href="{{ url_for('admin_contact_info') }}">
+            <i class="fas fa-address-card me-2 text-indigo-500"></i>
+            <span>معلومات التواصل</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </li>
+  
+  <!-- الإحصائيات -->
+  <li class="nav-item nav-group" data-aos="fade-left" data-aos-delay="300">
+    <a class="nav-link menu-item {% if 'analytics.' in request.endpoint %}active{% endif %}" href="#analytics" data-bs-toggle="collapse" role="button" aria-expanded="{% if 'analytics.' in request.endpoint %}true{% else %}false{% endif %}" aria-controls="analytics">
+      <lord-icon src="https://cdn.lordicon.com/gqdnbnwt.json" trigger="hover" colors="primary:#6366f1,secondary:#a855f7" style="width:25px;height:25px"></lord-icon>
+      <span>الإحصائيات</span>
+      <i class="fas fa-chevron-down float-end mt-1 fs-6"></i>
+    </a>
+    <div class="collapse {% if 'analytics.' in request.endpoint %}show{% endif %}" id="analytics">
+      <ul class="nav flex-column ms-3 mt-2">
+        <li class="nav-item">
+          <a class="nav-link submenu-item {% if request.endpoint == 'analytics.dashboard' %}active{% endif %}" href="{{ url_for('analytics.dashboard') }}">
+            <i class="fas fa-chart-line me-2 text-indigo-500"></i>
+            <span>لوحة الإحصائيات</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link submenu-item {% if request.endpoint == 'live_visitors' %}active{% endif %}" href="{{ url_for('live_visitors') }}">
+            <i class="fas fa-user-clock me-2 text-indigo-500"></i>
+            <span>الزوار النشطين حاليًا</span>
+            <span class="badge bg-gradient-to-r from-green-500 to-teal-500 rounded-pill ms-2 live-visitors-count">0</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link submenu-item {% if request.endpoint == 'analytics.visitors_dashboard' %}active{% endif %}" href="{{ url_for('analytics.visitors_dashboard') }}">
+            <i class="fas fa-users me-2 text-indigo-500"></i>
+            <span>إحصائيات الزوار</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link submenu-item {% if request.endpoint == 'analytics.activity_list' %}active{% endif %}" href="{{ url_for('analytics.activity_list') }}">
+            <i class="fas fa-history me-2 text-indigo-500"></i>
+            <span>سجل النشاطات</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link submenu-item {% if request.endpoint == 'analytics.ip_lookup' %}active{% endif %}" href="{{ url_for('analytics.ip_lookup') }}">
+            <i class="fas fa-search-location me-2 text-indigo-500"></i>
+            <span>بحث عن عنوان IP</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </li>
+  
+  <!-- إعدادات متقدمة -->  
+  <li class="nav-item nav-group" data-aos="fade-left" data-aos-delay="375">
+    <a class="nav-link menu-item {% if request.endpoint == 'telegram_settings' or request.endpoint == 'telegram_test.telegram_test_page' %}active{% endif %}" href="#settings" data-bs-toggle="collapse" role="button" aria-expanded="{% if request.endpoint == 'telegram_settings' or request.endpoint == 'telegram_test.telegram_test_page' %}true{% else %}false{% endif %}" aria-controls="settings">
+      <lord-icon src="https://cdn.lordicon.com/sbiheqdr.json" trigger="hover" colors="primary:#6366f1,secondary:#a855f7" style="width:25px;height:25px"></lord-icon>
+      <span>الإعدادات المتقدمة</span>
+      <i class="fas fa-chevron-down float-end mt-1 fs-6"></i>
+    </a>
+    <div class="collapse {% if request.endpoint == 'telegram_settings' or request.endpoint == 'telegram_test.telegram_test_page' or request.endpoint == 'direct_telegram.test_page' %}show{% endif %}" id="settings">
+      <ul class="nav flex-column ms-3 mt-2">
+        <li class="nav-item">
+          <a class="nav-link submenu-item {% if request.endpoint == 'telegram_settings' %}active{% endif %}" href="{{ url_for('telegram_settings') }}">
+            <i class="fab fa-telegram me-2 text-indigo-500"></i>
+            <span>إعدادات تيليجرام</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link submenu-item {% if request.endpoint == 'telegram_test.telegram_test_page' %}active{% endif %}" href="{{ url_for('telegram_test.telegram_test_page') }}">
+            <i class="fas fa-bell me-2 text-indigo-500"></i>
+            <span>اختبار إشعارات تيليجرام</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link submenu-item {% if request.endpoint == 'direct_telegram.test_page' %}active{% endif %}" href="{{ url_for('direct_telegram.test_page') }}">
+            <i class="fas fa-paper-plane me-2 text-indigo-500"></i>
+            <span>اختبار مباشر للتلغرام</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </li>
+  
+  <!-- التقييمات والآراء -->
+  <li class="nav-item" data-aos="fade-left" data-aos-delay="350">
+    <a class="nav-link menu-item {% if request.endpoint == 'admin_testimonials' %}active{% endif %}" href="{{ url_for('admin_testimonials') }}">
+      <lord-icon src="https://cdn.lordicon.com/hbvgknxo.json" trigger="hover" colors="primary:#6366f1,secondary:#a855f7" style="width:25px;height:25px"></lord-icon>
+      <span>التقييمات والآراء</span>
+      {% if pending_testimonials and pending_testimonials > 0 %}
+      <span class="badge bg-gradient-to-r from-pink-500 to-rose-500 rounded-pill ms-2">{{ pending_testimonials }}</span>
+      {% endif %}
+    </a>
+  </li>
+  
+  <!-- الملف الشخصي -->
+  <li class="nav-item" data-aos="fade-left" data-aos-delay="400">
+    <a class="nav-link menu-item {% if request.endpoint == 'admin_profile' %}active{% endif %}" href="{{ url_for('admin_profile') }}">
+      <lord-icon src="https://cdn.lordicon.com/eszyyflr.json" trigger="hover" colors="primary:#6366f1,secondary:#a855f7" style="width:25px;height:25px"></lord-icon>
+      <span>الملف الشخصي</span>
+    </a>
+  </li>
+  
+  <!-- تغيير كلمة المرور -->
+  <li class="nav-item" data-aos="fade-left" data-aos-delay="425">
+    <a class="nav-link menu-item {% if request.endpoint == 'admin_change_password' %}active{% endif %}" href="{{ url_for('admin_change_password') }}">
+      <lord-icon src="https://cdn.lordicon.com/bgebyztw.json" trigger="hover" colors="primary:#6366f1,secondary:#a855f7" style="width:25px;height:25px"></lord-icon>
+      <span>تغيير كلمة المرور</span>
+    </a>
+  </li>
+  
+  <!-- تسجيل الخروج -->
+  <li class="nav-item mt-4" data-aos="fade-left" data-aos-delay="450">
+    <a class="nav-link menu-item logout-btn" href="{{ url_for('admin_logout') }}">
+      <lord-icon src="https://cdn.lordicon.com/moscwhoj.json" trigger="hover" colors="primary:#6366f1,secondary:#dc3545" style="width:25px;height:25px"></lord-icon>
+      <span>تسجيل الخروج</span>
+    </a>
+  </li>
+</ul>

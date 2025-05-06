@@ -1,0 +1,313 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}إدارة آراء العملاء - لوحة الإدارة{% endblock %}
+
+{% block page_title %}إدارة آراء العملاء{% endblock %}
+
+{% block head_extra %}
+<style>
+  .testimonial-card {
+    position: relative;
+    transition: all 0.3s ease;
+  }
+  .testimonial-card:hover {
+    transform: translateY(-5px);
+  }
+  .testimonial-pending {
+    border-right: 4px solid #fbbf24;
+  }
+  .testimonial-approved {
+    border-right: 4px solid #10b981;
+  }
+  .rating {
+    color: #fbbf24;
+  }
+  .rating-star {
+    margin-left: 2px;
+  }
+  .filter-btn.active {
+    background-color: #fbbf24;
+    color: #000;
+  }
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-end mb-3">
+  <a href="/" class="btn btn-sm btn-outline-primary me-2">
+    <i class="fas fa-eye"></i> عرض الموقع
+  </a>
+  <button type="button" class="btn btn-sm btn-outline-secondary" onclick="window.location.reload()">
+    <i class="fas fa-sync-alt"></i> تحديث
+  </button>
+</div>
+
+<!-- Filter and statistics -->
+<div class="content-card mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="card-title mb-0">
+      <i class="fas fa-filter me-2"></i>
+      فلترة التقييمات
+    </h5>
+    <div class="d-flex">
+      <button class="btn btn-sm filter-btn active me-2" data-filter="all">
+        الكل 
+        <span class="badge bg-dark ms-1">{{ testimonials|length }}</span>
+      </button>
+      <button class="btn btn-sm filter-btn me-2" data-filter="pending">
+        بانتظار المراجعة 
+        <span class="badge bg-warning text-dark ms-1">{{ testimonials|selectattr('approved', 'equalto', false)|list|length }}</span>
+      </button>
+      <button class="btn btn-sm filter-btn" data-filter="approved">
+        معتمدة 
+        <span class="badge bg-success ms-1">{{ testimonials|selectattr('approved', 'equalto', true)|list|length }}</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-md-4">
+      <div class="input-group">
+        <span class="input-group-text"><i class="fas fa-search"></i></span>
+        <input type="text" class="form-control" id="searchInput" placeholder="بحث في التقييمات...">
+      </div>
+    </div>
+    <div class="col-md-3">
+      <select class="form-select" id="sortSelect">
+        <option value="date-desc">الأحدث أولاً</option>
+        <option value="date-asc">الأقدم أولاً</option>
+        <option value="rating-desc">التقييم: من الأعلى للأقل</option>
+        <option value="rating-asc">التقييم: من الأقل للأعلى</option>
+      </select>
+    </div>
+    <div class="col-md-5 text-md-end">
+      <div class="text-muted">
+        <i class="fas fa-chart-bar me-1"></i>
+        متوسط التقييم: 
+        <span class="text-warning fw-bold">
+          {% set avg_rating = (testimonials|sum(attribute='rating') / testimonials|length) if testimonials|length > 0 else 0 %}
+          {{ "%.1f"|format(avg_rating) }}
+          <i class="fas fa-star small"></i>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Testimonials list -->
+<div class="testimonials-container">
+  <div class="row row-cols-1 row-cols-md-2 g-4" id="testimonialsGrid">
+    {% for testimonial in testimonials %}
+      <div class="col testimonial-item" 
+            data-approved="{{ testimonial.approved|lower }}"
+            data-rating="{{ testimonial.rating }}"
+            data-date="{{ testimonial.created_at.strftime('%Y-%m-%d') }}">
+        <div class="testimonial-card bg-dark p-4 rounded {{ 'testimonial-pending' if not testimonial.approved else 'testimonial-approved' }}">
+          <div class="d-flex justify-content-between align-items-start mb-3">
+            <div>
+              <h5 class="mb-1">{{ testimonial.name }}</h5>
+              {% if testimonial.company %}
+                <p class="text-muted small mb-0">{{ testimonial.company }}</p>
+              {% endif %}
+            </div>
+            <div class="status {{ 'pending' if not testimonial.approved else 'approved' }}">
+              {% if not testimonial.approved %}
+                <span class="badge bg-warning text-dark">بانتظار المراجعة</span>
+              {% else %}
+                <span class="badge bg-success">معتمد</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="rating mb-2">
+            {% for i in range(1, 6) %}
+              {% if i <= testimonial.rating %}
+                <i class="fas fa-star rating-star"></i>
+              {% else %}
+                <i class="far fa-star rating-star text-muted"></i>
+              {% endif %}
+            {% endfor %}
+          </div>
+
+          <p class="content text-gray-300 mb-3">{{ testimonial.content }}</p>
+
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="date text-muted small">
+              <i class="far fa-clock me-1"></i>
+              {{ testimonial.created_at.strftime('%Y-%m-%d') }}
+            </div>
+
+            <div class="actions">
+              <form action="/admin/testimonials/{{ testimonial.id }}/approve" method="POST" class="d-inline">
+                <button type="submit" class="btn btn-sm {{ 'btn-success' if not testimonial.approved else 'btn-warning' }}"
+                  data-loading-animation="true">
+                  <i class="fas {{ 'fa-check' if not testimonial.approved else 'fa-times' }} me-1"></i>
+                  {{ 'اعتماد' if not testimonial.approved else 'إلغاء الاعتماد' }}
+                </button>
+              </form>
+
+              <button type="button"
+                 class="btn btn-sm btn-danger delete-direct"
+                 data-delete-url="/admin/testimonials/{{ testimonial.id }}/delete"
+                 data-id="{{ testimonial.id }}"
+                 data-title="{{ testimonial.name }}"
+                 data-confirm-message="هل أنت متأكد من حذف تقييم {{ testimonial.name }}؟ هذا الإجراء لا يمكن التراجع عنه.">
+                <i class="fas fa-trash me-1"></i> حذف
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% else %}
+      <div class="col-12">
+        <div class="alert alert-info text-center">
+          <i class="fas fa-info-circle me-2"></i>
+          لا توجد تقييمات حتى الآن
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Empty state -->
+<div id="emptyState" class="text-center py-5 d-none">
+  <div class="mb-3">
+    <i class="fas fa-search fa-3x text-muted"></i>
+  </div>
+  <h4>لم يتم العثور على نتائج</h4>
+  <p class="text-muted">حاول تغيير معايير البحث أو الفلترة</p>
+</div>
+
+<!-- تم استبدال نوافذ التأكيد المودال بنظام التأكيد المدمج في admin-unified.js -->
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Filter buttons
+      const filterButtons = document.querySelectorAll('.filter-btn');
+      const testimonialItems = document.querySelectorAll('.testimonial-item');
+      const testimonialsGrid = document.getElementById('testimonialsGrid');
+      const emptyState = document.getElementById('emptyState');
+      const searchInput = document.getElementById('searchInput');
+      const sortSelect = document.getElementById('sortSelect');
+
+      // Apply filters and search
+      function applyFilters() {
+        const activeFilter = document.querySelector('.filter-btn.active').dataset.filter;
+        const searchTerm = searchInput.value.toLowerCase();
+        const sortValue = sortSelect.value;
+
+        // First collect all items that match the criteria
+        let visibleItems = [];
+        let hiddenItems = [];
+
+        testimonialItems.forEach(item => {
+          // Check filter
+          const approved = item.dataset.approved;
+          let matchesFilter = (
+            activeFilter === 'all' || 
+            (activeFilter === 'pending' && approved === 'false') ||
+            (activeFilter === 'approved' && approved === 'true')
+          );
+
+          // Check search term
+          const content = item.querySelector('.content').textContent.toLowerCase();
+          const name = item.querySelector('h5').textContent.toLowerCase();
+          const company = item.querySelector('.text-muted') ? 
+                        item.querySelector('.text-muted').textContent.toLowerCase() : '';
+
+          let matchesSearch = (
+            content.includes(searchTerm) || 
+            name.includes(searchTerm) || 
+            company.includes(searchTerm)
+          );
+
+          if (matchesFilter && matchesSearch) {
+            visibleItems.push(item);
+          } else {
+            hiddenItems.push(item);
+          }
+        });
+
+        // Sort visible items
+        visibleItems.sort((a, b) => {
+          if (sortValue === 'date-desc') {
+            return new Date(b.dataset.date) - new Date(a.dataset.date);
+          } else if (sortValue === 'date-asc') {
+            return new Date(a.dataset.date) - new Date(b.dataset.date);
+          } else if (sortValue === 'rating-desc') {
+            return parseInt(b.dataset.rating) - parseInt(a.dataset.rating);
+          } else if (sortValue === 'rating-asc') {
+            return parseInt(a.dataset.rating) - parseInt(b.dataset.rating);
+          }
+        });
+
+        // Show/hide items
+        hiddenItems.forEach(item => {
+          item.classList.add('d-none');
+        });
+
+        if (visibleItems.length === 0) {
+          emptyState.classList.remove('d-none');
+        } else {
+          emptyState.classList.add('d-none');
+
+          // Reorder items based on sort
+          visibleItems.forEach(item => {
+            item.classList.remove('d-none');
+            testimonialsGrid.appendChild(item);
+          });
+        }
+      }
+
+      // Filter button click handler
+      filterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          filterButtons.forEach(btn => btn.classList.remove('active'));
+          this.classList.add('active');
+          applyFilters();
+        });
+      });
+
+      // Search input handler
+      searchInput.addEventListener('input', applyFilters);
+
+      // Sort select handler
+      sortSelect.addEventListener('change', applyFilters);
+
+      // Initial filter application
+      applyFilters();
+
+      // وظيفة إرسال نموذج POST لأزرار الاعتماد
+  function submitFormWithAction(url) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = url;
+    form.style.display = 'none';
+    document.body.appendChild(form);
+    form.submit();
+  }
+
+      // Add confirmation message before leaving page with unsaved changes
+      const contentForm = document.getElementById('content-form');
+      if (contentForm) {
+        let formChanged = false;
+
+        contentForm.addEventListener('input', function() {
+          formChanged = true;
+        });
+
+        contentForm.addEventListener('submit', function() {
+          formChanged = false;
+        });
+
+        window.addEventListener('beforeunload', function(e) {
+          if (formChanged) {
+            const message = 'لديك تغييرات غير محفوظة. هل أنت متأكد من مغادرة الصفحة؟';
+            e.returnValue = message;
+            return message;
+          }
+        });
+      }
+    });
+</script>
+{% endblock %}

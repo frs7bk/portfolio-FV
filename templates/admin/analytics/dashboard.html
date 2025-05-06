@@ -1,0 +1,704 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}لوحة الإحصائيات{% endblock %}
+{% block page_title %}لوحة الإحصائيات{% endblock %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css">
+<style>
+    /* تصميم عام محسن */
+    .analytics-dashboard {
+        background-color: #f8f9fa;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+    }
+    
+    .dashboard-header {
+        margin-bottom: 2rem;
+        border-bottom: 1px solid #e9ecef;
+        padding-bottom: 1rem;
+    }
+    
+    .dashboard-title {
+        color: #495057;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    .dashboard-subtitle {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+    
+    /* بطاقات الإحصائيات المحسنة */
+    .stats-card {
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+        background-color: white;
+        border-right: 4px solid transparent;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .stats-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        height: 100%;
+        width: 4px;
+    }
+    
+    .stats-card.primary::before { background-color: #3b7ddd; }
+    .stats-card.success::before { background-color: #28a745; }
+    .stats-card.warning::before { background-color: #ffc107; }
+    .stats-card.info::before { background-color: #17a2b8; }
+    
+    .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    }
+    
+    .stats-card .icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        opacity: 0.8;
+        transition: transform 0.3s ease;
+    }
+    
+    .stats-card:hover .icon {
+        transform: scale(1.1);
+    }
+    
+    .stats-card .count {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.3rem;
+        background: linear-gradient(45deg, #3b7ddd, #6610f2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .stats-card .title {
+        font-size: 1rem;
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    .stats-card .trend {
+        margin-top: 0.5rem;
+        font-size: 0.8rem;
+    }
+
+    .trend-up {
+        color: #28a745;
+    }
+
+    .trend-down {
+        color: #dc3545;
+    }
+    
+    /* حاويات الرسوم البيانية المحسنة */
+    .chart-container {
+        position: relative;
+        margin: auto;
+        height: 330px;
+        width: 100%;
+    }
+    
+    .chart-card {
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .chart-card:hover {
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    }
+    
+    .chart-title {
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #e9ecef;
+        font-weight: 600;
+        color: #495057;
+    }
+    
+    /* شريط التصفية المحسن */
+    .filter-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 2rem;
+        background-color: white;
+        padding: 1rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .filter-btn {
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-weight: 500;
+        font-size: 0.9rem;
+        border: none;
+        background-color: #f1f3f5;
+        color: #495057;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .filter-btn:hover {
+        background-color: #e9ecef;
+    }
+    
+    .filter-btn.active {
+        background-color: #3b7ddd;
+        color: white;
+    }
+    
+    .activity-timeline {
+        position: relative;
+        padding-right: 30px;
+    }
+    
+    .activity-timeline::before {
+        content: '';
+        position: absolute;
+        right: 14px;
+        top: 0;
+        height: 100%;
+        width: 2px;
+        background-color: #e9ecef;
+    }
+    
+    .activity-item {
+        position: relative;
+        padding-right: 35px;
+        margin-bottom: 1rem;
+    }
+    
+    .activity-icon {
+        position: absolute;
+        right: -15px;
+        top: 0;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background-color: #f8f9fa;
+        border: 2px solid #e9ecef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1;
+    }
+    
+    .activity-content {
+        background-color: #fff;
+        border-radius: 0.5rem;
+        padding: 0.75rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<div class="container-fluid py-4">
+    <div class="analytics-dashboard animate__animated animate__fadeIn">
+        <div class="dashboard-header">
+            <h1 class="h3 mb-2 dashboard-title">لوحة الإحصائيات الإدارية</h1>
+            <p class="dashboard-subtitle">عرض شامل لإحصائيات الموقع وتفاعلات المستخدمين</p>
+        </div>
+        
+        <!-- شريط الفلترة -->
+        <div class="filter-bar">
+            <button class="filter-btn active" data-days="7">آخر 7 أيام</button>
+            <button class="filter-btn" data-days="30">آخر 30 يوم</button>
+            <button class="filter-btn" data-days="90">آخر 3 أشهر</button>
+            <button class="filter-btn" data-days="0">كل الوقت</button>
+            <span class="ms-auto text-muted">آخر تحديث: {{ date_time }}</span>
+        </div>
+        
+        <!-- بطاقات الإحصائيات -->
+        <div class="row">
+            <!-- إجمالي المشاهدات -->
+            <div class="col-md-3">
+                <div class="stats-card primary animate__animated animate__fadeInUp">
+                    <div class="icon text-primary">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                    <div class="count" id="total-views">{{ total_stats.views }}</div>
+                    <div class="title">إجمالي المشاهدات</div>
+                    <div class="trend trend-up">
+                        <i class="fas fa-arrow-up"></i> 12% زيادة
+                    </div>
+                </div>
+            </div>
+            
+            <!-- إجمالي الإعجابات -->
+            <div class="col-md-3">
+                <div class="stats-card success animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
+                    <div class="icon text-success">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <div class="count" id="total-likes">{{ total_stats.likes }}</div>
+                    <div class="title">إجمالي الإعجابات</div>
+                    <div class="trend trend-up">
+                        <i class="fas fa-arrow-up"></i> 8% زيادة
+                    </div>
+                </div>
+            </div>
+            
+            <!-- إجمالي التعليقات -->
+            <div class="col-md-3">
+                <div class="stats-card warning animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+                    <div class="icon text-warning">
+                        <i class="fas fa-comment"></i>
+                    </div>
+                    <div class="count" id="total-comments">{{ total_stats.comments }}</div>
+                    <div class="title">إجمالي التعليقات</div>
+                    <div class="trend trend-up">
+                        <i class="fas fa-arrow-up"></i> 5% زيادة
+                    </div>
+                </div>
+            </div>
+            
+            <!-- إجمالي المستخدمين -->
+            <div class="col-md-3">
+                <div class="stats-card info animate__animated animate__fadeInUp" style="animation-delay: 0.3s;">
+                    <div class="icon text-info">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="count" id="total-users">{{ total_stats.users }}</div>
+                    <div class="title">إجمالي المستخدمين</div>
+                    <div class="trend trend-up">
+                        <i class="fas fa-arrow-up"></i> 3% زيادة
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- الرسوم البيانية -->
+        <div class="row mt-4">
+            <!-- رسم بياني للمشاهدات -->
+            <div class="col-md-6 animate__animated animate__fadeInUp" style="animation-delay: 0.4s;">
+                <div class="chart-card">
+                    <h5 class="chart-title">
+                        <i class="fas fa-chart-line me-2"></i> تحليل المشاهدات
+                    </h5>
+                    <div class="chart-container">
+                        <canvas id="viewsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- رسم بياني للإعجابات والتعليقات -->
+            <div class="col-md-6 animate__animated animate__fadeInUp" style="animation-delay: 0.5s;">
+                <div class="chart-card">
+                    <h5 class="chart-title">
+                        <i class="fas fa-chart-bar me-2"></i> تحليل التفاعلات
+                    </h5>
+                    <div class="chart-container">
+                        <canvas id="engagementChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <!-- أكثر المشاريع مشاهدة -->
+            <div class="col-md-6 animate__animated animate__fadeInUp" style="animation-delay: 0.6s;">
+                <div class="chart-card">
+                    <h5 class="chart-title">
+                        <i class="fas fa-trophy me-2"></i> أكثر المشاريع مشاهدة
+                    </h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>المشروع</th>
+                                    <th><i class="fas fa-eye text-primary"></i> المشاهدات</th>
+                                    <th><i class="fas fa-heart text-success"></i> الإعجابات</th>
+                                    <th><i class="fas fa-comment text-warning"></i> التعليقات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="top-projects">
+                                {% for item in top_projects %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ url_for('view_portfolio_item', portfolio_id=item.id) }}" class="text-decoration-none">
+                                            {{ item.title }}
+                                        </a>
+                                    </td>
+                                    <td>{{ item.views_count }}</td>
+                                    <td>{{ item.likes_count }}</td>
+                                    <td>{{ item.comments_count }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- آخر المستخدمين نشاطاً -->
+            <div class="col-md-6 animate__animated animate__fadeInUp" style="animation-delay: 0.7s;">
+                <div class="chart-card">
+                    <h5 class="chart-title">
+                        <i class="fas fa-history me-2"></i> آخر نشاطات المستخدمين
+                    </h5>
+                    <div class="activity-timeline">
+                        {% for activity in latest_activities %}
+                        <div class="activity-item">
+                            <div class="activity-icon 
+                                {% if 'view' in activity.activity_type %}text-info
+                                {% elif 'like' in activity.activity_type %}text-success
+                                {% elif 'comment' in activity.activity_type %}text-warning
+                                {% elif 'login' in activity.activity_type %}text-primary
+                                {% else %}text-secondary{% endif %}">
+                                <i class="fas 
+                                    {% if 'view' in activity.activity_type %}fa-eye
+                                    {% elif 'like' in activity.activity_type %}fa-heart
+                                    {% elif 'comment' in activity.activity_type %}fa-comment
+                                    {% elif 'login' in activity.activity_type %}fa-sign-in-alt
+                                    {% else %}fa-circle{% endif %}"></i>
+                            </div>
+                            <div class="activity-content">
+                                {% if activity.user_id %}
+                                <a href="{{ url_for('analytics.user_activity', user_id=activity.user_id) }}">
+                                    {{ activity.user.username }}
+                                </a>
+                                {% else %}
+                                زائر
+                                {% endif %}
+                                
+                                {% if 'view' in activity.activity_type %}
+                                    شاهد مشروع
+                                {% elif 'like' in activity.activity_type %}
+                                    أعجب بـ
+                                {% elif 'comment' in activity.activity_type %}
+                                    علق على
+                                {% elif 'login' in activity.activity_type %}
+                                    قام بتسجيل الدخول
+                                {% elif 'register' in activity.activity_type %}
+                                    قام بإنشاء حساب
+                                {% else %}
+                                    {{ activity.activity_type }}
+                                {% endif %}
+                                
+                                {% if activity.resource_id %}
+                                    {% if activity.resource_type == 'portfolio' %}
+                                    <a href="{{ url_for('view_portfolio_item', portfolio_id=activity.resource_id) }}">
+                                        #{{ activity.resource_id }}
+                                    </a>
+                                    {% else %}
+                                    #{{ activity.resource_id }}
+                                    {% endif %}
+                                {% endif %}
+                                
+                                <span class="float-start text-muted small">
+                                    {{ activity.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{{ url_for('analytics.activity_list') }}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-list me-1"></i> عرض جميع النشاطات
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+<script>
+    // بيانات الرسوم البيانية
+    const chartData = {{ chart_data|tojson|safe }};
+    
+    // خيارات مشتركة للرسوم البيانية
+    const commonChartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+            mode: 'index',
+            intersect: false,
+        },
+        plugins: {
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                padding: 10,
+                titleFont: {
+                    size: 14,
+                    weight: 'bold'
+                },
+                bodyFont: {
+                    size: 13
+                },
+                borderColor: 'rgba(255, 255, 255, 0.2)',
+                borderWidth: 1,
+                displayColors: true,
+                boxWidth: 8,
+                boxHeight: 8,
+                boxPadding: 4,
+                usePointStyle: true,
+            },
+            legend: {
+                position: 'top',
+                labels: {
+                    usePointStyle: true,
+                    padding: 15,
+                    boxWidth: 8,
+                    font: {
+                        size: 12
+                    }
+                }
+            }
+        }
+    };
+    
+    // إعداد رسم المشاهدات
+    const viewsCtx = document.getElementById('viewsChart').getContext('2d');
+    const viewsGradient = viewsCtx.createLinearGradient(0, 0, 0, 350);
+    viewsGradient.addColorStop(0, 'rgba(59, 125, 221, 0.6)');
+    viewsGradient.addColorStop(1, 'rgba(59, 125, 221, 0.05)');
+    
+    const viewsChart = new Chart(viewsCtx, {
+        type: 'line',
+        data: {
+            labels: chartData.labels,
+            datasets: [{
+                label: 'المشاهدات',
+                data: chartData.views,
+                borderColor: '#3b7ddd',
+                backgroundColor: viewsGradient,
+                borderWidth: 2,
+                tension: 0.3,
+                fill: true,
+                pointBackgroundColor: '#3b7ddd',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                pointHoverBackgroundColor: '#ffffff',
+                pointHoverBorderColor: '#3b7ddd',
+            }]
+        },
+        options: {
+            ...commonChartOptions,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)',
+                        drawBorder: false
+                    },
+                    ticks: {
+                        precision: 0,
+                        font: {
+                            size: 11
+                        },
+                        color: '#6c757d'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        font: {
+                            size: 11
+                        },
+                        color: '#6c757d'
+                    }
+                }
+            }
+        }
+    });
+    
+    // إعداد رسم الإعجابات والتعليقات
+    const engagementCtx = document.getElementById('engagementChart').getContext('2d');
+    const engagementChart = new Chart(engagementCtx, {
+        type: 'bar',
+        data: {
+            labels: chartData.labels,
+            datasets: [
+                {
+                    label: 'الإعجابات',
+                    data: chartData.likes,
+                    backgroundColor: 'rgba(40, 167, 69, 0.7)',
+                    borderColor: '#28a745',
+                    borderWidth: 1,
+                    borderRadius: 4,
+                    hoverBackgroundColor: 'rgba(40, 167, 69, 0.9)',
+                },
+                {
+                    label: 'التعليقات',
+                    data: chartData.comments,
+                    backgroundColor: 'rgba(255, 193, 7, 0.7)',
+                    borderColor: '#ffc107',
+                    borderWidth: 1,
+                    borderRadius: 4,
+                    hoverBackgroundColor: 'rgba(255, 193, 7, 0.9)',
+                }
+            ]
+        },
+        options: {
+            ...commonChartOptions,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)',
+                        drawBorder: false
+                    },
+                    ticks: {
+                        precision: 0,
+                        font: {
+                            size: 11
+                        },
+                        color: '#6c757d'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        font: {
+                            size: 11
+                        },
+                        color: '#6c757d'
+                    }
+                }
+            }
+        }
+    });
+    
+    // تحديث البيانات عند تغيير الفلتر
+    document.querySelectorAll('.filter-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            // تحديث حالة الأزرار
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            this.classList.add('active');
+            
+            // الحصول على قيمة الفلتر
+            const days = parseInt(this.getAttribute('data-days'));
+            
+            // إظهار مؤشر التحميل
+            const loadingOverlay = document.createElement('div');
+            loadingOverlay.className = 'loading-overlay';
+            loadingOverlay.innerHTML = '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">جاري التحميل...</span></div>';
+            document.querySelector('.analytics-dashboard').appendChild(loadingOverlay);
+            
+            // إرسال طلب للحصول على البيانات المحدثة
+            fetch(`/analytics/data?days=${days}`)
+                .then(response => response.json())
+                .then(data => {
+                    // تحديث بطاقات الإحصائيات مع تأثير متحرك
+                    updateCountWithAnimation('total-views', data.total_stats.views);
+                    updateCountWithAnimation('total-likes', data.total_stats.likes);
+                    updateCountWithAnimation('total-comments', data.total_stats.comments);
+                    updateCountWithAnimation('total-users', data.total_stats.users);
+                    
+                    // تحديث الرسوم البيانية
+                    viewsChart.data.labels = data.chart_data.labels;
+                    viewsChart.data.datasets[0].data = data.chart_data.views;
+                    viewsChart.update();
+                    
+                    engagementChart.data.labels = data.chart_data.labels;
+                    engagementChart.data.datasets[0].data = data.chart_data.likes;
+                    engagementChart.data.datasets[1].data = data.chart_data.comments;
+                    engagementChart.update();
+                    
+                    // تحديث أكثر المشاريع مشاهدة
+                    const topProjectsHtml = data.top_projects.map(item => `
+                        <tr class="animate__animated animate__fadeIn">
+                            <td>
+                                <a href="/portfolio/${item.id}" class="text-decoration-none">
+                                    ${item.title}
+                                </a>
+                            </td>
+                            <td><b>${item.views_count}</b></td>
+                            <td><b>${item.likes_count}</b></td>
+                            <td><b>${item.comments_count}</b></td>
+                        </tr>
+                    `).join('');
+                    
+                    document.getElementById('top-projects').innerHTML = topProjectsHtml;
+                    
+                    // إزالة مؤشر التحميل
+                    document.querySelector('.loading-overlay').remove();
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                    document.querySelector('.loading-overlay').remove();
+                    alert('حدث خطأ أثناء تحديث البيانات');
+                });
+        });
+    });
+    
+    // وظيفة لتحديث الأرقام مع تأثير متحرك
+    function updateCountWithAnimation(elementId, newValue) {
+        const element = document.getElementById(elementId);
+        const startValue = parseInt(element.textContent);
+        const duration = 1000; // مدة التأثير المتحرك بالميللي ثانية
+        const start = Date.now();
+        
+        const animateCount = () => {
+            const elapsed = Date.now() - start;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            // دالة التسارع لجعل التأثير المتحرك أكثر واقعية
+            const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+            
+            const currentValue = Math.floor(startValue + (newValue - startValue) * easeOutQuart);
+            element.textContent = currentValue;
+            
+            if (progress < 1) {
+                requestAnimationFrame(animateCount);
+            } else {
+                element.textContent = newValue;
+            }
+        };
+        
+        requestAnimationFrame(animateCount);
+    }
+    
+    // إضافة CSS لمؤشر التحميل
+    const styleElement = document.createElement('style');
+    styleElement.textContent = `
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            border-radius: 12px;
+        }
+    `;
+    document.head.appendChild(styleElement);
+</script>
+{% endblock %}

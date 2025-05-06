@@ -1,0 +1,393 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}إدارة الرسائل - لوحة التحكم{% endblock %}
+
+{% block styles %}
+<style>
+    /* ألوان الموقع */
+    :root {
+        --yellow-main: #FCD34D;
+        --yellow-hover: #FBBF24;
+        --dark-gray: #1F2937;
+        --darker-gray: #111827;
+        --light-gray: #4B5563;
+        --lighter-gray: #9CA3AF;
+    }
+    
+    /* تنسيق بطاقات الرسائل */
+    .message-card {
+        border-left: 5px solid var(--lighter-gray);
+        transition: all 0.3s ease;
+        background-color: var(--darker-gray);
+        color: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        margin-bottom: 1.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+    .message-card.unread {
+        border-left-color: var(--yellow-main);
+        background-color: rgba(252, 211, 77, 0.05);
+    }
+    .message-card.starred {
+        border-left-color: #FCA5A5;
+        background-color: rgba(252, 165, 165, 0.05);
+    }
+    .message-info {
+        font-size: 0.85rem;
+        color: var(--lighter-gray);
+    }
+    .message-actions {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+    }
+    .message-content {
+        white-space: pre-line;
+        color: #E5E7EB;
+    }
+    
+    /* تنسيق الفلاتر */
+    .filter-badge {
+        cursor: pointer;
+        background-color: var(--dark-gray);
+        color: white;
+        transition: all 0.3s ease;
+    }
+    .filter-badge:hover {
+        background-color: var(--light-gray);
+    }
+    .filter-badge.active {
+        background-color: var(--yellow-main);
+        color: var(--darker-gray);
+        font-weight: bold;
+    }
+    
+    /* تنسيق الأيقونات */
+    .message-icon {
+        font-size: 1.5rem;
+        color: var(--yellow-main);
+    }
+    
+    /* تنسيق القائمة المنسدلة */
+    .dropdown-menu {
+        background-color: var(--dark-gray);
+        border: 1px solid var(--light-gray);
+    }
+    .dropdown-item {
+        cursor: pointer;
+        color: white;
+    }
+    .dropdown-item:hover {
+        background-color: var(--darker-gray);
+    }
+    .dropdown-header {
+        color: var(--yellow-main);
+        font-weight: bold;
+    }
+    
+    /* تنسيق عناوين الرسائل */
+    .card-title {
+        color: var(--yellow-main);
+        font-weight: bold;
+    }
+    
+    /* تحسين شارات الحالة */
+    .badge.bg-primary {
+        background-color: var(--yellow-main) !important;
+        color: var(--darker-gray) !important;
+    }
+    .badge.bg-warning {
+        background-color: #FCA5A5 !important;
+        color: var(--darker-gray) !important;
+    }
+    
+    /* خلفية لجسم الصفحة */
+    .bg-light-hover:hover {
+        background-color: var(--dark-gray);
+    }
+</style>
+{% endblock %}
+
+{% block page_title %}إدارة الرسائل{% endblock %}
+
+{% block admin_content %}
+<!-- أزرار الفلترة -->
+<div class="d-flex justify-content-end mb-4">
+    <div>
+        <button type="button" class="btn btn-sm filter-btn me-2" data-filter="all" style="background-color: var(--dark-gray); color: white; border: 1px solid var(--light-gray);">
+            <i class="fas fa-list-ul me-1"></i>جميع الرسائل
+            <span class="badge ms-1" style="background-color: var(--yellow-main); color: var(--darker-gray);">{{ messages|length }}</span>
+        </button>
+        <button type="button" class="btn btn-sm filter-btn me-2" data-filter="unread" style="background-color: rgba(252, 211, 77, 0.1); color: var(--yellow-main); border: 1px solid var(--yellow-main);">
+            <i class="fas fa-envelope me-1"></i>غير مقروءة
+            <span class="badge ms-1" style="background-color: var(--yellow-main); color: var(--darker-gray);">{{ unread_messages|length }}</span>
+        </button>
+        <button type="button" class="btn btn-sm filter-btn" data-filter="starred" style="background-color: rgba(252, 165, 165, 0.1); color: #FCA5A5; border: 1px solid #FCA5A5;">
+            <i class="fas fa-star me-1"></i>مميزة بنجمة
+            <span class="badge ms-1" style="background-color: #FCA5A5; color: var(--darker-gray);">{{ starred_messages|length }}</span>
+        </button>
+    </div>
+</div>
+
+<!-- شريط البحث -->
+<div class="card shadow-sm mb-4" style="background-color: var(--dark-gray); border: none; border-radius: 0.75rem;">
+    <div class="card-body">
+        <div class="input-group">
+            <input type="text" id="message-search" class="form-control" placeholder="ابحث في الرسائل..." 
+                   style="background-color: var(--darker-gray); border: 1px solid var(--light-gray); color: white;">
+            <button class="btn" type="button" style="background-color: var(--yellow-main); color: var(--darker-gray);">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- قائمة الرسائل -->
+<div class="row" id="messages-container">
+    {% if messages %}
+        {% for message in messages %}
+        <div class="col-12 mb-3 message-item {% if not message.read %}unread{% endif %} {% if message.starred %}starred{% endif %}" 
+             data-id="{{ message.id }}" 
+             data-search="{{ message.name }} {{ message.email }} {{ message.subject }} {{ message.message }}">
+            <div class="card shadow-sm message-card {% if not message.read %}unread{% endif %} {% if message.starred %}starred{% endif %}">
+                <div class="card-body position-relative p-0">
+                    <!-- شريط الحالة في الأعلى -->
+                    <div class="d-flex justify-content-between align-items-center p-3" style="border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                        <div class="d-flex align-items-center">
+                            <!-- أيقونة الرسالة -->
+                            <span class="d-flex justify-content-center align-items-center me-3" style="width: 40px; height: 40px; background-color: rgba(252, 211, 77, 0.1); border-radius: 50%;">
+                                <i class="fas fa-envelope-open-text" style="color: var(--yellow-main); font-size: 1.2rem;"></i>
+                            </span>
+                            
+                            <!-- حالة الرسالة والموضوع -->
+                            <div>
+                                <h6 class="mb-0" style="color: var(--yellow-main); font-weight: bold; font-size: 1rem;">
+                                    {{ message.subject|default('رسالة من الموقع') }}
+                                </h6>
+                                <div class="d-flex align-items-center mt-1">
+                                    {% if not message.read %}
+                                    <span class="badge bg-primary ms-1" title="رسالة جديدة">جديدة</span>
+                                    {% endif %}
+                                    {% if message.starred %}
+                                    <span class="badge bg-warning text-dark ms-1" title="مميزة بنجمة">
+                                        <i class="fas fa-star"></i>
+                                    </span>
+                                    {% endif %}
+                                    {% if message.telegram_sent %}
+                                    <span class="badge bg-info ms-1" title="تم إرسال إشعار تيليجرام">
+                                        <i class="fab fa-telegram-plane"></i>
+                                    </span>
+                                    {% endif %}
+                                    {% if message.email_sent %}
+                                    <span class="badge bg-success ms-1" title="تم إرسال بريد إلكتروني">
+                                        <i class="fas fa-envelope"></i>
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- زر الإجراءات -->
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-sm dropdown-toggle" 
+                                    style="background-color: var(--yellow-main); color: var(--darker-gray);" 
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <a class="dropdown-item toggle-read" data-id="{{ message.id }}" data-action="read" href="#">
+                                        {% if message.read %}
+                                        <i class="fas fa-envelope me-2"></i>وضع كغير مقروءة
+                                        {% else %}
+                                        <i class="fas fa-envelope-open me-2"></i>وضع كمقروءة
+                                        {% endif %}
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item toggle-star" data-id="{{ message.id }}" data-action="star" href="#">
+                                        {% if message.starred %}
+                                        <i class="far fa-star me-2"></i>إزالة النجمة
+                                        {% else %}
+                                        <i class="fas fa-star me-2"></i>وضع نجمة
+                                        {% endif %}
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="mailto:{{ message.email }}?subject=رد: {{ message.subject|default('رسالتك') }}">
+                                        <i class="fas fa-reply me-2"></i>الرد عبر البريد
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item delete-message-item text-danger" 
+                                       data-id="{{ message.id }}" 
+                                       data-title="{{ message.name }} - {{ message.subject|default('بدون عنوان') }}" 
+                                       data-type="messages" href="#">
+                                        <i class="fas fa-trash-alt me-2"></i>حذف
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- معلومات الرسالة -->
+                    <div class="p-3">
+                        <!-- معلومات المرسل -->
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="d-flex justify-content-center align-items-center me-3" style="width: 40px; height: 40px; background-color: rgba(255, 255, 255, 0.05); border-radius: 50%;">
+                                <i class="fas fa-user" style="color: var(--yellow-main);"></i>
+                            </div>
+                            <div>
+                                <h5 class="card-title mb-0" style="color: var(--yellow-main); font-size: 1.1rem;">{{ message.name }}</h5>
+                                <div class="message-info" style="color: #E5E7EB; font-size: 0.85rem;">
+                                    <span><i class="fas fa-envelope me-1" style="color: var(--yellow-main);"></i>{{ message.email }}</span>
+                                    {% if message.phone %}
+                                    <span class="ms-2"><i class="fas fa-phone me-1" style="color: var(--yellow-main);"></i>{{ message.phone }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- محتوى الرسالة -->
+                        <div style="background-color: rgba(255, 255, 255, 0.03); border-radius: 0.5rem; padding: 1rem; margin-bottom: 1rem;">
+                            <p class="card-text message-content mb-0" style="color: white; font-size: 0.95rem;">{{ message.message }}</p>
+                        </div>
+                        
+                        <!-- معلومات التاريخ -->
+                        <div class="d-flex align-items-center" style="background-color: rgba(255, 255, 255, 0.02); border-radius: 0.5rem; padding: 0.75rem;">
+                            <i class="fas fa-calendar-alt me-2" style="color: var(--yellow-main);"></i>
+                            <span style="color: #E5E7EB; font-size: 0.85rem;">{{ message.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+    <div class="col-12">
+        <div class="alert" style="background-color: var(--dark-gray); color: var(--yellow-main); border: 1px solid var(--yellow-main); border-radius: 0.5rem;">
+            <i class="fas fa-info-circle me-2"></i>لا توجد رسائل حالياً.
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- نافذة تأكيد الحذف -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background-color: var(--dark-gray); color: white; border: 1px solid var(--light-gray);">
+            <div class="modal-header" style="border-bottom: 1px solid var(--light-gray);">
+                <h5 class="modal-title" id="deleteModalLabel" style="color: var(--yellow-main);"><i class="fas fa-exclamation-triangle me-2"></i>تأكيد الحذف</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>هل أنت متأكد من حذف هذه الرسالة؟</p>
+                <div class="alert" style="background-color: rgba(248, 113, 113, 0.1); color: #F87171; border: 1px solid #F87171; border-radius: 0.5rem;">
+                    <i class="fas fa-exclamation-circle me-2"></i>تحذير: لا يمكن التراجع عن هذا الإجراء.
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid var(--light-gray);">
+                <button type="button" class="btn" style="background-color: var(--darker-gray); color: white; border: 1px solid var(--light-gray);" data-bs-dismiss="modal">إلغاء</button>
+                <form id="deleteForm" action="" method="post">
+                    <button type="submit" class="btn" style="background-color: #F87171; color: white;">
+                        <i class="fas fa-trash-alt me-1"></i>حذف
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+<script>
+    $(document).ready(function() {
+        // تصفية الرسائل
+        $('.filter-btn').click(function() {
+            var filter = $(this).data('filter');
+            $('.filter-btn').removeClass('active');
+            $(this).addClass('active');
+            
+            if (filter === 'all') {
+                $('.message-item').show();
+            } else if (filter === 'unread') {
+                $('.message-item').hide();
+                $('.message-item.unread').show();
+            } else if (filter === 'starred') {
+                $('.message-item').hide();
+                $('.message-item.starred').show();
+            }
+        });
+        
+        // البحث في الرسائل
+        $('#message-search').on('keyup', function() {
+            var searchText = $(this).val().toLowerCase();
+            $('.message-item').each(function() {
+                var content = $(this).data('search').toLowerCase();
+                if (content.includes(searchText)) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        });
+        
+        // تبديل حالة القراءة
+        $('.toggle-read').click(function(e) {
+            e.preventDefault();
+            var messageId = $(this).data('id');
+            var messageCard = $(this).closest('.message-item');
+            
+            $.ajax({
+                url: '{{ url_for("messaging.toggle_message_read", message_id=0) }}'.replace('0', messageId),
+                type: 'POST',
+                success: function(response) {
+                    if (response.success) {
+                        if (response.read) {
+                            messageCard.removeClass('unread');
+                            messageCard.find('.message-card').removeClass('unread');
+                            messageCard.find('.badge.bg-primary[title="رسالة جديدة"]').remove();
+                            messageCard.find('.toggle-read').html('<i class="fas fa-envelope me-2"></i>وضع كغير مقروءة');
+                        } else {
+                            messageCard.addClass('unread');
+                            messageCard.find('.message-card').addClass('unread');
+                            messageCard.find('.message-status').prepend('<span class="badge bg-primary ms-1" title="رسالة جديدة">جديدة</span>');
+                            messageCard.find('.toggle-read').html('<i class="fas fa-envelope-open me-2"></i>وضع كمقروءة');
+                        }
+                    }
+                }
+            });
+        });
+        
+        // تبديل حالة النجمة
+        $('.toggle-star').click(function(e) {
+            e.preventDefault();
+            var messageId = $(this).data('id');
+            var messageCard = $(this).closest('.message-item');
+            
+            $.ajax({
+                url: '{{ url_for("messaging.toggle_message_star", message_id=0) }}'.replace('0', messageId),
+                type: 'POST',
+                success: function(response) {
+                    if (response.success) {
+                        if (response.starred) {
+                            messageCard.addClass('starred');
+                            messageCard.find('.message-card').addClass('starred');
+                            messageCard.find('.message-status').append('<span class="badge bg-warning text-dark ms-1" title="مميزة بنجمة"><i class="fas fa-star"></i></span>');
+                            messageCard.find('.toggle-star').html('<i class="far fa-star me-2"></i>إزالة النجمة');
+                        } else {
+                            messageCard.removeClass('starred');
+                            messageCard.find('.message-card').removeClass('starred');
+                            messageCard.find('.badge.bg-warning[title="مميزة بنجمة"]').remove();
+                            messageCard.find('.toggle-star').html('<i class="fas fa-star me-2"></i>وضع نجمة');
+                        }
+                    }
+                }
+            });
+        });
+        
+        // تم تحديث حذف الرسائل لاستخدام النظام الموحد من admin-unified.js
+    });
+</script>

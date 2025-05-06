@@ -1,0 +1,3107 @@
+{% extends "layout.html" %}
+
+{% block title %}معرض الأعمال | فيراس ديزاين{% endblock %}
+
+{% block header_scripts %}
+<script src="{{ url_for('static', filename='js/instagram-modal-notification.js') }}?v={{ range(1000, 9999) | random }}"></script>
+<script src="{{ url_for('static', filename='js/instagram-modal.js') }}?v={{ range(1000, 9999) | random }}"></script>
+{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/instagram-modal.css') }}?v={{ range(1000, 9999) | random }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/smooth-animations.css') }}?v={{ range(1000, 9999) | random }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/unified-animations.css') }}?v={{ range(1000, 9999) | random }}" />
+<style>
+  /* أنماط أزرار تصفية الفئات */
+  .category-filter-btn {
+    padding: 8px 16px;
+    background: rgba(30, 41, 59, 0.5);
+    color: #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    border: 1px solid rgba(59, 130, 246, 0.1);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+  }
+  
+  .category-filter-btn:hover {
+    background: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  }
+  
+  .category-filter-btn.active {
+    background: linear-gradient(to right, rgba(79, 70, 229, 0.2), rgba(139, 92, 246, 0.2));
+    border-color: rgba(139, 92, 246, 0.5);
+    color: white;
+    font-weight: 500;
+    box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+  }
+  
+  .category-filter-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(to right, #4f46e5, #8b5cf6);
+    animation: pulse 2s infinite;
+  }
+  
+  @keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+  }
+  
+  .categories-loading {
+    transition: all 0.3s ease;
+  }
+  
+  .categories-wrapper {
+    min-height: 50px;
+  }
+  
+  /* أنماط نمط إنستغرام */
+  .portfolio-item {
+    position: relative;
+    aspect-ratio: 1/1;
+    overflow: hidden;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
+    transform: translateZ(0); /* تفعيل تسريع الـ GPU */
+    will-change: transform, box-shadow; /* إعلام المتصفح بالخصائص المتغيرة */
+  }
+  
+  .portfolio-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+  }
+  
+  .portfolio-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.35s cubic-bezier(0.165, 0.84, 0.44, 1);
+    transform: translateZ(0);
+    will-change: transform;
+  }
+  
+  .portfolio-item:hover img {
+    transform: scale(1.08);
+  }
+  
+  .item-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0));
+    padding: 20px;
+    opacity: 0;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    transform: translateY(10px);
+    will-change: opacity, transform;
+  }
+  
+  .portfolio-item:hover .item-overlay {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  .item-stats {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+  }
+  
+  .item-stat {
+    display: flex;
+    align-items: center;
+    color: white;
+    gap: 5px;
+  }
+  
+  /* Modal Styles */
+  .portfolio-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.9);
+    z-index: 1000;
+    overflow-y: auto;
+    backdrop-filter: blur(8px);
+    transition: all 0.3s ease;
+  }
+  
+  .close-modal {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.5);
+    border: none;
+    color: white;
+    font-size: 30px;
+    cursor: pointer;
+    z-index: 1001;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  }
+  
+  .close-modal:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: rotate(90deg);
+  }
+  
+  .modal-container {
+    display: flex;
+    width: 95%;
+    max-width: 1400px;
+    height: 90vh;
+    max-height: 900px;
+    margin: 5vh auto;
+    background: #1f2937;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 5px 30px rgba(0,0,0,0.5);
+    position: relative;
+    transform: translateZ(0);
+    will-change: transform, opacity;
+  }
+  
+  .modal-image-container {
+    position: relative;
+    flex: 3;
+    overflow: hidden;
+    background-color: #111827;
+  }
+  
+  .modal-image {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    will-change: transform, opacity;
+  }
+  
+  .modal-image img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    transform: translateZ(0);
+    will-change: transform;
+    transition: all 0.3s ease;
+  }
+  
+  /* أزرار التنقل محسنة */
+  .nav-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 50px;
+    height: 50px;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    cursor: pointer;
+    z-index: 1001;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+  }
+  
+  .nav-arrow:hover {
+    background: rgba(251, 191, 36, 0.8);
+    color: #111827;
+    transform: translateY(-50%) scale(1.1);
+  }
+  
+  .nav-arrow:active {
+    transform: translateY(-50%) scale(0.95);
+  }
+  
+  #prev-project {
+    right: 20px;
+  }
+  
+  #next-project {
+    left: 20px;
+  }
+  
+  /* تأثيرات الانتقال */
+  .slide-right-enter {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  
+  .slide-right-enter-active {
+    transform: translateX(0);
+    opacity: 1;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  
+  .slide-left-enter {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  
+  .slide-left-enter-active {
+    transform: translateX(0);
+    opacity: 1;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  
+  .fade-in {
+    animation: fadeIn 0.4s forwards;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  .modal-content {
+    width: 35%;
+    overflow-y: auto;
+    padding: 0;
+    background-color: #1e293b;
+    color: #e5e7eb;
+    border-left: 1px solid #374151;
+  }
+  
+  .modal-header {
+    padding: 15px;
+    border-bottom: 1px solid #374151;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .modal-details {
+    padding: 15px;
+    border-bottom: 1px solid #374151;
+  }
+  
+  .modal-details h3 {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+  
+  .modal-category {
+    display: inline-block;
+    background-color: #374151;
+    color: #e5e7eb;
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+  }
+  
+  .modal-actions {
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 15px;
+    border-bottom: 1px solid #374151;
+  }
+  
+  .modal-actions button {
+    background: none;
+    border: none;
+    color: #e5e7eb;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: color 0.3s;
+  }
+  
+  .modal-actions button:hover {
+    color: #fbbf24;
+  }
+  
+  .modal-actions button.active i.fa-heart {
+    color: #ef4444;
+  }
+  
+  .modal-stats {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 15px;
+    border-bottom: 1px solid #374151;
+    font-size: 0.9rem;
+  }
+  
+  .modal-comments {
+    padding: 15px;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  
+  .comment {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #374151;
+  }
+  
+  .comment-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    font-size: 0.8rem;
+  }
+  
+  .comment-user {
+    font-weight: bold;
+  }
+  
+  .comment-date {
+    color: #9ca3af;
+  }
+  
+  .comment-content {
+    padding: 8px;
+    border-radius: 4px;
+    background-color: #374151;
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+  }
+  
+  .comment-actions {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+  }
+  
+  .add-comment {
+    display: flex;
+    padding: 15px;
+    border-top: 1px solid #374151;
+  }
+  
+  .add-comment input {
+    flex: 1;
+    background-color: #2d3748;
+    border: 1px solid #4b5563;
+    border-radius: 4px;
+    padding: 8px 12px;
+    color: #e5e7eb;
+    margin-right: 10px;
+  }
+  
+  .add-comment button {
+    background-color: #fbbf24;
+    color: #111827;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 15px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  
+  .add-comment button:hover {
+    background-color: #f59e0b;
+  }
+  
+  /* تكيف مع الشاشات الصغيرة */
+  @media (max-width: 768px) {
+    .modal-container {
+      flex-direction: column;
+      height: auto;
+      max-height: 90vh;
+    }
+    
+    .modal-content {
+      width: 100%;
+      max-height: 50vh;
+    }
+    
+    .modal-image {
+      height: 40vh;
+    }
+  }
+  
+  /* تكيف مع اتجاه RTL */
+  [dir="rtl"] .modal-content {
+    border-right: 1px solid #374151;
+    border-left: none;
+  }
+  
+  .portfolio-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  
+  @media (max-width: 768px) {
+    .portfolio-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .portfolio-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  .load-more {
+    text-align: center;
+    margin-top: 30px;
+  }
+  
+  .load-more button {
+    background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 10px 25px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+  }
+  
+  .load-more button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+  }
+  
+  .load-more button:disabled {
+    background: rgba(80, 80, 80, 0.3);
+    color: rgba(255, 255, 255, 0.5);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+  
+  .hero-gradient {
+    background: linear-gradient(to bottom, #111827, #1f2937);
+  }
+  
+  .filter-item.active {
+    background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+    color: white;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  }
+  
+  .filter-item {
+    transition: all 0.3s ease;
+    background: rgba(30, 30, 38, 0.5);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    backdrop-filter: blur(8px);
+  }
+  
+  .tag {
+    background-color: rgba(30, 30, 38, 0.6);
+    font-size: 0.75rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 50px;
+    color: #e5e7eb;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    backdrop-filter: blur(8px);
+  }
+  
+  .tag:hover {
+    background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  }
+  
+  #portfolio-search {
+    width: 100%;
+  }
+  
+  /* تأثير القلب عند الإعجاب */
+  @keyframes heartPop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.5); }
+    100% { transform: scale(1); }
+  }
+
+  .heart-anim {
+    animation: heartPop 0.5s ease;
+    color: #ef4444 !important;
+  }
+  
+  /* تحديث التصفية والبحث */
+  .search-filter-bar {
+    background: rgba(17, 24, 39, 0.8);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 30px;
+  }
+  
+  /* تحسين الانتقالات للتصفية */
+  .portfolio-grid, #gallery-container {
+    position: relative;
+  }
+  
+  .portfolio-item, .gallery-item {
+    opacity: 1;
+    transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+    will-change: opacity, transform, box-shadow;
+    backface-visibility: hidden;
+  }
+  
+  /* أنماط معرض الصور بالحجم الكامل */
+  .fullscreen-gallery {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.95);
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(10px);
+  }
+  
+  .fullscreen-content {
+    display: flex;
+    width: 100%;
+    height: 70%;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .fullscreen-image-container {
+    flex: 1;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+  }
+  
+  #fullscreen-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+  }
+  
+  .gallery-nav {
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    cursor: pointer;
+    margin: 0 20px;
+    z-index: 2001;
+    transition: all 0.3s ease;
+  }
+  
+  .gallery-nav:hover {
+    background: rgba(99, 102, 241, 0.8);
+    color: #ffffff;
+    transform: scale(1.1);
+  }
+  
+  .close-fullscreen {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    cursor: pointer;
+    z-index: 2001;
+    transition: all 0.3s ease;
+  }
+  
+  .close-fullscreen:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: rotate(90deg);
+  }
+  
+  .fullscreen-thumbnails {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 10px;
+    max-width: 80%;
+  }
+  
+  .thumbnail {
+    width: 60px;
+    height: 60px;
+    border-radius: 5px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+  }
+  
+  .thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .thumbnail.active {
+    border-color: #6366f1;
+    transform: scale(1.1);
+  }
+  
+  .image-counter {
+    position: absolute;
+    bottom: 20px;
+    color: white;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 14px;
+  }
+  
+  /* زر التكبير للصورة */
+  .expand-image-btn {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.3s ease;
+    opacity: 0;
+  }
+  
+  .modal-image:hover .expand-image-btn {
+    opacity: 1;
+  }
+  
+  .expand-image-btn:hover {
+    background: rgba(99, 102, 241, 0.8);
+    color: #ffffff;
+    transform: scale(1.1);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="py-20 px-6 relative overflow-hidden eki-section animated-section">
+  <div class="absolute inset-0 pointer-events-none opacity-30">
+    <!-- تحسين الفقاعات المتحركة بتأثيرات حركية متعددة -->
+    <div class="absolute top-1/4 right-1/4 w-96 h-96 bg-gradient-to-br from-indigo-500/30 to-purple-500/30 rounded-full blur-3xl animate-blob animation-delay-1000"></div>
+    <div class="absolute bottom-1/4 left-1/4 w-96 h-96 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
+    <div class="absolute top-1/3 left-1/3 w-80 h-80 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 rounded-full blur-3xl animate-blob"></div>
+    
+    <!-- فقاعات إضافية متحركة -->
+    <div class="absolute bottom-1/3 right-1/3 w-64 h-64 bg-gradient-to-br from-purple-600/20 to-indigo-400/20 rounded-full blur-3xl animate-blob animation-delay-1500"></div>
+    <div class="absolute top-10 left-10 w-72 h-72 bg-gradient-to-tl from-indigo-500/10 to-cyan-300/10 rounded-full blur-3xl animate-pulse"></div>
+  </div>
+  
+  <!-- تطبيق تأثير الشبكة في الخلفية -->
+  <div class="grid-effect"></div>
+  
+  <!-- جسيمات متحركة إضافية -->
+  <div class="particles-container absolute inset-0 z-0"></div>
+
+  <div class="max-w-6xl mx-auto text-center relative z-10">
+    <div class="grid grid-cols-1 gap-6">
+      <h1 class="text-4xl md:text-6xl font-bold mb-2 text-shadow-glow animated-title">
+        <span class="gradient-text glow-hover">معرض الأعمال</span>
+      </h1>
+      <p class="text-xl text-gray-300 max-w-3xl mx-auto mb-4 leading-relaxed animated-description">نقدم مجموعة متنوعة من الأعمال الإبداعية التي تعكس مهاراتنا وشغفنا بالتصميم</p>
+      
+      <!-- إحصائيات المعرض - بتصميم محسن مع تأثيرات حركية منفصلة لكل عنصر -->
+      <div class="flex justify-center gap-6 md:gap-8 mb-6">
+        <div class="stats-card text-center p-4 md:p-5 bg-glass rounded-xl transform transition-all hover:-translate-y-2 hover:shadow-glow duration-200 border border-gray-800/50 animated-item">
+          <div class="text-2xl md:text-3xl font-bold gradient-animated-text mb-1 counter-up floating-element">{{ portfolio_items|length }}</div>
+          <div class="text-gray-300 text-sm">مشروع</div>
+        </div>
+        <div class="stats-card text-center p-4 md:p-5 bg-glass rounded-xl transform transition-all hover:-translate-y-2 hover:shadow-glow duration-200 border border-gray-800/50 animated-item">
+          <div class="text-2xl md:text-3xl font-bold gradient-animated-text mb-1 counter-up floating-element">{{ total_likes }}</div>
+          <div class="text-gray-300 text-sm">إعجاب</div>
+        </div>
+        <div class="stats-card text-center p-4 md:p-5 bg-glass rounded-xl transform transition-all hover:-translate-y-2 hover:shadow-glow duration-200 border border-gray-800/50 animated-item">
+          <div class="text-2xl md:text-3xl font-bold gradient-animated-text mb-1 counter-up floating-element">{{ total_views }}</div>
+          <div class="text-gray-300 text-sm">مشاهدة</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- No Results Message - مع تأثيرات متميزة -->
+    <div id="no-results-message" class="max-w-md mx-auto mb-10 bg-glass p-8 rounded-xl text-center hidden border border-gray-800 animated-section">
+      <i class="fas fa-search gradient-animated-text text-4xl mb-4 floating-element"></i>
+      <p class="text-gray-300 mb-4 animated-description">لم يتم العثور على أي مشاريع تطابق معايير البحث</p>
+      <button id="reset-search" class="btn-neon px-4 py-2 rounded-lg animated-button">
+        <i class="fas fa-redo-alt ml-1"></i> إعادة ضبط البحث
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- معرض المشاريع بنمط محسن - مع خلفية تفاعلية وتأثيرات متحركة منفصلة -->
+<section class="py-16 px-6 relative eki-section animated-section">
+  <!-- خلفية تفاعلية محسنة مع تأثيرات إضافية -->
+  <div class="absolute inset-0 z-0 opacity-10 interactive-bg">
+    <div class="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f10_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f10_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+    
+    <!-- إضافة عناصر متحركة في الخلفية مع تأثيرات مستقلة -->
+    <div class="absolute w-full h-full overflow-hidden pointer-events-none">
+      <div class="absolute -right-20 top-1/4 w-64 h-64 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 rounded-full blur-3xl animate-blob-slow"></div>
+      <div class="absolute -left-20 bottom-1/4 w-80 h-80 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-full blur-3xl animate-blob-slow animation-delay-4000"></div>
+      <!-- إضافة عناصر متحركة جديدة بتأثيرات مختلفة -->
+      <div class="absolute left-1/4 top-1/4 w-40 h-40 bg-gradient-to-br from-cyan-500/5 to-blue-500/5 rounded-full blur-3xl animate-pulse-slow"></div>
+      <div class="absolute right-1/3 bottom-1/3 w-32 h-32 bg-gradient-to-br from-purple-500/5 to-pink-500/5 rounded-full blur-3xl animate-float"></div>
+    </div>
+  </div>
+
+  <div class="max-w-6xl mx-auto relative z-10">
+    <!-- قسم المقدمة المضاف للمعرض مع تأثيرات منفصلة -->
+    <div class="portfolio-intro text-center mb-6" data-aos="fade-up" data-aos-duration="1000">
+      <h2 class="text-2xl md:text-3xl mb-3 gradient-animated-text font-bold animated-title">استكشف أعمالنا</h2>
+      <p class="text-gray-300 max-w-2xl mx-auto animated-description">انقر على أي مشروع للاطلاع على التفاصيل والمزيد من الصور</p>
+    </div>
+    
+    <!-- Search and Filter Bar - تصميم محسن مع تأثيرات منفصلة -->
+    <div class="bg-glass rounded-xl p-5 mb-8 border border-gray-800/50 backdrop-blur-md shadow-lg hover:shadow-indigo-500/20 transition-all animated-search" data-aos="fade-up" data-aos-delay="200" data-aos-duration="800">
+      <div class="w-full max-w-3xl mx-auto mb-4">
+        <div class="flex flex-col md:flex-row gap-4 w-full">
+          <div class="relative flex-grow search-input-container" data-aos="fade-right" data-aos-delay="300">
+            <div class="absolute right-4 top-3 text-indigo-400">
+              <i class="fas fa-search search-icon floating-element"></i>
+            </div>
+            <input type="text" id="portfolio-search" placeholder="ابحث عن عنوان المشروع أو الوصف..." 
+                class="w-full bg-glass text-white pr-12 pl-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-gray-800/70 transition-all hover:border-indigo-500/50 search-input"
+                autocomplete="off">
+            <button id="clear-search" class="absolute top-3 left-3 text-gray-400 hover:text-white hidden transition-colors">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <div class="flex gap-2" data-aos="fade-left" data-aos-delay="400">
+            <select id="year-filter" class="bg-glass text-white px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-gray-800/70 transition-all hover:border-indigo-500/50 custom-select animated-item">
+              <option value="">جميع السنوات</option>
+              <option value="2025">2025</option>
+              <option value="2024">2024</option>
+              <option value="2023">2023</option>
+            </select>
+            <button id="search-button" class="btn-glow px-6 py-3 rounded-xl font-bold transition-all animated-button">
+              <span>بحث</span>
+            </button>
+          </div>
+        </div>
+        <div id="search-results-counter" class="mt-2 text-indigo-300 text-sm hidden animated-description"></div>
+      </div>
+    </div>
+    
+    <!-- قسم تصفية الفئات -->
+    <div class="category-filter-container mb-10 overflow-x-auto pb-2" data-aos="fade-up" data-aos-delay="400" data-aos-duration="800">
+      <div class="categories-wrapper flex justify-center gap-3 flex-wrap" id="portfolio-categories">
+        <!-- سيتم إضافة الفئات ديناميكيًا هنا -->
+        <button class="category-filter-btn active" data-category="الكل">
+          <span>الكل</span>
+        </button>
+        <div class="categories-loading text-gray-400 py-2">
+          <i class="fas fa-spinner fa-spin me-2"></i> جاري تحميل الفئات...
+        </div>
+      </div>
+    </div>
+    
+    <!-- شبكة المشاريع المحسنة مع تأثيرات منفصلة لكل عنصر -->
+    <div class="portfolio-grid instagram-style" id="gallery-container" data-aos="fade-up" data-aos-delay="500" data-aos-duration="1000">
+      {% if portfolio_items %}
+        {% for item in portfolio_items %}
+          <div class="portfolio-item eki-card animated-item" data-aos="zoom-in" data-aos-delay="{{ 600 + (loop.index0 * 100) }}" 
+               data-category="{{ item.category }}" data-id="{{ item.id }}">
+            <!-- صورة المشروع مع تأثير التحميل المُحسّن -->
+            <div class="item-image-wrapper">
+              <img src="{{ item.image_url }}" alt="{{ item.title }}" loading="lazy" class="item-image">
+            </div>
+            
+            <!-- طبقة العرض المحسنة مع تأثيرات متناسقة للتحويم -->
+            <div class="item-overlay">
+              <div class="item-content">
+                <h3 class="item-title mb-3 animated-item-title">{{ item.title }}</h3>
+                <div class="item-stats animated-item-stats">
+                  <div class="item-stat">
+                    <i class="fas fa-heart pulse-on-hover"></i>
+                    <span>{{ item.likes_count_value|default('0') }}</span>
+                  </div>
+                  <div class="item-stat">
+                    <i class="fas fa-comment pulse-on-hover"></i>
+                    <span>{{ item.comments_count|default('0') }}</span>
+                  </div>
+                  <div class="item-stat">
+                    <i class="fas fa-eye pulse-on-hover"></i>
+                    <span>{{ item.views_count|default('0') }}</span>
+                  </div>
+                </div>
+                <div class="item-action animated-button">
+                  <span class="view-details">عرض التفاصيل</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-portfolio-container text-center py-16 w-full">
+          <div class="empty-state animated-item">
+            <i class="fas fa-images text-6xl gradient-animated-text mb-4 opacity-50 floating-element"></i>
+            <p class="text-xl text-gray-300 mb-2 animated-description">لا توجد مشاريع متاحة حالياً</p>
+            <p class="text-sm text-gray-400 animated-item">سيتم إضافة مشاريع جديدة قريباً</p>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+    
+    <!-- زر تحميل المزيد - محسن مع تأثيرات متميزة -->
+    <div class="load-more mt-16 text-center animated-button" data-aos="fade-up" data-aos-delay="800" data-aos-duration="800">
+      <button id="load-more-btn" class="btn-glow px-8 py-3 rounded-xl flex items-center justify-center mx-auto {{ 'opacity-50 cursor-not-allowed' if not has_more }}" {% if not has_more %}disabled{% endif %}>
+        <span class="mr-2">{% if has_more %}تحميل المزيد من المشاريع{% else %}تم عرض جميع المشاريع{% endif %}</span>
+        {% if has_more %}<i class="fas fa-chevron-down text-sm floating-element"></i>{% endif %}
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- النافذة المنبثقة سيتم إنشاؤها بواسطة JavaScript -->
+<!-- instagram-modal.js يقوم بإنشاء العناصر المطلوبة داخل صفحة DOM -->
+
+<!-- قسم وسائل التواصل الاجتماعي - مع تأثيرات منفصلة لكل عنصر -->
+<section class="py-12 bg-gray-900/50 mt-20 animated-section">
+  <div class="container mx-auto text-center">
+    <h3 class="text-2xl font-bold gradient-animated-text mb-8 animated-title" data-aos="fade-up" data-aos-duration="800">تواصل معنا</h3>
+    
+    <!-- زر تواصل معي - تم التعديل بناء على طلب المستخدم -->
+    <div class="max-w-sm mx-auto mb-10" data-aos="fade-up" data-aos-delay="200" data-aos-duration="800">
+      <a href="/#contact" class="liquid-button block w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold py-3 rounded-lg text-center transition-all shadow-lg hover:shadow-indigo-500/50 animated-button">
+        <i class="fas fa-envelope mr-2"></i> تواصل معي
+      </a>
+    </div>
+    
+    <div class="flex justify-center gap-6" data-aos="fade-up" data-aos-delay="300" data-aos-duration="800">
+      {% if social_media_links and social_media_links|length > 0 %}
+        {% for link in social_media_links %}
+          {% if link.active %}
+            <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer" class="social-icon-link flex flex-col items-center group animated-social-icon" data-aos="zoom-in" data-aos-delay="{{ 400 + (loop.index * 100) }}">
+              <div class="w-12 h-12 rounded-full bg-glass border border-gray-800 text-white flex items-center justify-center transform hover:scale-110 transition-all duration-300 overflow-hidden group-hover:border-indigo-500 pulse-on-hover">
+                <i class="{{ link.icon }} text-xl group-hover:text-gradient floating-icon"></i>
+                <div class="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-500 opacity-0 group-hover:opacity-20 transition-all duration-300"></div>
+              </div>
+              <span class="text-xs text-gray-400 mt-2 group-hover:text-gradient transition-all duration-300">{{ link.name }}</span>
+            </a>
+          {% endif %}
+        {% endfor %}
+      {% else %}
+        <!-- تم إزالة الأيقونات الافتراضية لتجنب الصراع مع الأيقونات المضافة -->
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/smooth-effects.js') }}?v={{ range(1000, 9999) | random }}"></script>
+<script src="{{ url_for('static', filename='js/instagram-gallery-modal.js') }}?v={{ range(1000, 9999) | random }}"></script>
+<script>
+  // متغيرات عالمية
+  let currentPage = 1;
+  let hasMoreItems = {{ 'true' if has_more else 'false' }};
+  let isLoading = false;
+  let visitsTracker = {}; // تعقب المشاهدات لمنع العد المتكرر
+  let currentItemId = null; // معرف المشروع المفتوح حالياً
+  let portfolioItems = []; // مصفوفة لجميع المشاريع المحملة
+  let currentImageIndex = 0; // مؤشر الصورة الحالية، متوفر للنافذة المنبثقة
+  
+  // إصلاح زر الإغلاق للنافذة المنبثقة
+  window.addEventListener('load', function() {
+    // بعد التأكد من تحميل الصفحة بالكامل، وبعد تحميل جميع الملفات الخارجية
+    setTimeout(function() {
+      // إضافة معالج حدث لزر الإغلاق
+      const closeButton = document.getElementById('instagram-modal-close');
+      if (closeButton) {
+        console.log('تم العثور على زر الإغلاق، إضافة معالج الحدث');
+        closeButton.onclick = function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log('تم النقر على زر الإغلاق');
+          
+          // إغلاق النافذة المنبثقة
+          const modal = document.getElementById('instagram-modal');
+          if (modal) {
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+          }
+          
+          return false;
+        };
+      } else {
+        console.error('لم يتم العثور على زر الإغلاق instagram-modal-close');
+      }
+    }, 1000); // تأخير ثانية واحدة للتأكد من تحميل العناصر بالكامل
+  });
+  
+  document.addEventListener('DOMContentLoaded', function() {
+    // تهيئة السلوك
+    initPortfolioPage();
+    
+    // إضافة أحداث النقر لمشاريع المعرض
+    setupPortfolioModalEvents();
+    
+    // إعادة تهيئة تأثيرات AOS عند التمرير
+    window.addEventListener('scroll', function() {
+      // تحديث تأثيرات AOS لجعلها تظهر عند التمرير
+      if (typeof AOS !== 'undefined') {
+        AOS.refresh();
+      }
+    });
+  });
+  
+  function initPortfolioPage() {
+    // جمع كل المشاريع من الصفحة
+    document.querySelectorAll('.portfolio-item').forEach(item => {
+      const itemId = item.getAttribute('data-id');
+      portfolioItems.push(itemId);
+      
+      // تفعيل حدث النقر لفتح النافذة المنبثقة بنمط إنستغرام
+      item.addEventListener('click', function() {
+        openModal(itemId);
+      });
+    });
+    
+    // إعداد تفاعلات المودال
+    setupModalInteractions();
+    
+    // إضافة أحداث البحث والتصفية
+    setupSearchAndFilters();
+    
+    // تفعيل زر تحميل المزيد
+    setupLoadMore();
+  }
+  
+  function setupModalInteractions() {
+    // تم تعطيل هذه الدالة لأننا نستخدم instagram-modal.js الآن
+    console.log('تم استبدال تفاعلات المودال القديم باستخدام نافذة منبثقة جديدة بنمط انستاغرام');
+  }
+  
+  function setupSearchAndFilters() {
+    // تحميل قائمة الفئات من الخادم
+    loadCategories();
+    
+    // زر البحث
+    if (document.getElementById('search-button')) {
+      document.getElementById('search-button').addEventListener('click', filterPortfolio);
+    }
+    
+    // مسح البحث
+    const clearSearchBtn = document.getElementById('clear-search');
+    if (clearSearchBtn) {
+      clearSearchBtn.addEventListener('click', function() {
+        document.getElementById('portfolio-search').value = '';
+        clearSearchBtn.classList.add('hidden');
+        filterPortfolio();
+      });
+    }
+    
+    // عرض زر المسح عند الكتابة
+    const searchInput = document.getElementById('portfolio-search');
+    if (searchInput) {
+      searchInput.addEventListener('input', function() {
+        if (this.value.length > 0) {
+          clearSearchBtn.classList.remove('hidden');
+        } else {
+          clearSearchBtn.classList.add('hidden');
+        }
+      });
+    }
+    
+    // زر إعادة ضبط البحث
+    if (document.getElementById('reset-search')) {
+      document.getElementById('reset-search').addEventListener('click', function() {
+        document.getElementById('portfolio-search').value = '';
+        document.getElementById('year-filter').value = '';
+        clearSearchBtn.classList.add('hidden');
+        filterPortfolio();
+      });
+    }
+  }
+  
+  // دالة تحميل الفئات من الخادم
+  async function loadCategories() {
+    try {
+      console.log("جاري تحميل الفئات من الخادم...");
+      
+      // إخفاء الفئات المضافة مسبقًا باستثناء فئة "الكل"
+      const categoriesWrapper = document.getElementById('portfolio-categories');
+      const loadingIndicator = categoriesWrapper.querySelector('.categories-loading');
+      
+      // طلب الفئات من الواجهة البرمجية
+      const response = await fetch('/api/portfolio/categories');
+      
+      if (!response.ok) {
+        throw new Error(`خطأ في تحميل الفئات: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.success && data.categories && data.categories.length > 0) {
+        console.log(`تم تحميل ${data.categories.length} فئة:`, data.categories);
+        
+        // إخفاء مؤشر التحميل
+        if (loadingIndicator) {
+          loadingIndicator.style.display = 'none';
+        }
+        
+        // إزالة فئة "الكل" الافتراضية لإضافتها من البيانات المُرجعة
+        const defaultAllBtn = categoriesWrapper.querySelector('.category-filter-btn[data-category="الكل"]');
+        if (defaultAllBtn) {
+          defaultAllBtn.remove();
+        }
+        
+        // إضافة الفئات من البيانات
+        data.categories.forEach((category, index) => {
+          const categoryBtn = document.createElement('button');
+          categoryBtn.className = 'category-filter-btn';
+          categoryBtn.setAttribute('data-category', category);
+          categoryBtn.innerHTML = `<span>${category}</span>`;
+          
+          // جعل الفئة الأولى (الكل) نشطة افتراضيًا
+          if (index === 0) {
+            categoryBtn.classList.add('active');
+          }
+          
+          // إضافة حدث النقر
+          categoryBtn.addEventListener('click', function() {
+            document.querySelectorAll('.category-filter-btn').forEach(btn => {
+              btn.classList.remove('active');
+            });
+            this.classList.add('active');
+            
+            // تصفية المشاريع حسب الفئة المحددة
+            filterProjectsByCategory(category);
+          });
+          
+          categoriesWrapper.appendChild(categoryBtn);
+        });
+      } else {
+        console.error("لم يتم استلام فئات صالحة من الخادم");
+        
+        // عرض رسالة خطأ بدلاً من مؤشر التحميل
+        if (loadingIndicator) {
+          loadingIndicator.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i> لا توجد فئات متاحة';
+        }
+      }
+    } catch (error) {
+      console.error("خطأ في تحميل الفئات:", error);
+      
+      // عرض رسالة الخطأ في واجهة المستخدم
+      const loadingIndicator = document.querySelector('.categories-loading');
+      if (loadingIndicator) {
+        loadingIndicator.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i> تعذر تحميل الفئات';
+      }
+    }
+  }
+  
+  // دالة تصفية المشاريع حسب الفئة
+  async function filterProjectsByCategory(category) {
+    try {
+      console.log(`تصفية المشاريع حسب الفئة: ${category}`);
+      
+      // إظهار مؤشر التحميل أو تلاشي المشاريع
+      const galleryContainer = document.getElementById('gallery-container');
+      galleryContainer.style.opacity = '0.4';
+      galleryContainer.style.transition = 'opacity 0.3s ease';
+      
+      // تنفيذ طلب التصفية
+      const response = await fetch(`/api/portfolio/filter/${encodeURIComponent(category)}`);
+      
+      if (!response.ok) {
+        throw new Error(`خطأ في تصفية المشاريع: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // تحديث واجهة المستخدم بالمشاريع المُصفاة
+      if (data.success) {
+        console.log(`تم استلام ${data.items.length} مشروع من الفئة ${category}`);
+        
+        // إفراغ الحاوية
+        galleryContainer.innerHTML = '';
+        
+        if (data.items.length > 0) {
+          // إضافة المشاريع المصفاة إلى الحاوية
+          data.items.forEach((item, index) => {
+            const portfolioItemHTML = createPortfolioItemHTML(item, index);
+            galleryContainer.innerHTML += portfolioItemHTML;
+          });
+          
+          // تفعيل الأحداث على المشاريع الجديدة
+          initPortfolioItems();
+        } else {
+          // عرض رسالة "لا توجد مشاريع" إذا كانت النتيجة فارغة
+          galleryContainer.innerHTML = `
+            <div class="empty-portfolio-container text-center py-16 w-full col-span-3">
+              <div class="empty-state animated-item">
+                <i class="fas fa-filter text-6xl gradient-animated-text mb-4 opacity-50 floating-element"></i>
+                <p class="text-xl text-gray-300 mb-2 animated-description">لا توجد مشاريع في فئة "${category}"</p>
+                <p class="text-sm text-gray-400 animated-item">حاول اختيار فئة أخرى</p>
+              </div>
+            </div>
+          `;
+        }
+      } else {
+        throw new Error('فشل في استرجاع المشاريع المُصفاة');
+      }
+      
+      // إعادة عرض المشاريع بعد التحديث
+      setTimeout(() => {
+        galleryContainer.style.opacity = '1';
+      }, 300);
+      
+    } catch (error) {
+      console.error("خطأ في تصفية المشاريع:", error);
+      
+      // إعادة عرض المشاريع في حال حدوث خطأ
+      document.getElementById('gallery-container').style.opacity = '1';
+    }
+  }
+  
+  // دالة إنشاء HTML لعنصر المشروع
+  function createPortfolioItemHTML(item, index) {
+    return `
+      <div class="portfolio-item eki-card animated-item" 
+           data-category="${item.category}" data-id="${item.id}"
+           data-aos="zoom-in" data-aos-delay="${200 + (index * 100)}" data-aos-duration="800">
+        <div class="item-image-wrapper">
+          <img src="${item.image_url}" alt="${item.title}" loading="lazy" class="item-image">
+        </div>
+        <div class="item-overlay">
+          <div class="item-content">
+            <h3 class="item-title mb-3 animated-item-title">${item.title}</h3>
+            <div class="item-stats animated-item-stats">
+              <div class="item-stat">
+                <i class="fas fa-heart pulse-on-hover"></i>
+                <span>${item.likes_count || 0}</span>
+              </div>
+              <div class="item-stat">
+                <i class="fas fa-comment pulse-on-hover"></i>
+                <span>${item.comments_count || 0}</span>
+              </div>
+              <div class="item-stat">
+                <i class="fas fa-eye pulse-on-hover"></i>
+                <span>${item.views_count || 0}</span>
+              </div>
+            </div>
+            <div class="item-action animated-button">
+              <span class="view-details">عرض التفاصيل</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+  
+  // تفعيل الأحداث على عناصر المشاريع بعد إضافتها
+  function initPortfolioItems() {
+    // إعادة جمع المشاريع لتفعيل الأحداث عليها
+    document.querySelectorAll('.portfolio-item').forEach(item => {
+      const itemId = item.getAttribute('data-id');
+      
+      // إضافة إلى قائمة المشاريع المحملة إذا لم تكن موجودة بالفعل
+      if (!portfolioItems.includes(itemId)) {
+        portfolioItems.push(itemId);
+      }
+      
+      // إضافة تأثيرات AOS للعناصر الجديدة
+      if (typeof AOS !== 'undefined') {
+        // إضافة سمات التأثير الحركي للعناصر الجديدة التي لا تحتوي عليها
+        if (!item.hasAttribute('data-aos')) {
+          item.setAttribute('data-aos', 'zoom-in');
+          item.setAttribute('data-aos-duration', '800');
+        }
+      }
+    });
+    
+    // تحديث تأثيرات AOS بعد إضافة العناصر الجديدة
+    if (typeof AOS !== 'undefined') {
+      setTimeout(() => {
+        AOS.refresh();
+      }, 100);
+    }
+    
+    // تفعيل الأحداث للنافذة المنبثقة بنمط إنستغرام
+    setupPortfolioModalEvents();
+  }
+
+  // وظيفة تفعيل النافذة المنبثقة
+  function setupPortfolioModalEvents() {
+    // إضافة أحداث النقر على مشاريع المعرض
+    const portfolioItems = document.querySelectorAll('.portfolio-item');
+    console.log(`تم العثور على ${portfolioItems.length} مشروع لتفعيل النوافذ المنبثقة`);
+    
+    portfolioItems.forEach(item => {
+      const itemId = item.getAttribute('data-id');
+      if (itemId) {
+        // تعيين اللغة حسب توجيه الصفحة
+        item.addEventListener('click', function(e) {
+          e.preventDefault();
+          openInstagramModal(itemId);
+        });
+      }
+    });
+    
+    // إضافة حدث لزر الإغلاق
+    const closeButton = document.getElementById('instagram-modal-close');
+    if (closeButton) {
+      closeButton.addEventListener('click', function() {
+        closeInstagramModal();
+      });
+    }
+    
+    // إضافة حدث للنقر خارج محتوى النافذة
+    const modal = document.getElementById('instagram-modal');
+    if (modal) {
+      modal.addEventListener('click', function(e) {
+        if (e.target === this) {
+          closeInstagramModal();
+        }
+      });
+    }
+    
+    // إضافة حدث لزر الإعجاب
+    const likeButton = document.getElementById('like-button');
+    if (likeButton) {
+      likeButton.addEventListener('click', function() {
+        if (currentItemId) {
+          likePortfolioItem(currentItemId);
+        }
+      });
+    }
+  }
+  
+  // فتح النافذة المنبثقة
+  function openInstagramModal(portfolioId) {
+    console.log('فتح النافذة المنبثقة للمشروع:', portfolioId);
+    currentItemId = portfolioId;
+    
+    // طلب بيانات المشروع من الخادم
+    fetch(`/portfolio/${portfolioId}/details`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // إظهار النافذة المنبثقة
+          const modal = document.getElementById('instagram-modal');
+          if (modal) {
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
+          }
+          
+          // منع التمرير في الصفحة الخلفية
+          document.body.style.overflow = 'hidden';
+          
+          // ملئ النافذة بالبيانات
+          document.getElementById('modal-image').src = data.item.image_url;
+          document.getElementById('modal-title').textContent = data.item.title;
+          document.getElementById('modal-description').innerHTML = data.item.description || 'لا يوجد وصف';
+          document.getElementById('modal-category').textContent = data.item.category || 'كافة الأعمال';
+          document.getElementById('modal-date').textContent = formatDate(data.item.created_at);
+          
+          // تحديث الإحصائيات
+          document.getElementById('modal-likes').textContent = `${data.item.likes_count || 0} إعجاب`;
+          document.getElementById('modal-views').textContent = `${data.item.views_count || 0} مشاهدة`;
+          document.getElementById('modal-comments').textContent = `${data.item.comments_count || 0} تعليق`;
+          
+          // تحديث حالة زر الإعجاب
+          const likeButton = document.getElementById('like-button');
+          if (likeButton) {
+            const likeIcon = likeButton.querySelector('i');
+            if (data.item.user_liked) {
+              likeIcon.classList.remove('far');
+              likeIcon.classList.add('fas');
+              likeIcon.style.color = '#ef4444'; // لون أحمر
+            } else {
+              likeIcon.classList.remove('fas');
+              likeIcon.classList.add('far');
+              likeIcon.style.color = ''; // إعادة للون الافتراضي
+            }
+          }
+          
+          // التعامل مع الرابط إن وجد
+          const linkContainer = document.getElementById('modal-link-container');
+          const linkElement = document.getElementById('modal-link');
+          if (data.item.external_url) {
+            linkContainer.classList.remove('hidden');
+            linkElement.href = data.item.external_url;
+          } else {
+            linkContainer.classList.add('hidden');
+          }
+          
+          // تسجيل مشاهدة
+          recordPortfolioView(portfolioId);
+        } else {
+          console.error('خطأ في تحميل بيانات المشروع', data.message);
+        }
+      })
+      .catch(error => {
+        console.error('خطأ في الاتصال بالخادم', error);
+      });
+  }
+  
+  // إغلاق النافذة المنبثقة
+  function closeInstagramModal() {
+    const modal = document.getElementById('instagram-modal');
+    if (modal) {
+      modal.classList.add('hidden');
+      modal.style.display = 'none';
+      document.body.style.overflow = ''; // إعادة تمكين التمرير
+      currentItemId = null;
+    }
+  }
+  
+  // تسجيل مشاهدة للمشروع
+  function recordPortfolioView(portfolioId) {
+    // التحقق من عدم تسجيل المشاهدة مسبقاً خلال الجلسة
+    if (visitsTracker[portfolioId]) {
+      console.log('تم تسجيل مشاهدة لهذا المشروع مسبقاً');
+      return;
+    }
+    
+    // طلب تسجيل المشاهدة
+    fetch(`/portfolio/${portfolioId}/view`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': getCSRFToken()
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // تحديث عداد المشاهدات في النافذة المنبثقة
+        document.getElementById('modal-views').textContent = `${data.views_count} مشاهدة`;
+        
+        // تعيين علامة لمنع تسجيل المشاهدة مرة أخرى
+        visitsTracker[portfolioId] = true;
+        
+        console.log(`تم تسجيل مشاهدة للمشروع ${portfolioId}. عدد المشاهدات: ${data.views_count}`);
+      }
+    })
+    .catch(error => {
+      console.error('خطأ في تسجيل المشاهدة', error);
+    });
+  }
+  
+  // تبديل حالة الإعجاب بالمشروع
+  function likePortfolioItem(portfolioId) {
+    fetch(`/portfolio/${portfolioId}/like`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': getCSRFToken()
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // تحديث زر الإعجاب
+        const likeButton = document.getElementById('like-button');
+        const likeIcon = likeButton.querySelector('i');
+        
+        // تحديث عداد الإعجابات
+        document.getElementById('modal-likes').textContent = `${data.likes_count} إعجاب`;
+        
+        // تغيير شكل الايقونة حسب حالة الإعجاب
+        if (data.liked) {
+          likeIcon.classList.remove('far');
+          likeIcon.classList.add('fas');
+          likeIcon.style.color = '#ef4444'; // لون أحمر
+        } else {
+          likeIcon.classList.remove('fas');
+          likeIcon.classList.add('far');
+          likeIcon.style.color = ''; // إعادة للون الافتراضي
+        }
+        
+        console.log(`تم ${data.liked ? 'إضافة' : 'إزالة'} الإعجاب للمشروع ${portfolioId}. عدد الإعجابات: ${data.likes_count}`);
+      }
+    })
+    .catch(error => {
+      console.error('خطأ في تسجيل الإعجاب', error);
+    });
+  }
+  
+  // تنسيق التاريخ
+  function formatDate(dateStr) {
+    if (!dateStr) return 'غير محدد';
+    
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return dateStr; // إذا كان التاريخ غير صالح
+    
+    return new Intl.DateTimeFormat('ar-SA', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    }).format(date);
+  }
+  
+  // الحصول على رمز CSRF
+  function getCSRFToken() {
+    // البحث عن عنصر مخفي باسم csrf_token
+    const tokenElement = document.querySelector('input[name="csrf_token"]');
+    if (tokenElement) {
+      return tokenElement.value;
+    }
+    
+    // المحاولة البديلة: البحث في متغيرات META
+    const metaElement = document.querySelector('meta[name="csrf-token"]');
+    if (metaElement) {
+      return metaElement.getAttribute('content');
+    }
+    if (typeof initializeInstagramModal === 'function') {
+      console.log("تحديث أحداث المودال للعناصر الجديدة");
+      initializeInstagramModal();
+    }
+  }
+  
+  // مسح التصنيف المحدد
+  function getSelectedCategory() {
+    const activeFilter = document.querySelector('.category-filter-btn.active');
+    if (activeFilter) {
+      return activeFilter.getAttribute('data-category');
+    }
+    return "الكل";
+  }
+    
+    // وظيفة التصفية بتأثيرات EKI
+    function filterPortfolio() {
+      const searchTerm = document.getElementById('portfolio-search').value.toLowerCase();
+      const yearFilter = document.getElementById('year-filter').value;
+      const categoryFilter = getSelectedCategory();
+      
+      let visibleCount = 0;
+      const items = document.querySelectorAll('.portfolio-item');
+      const container = document.getElementById('gallery-container');
+      
+      // أضف تأثير تلاشي للحاوية
+      container.style.opacity = '0.6';
+      container.style.transition = 'opacity 0.3s ease';
+      
+      setTimeout(() => {
+        items.forEach((item, index) => {
+          const title = item.getAttribute('data-title') || '';
+          const description = item.getAttribute('data-description') || '';
+          const category = item.getAttribute('data-category') || '';
+          const year = item.getAttribute('data-year') || '';
+          
+          const matchesSearch = searchTerm === '' || 
+                              title.toLowerCase().includes(searchTerm) || 
+                              description.toLowerCase().includes(searchTerm);
+          
+          const matchesYear = yearFilter === '' || year.includes(yearFilter);
+          
+          const matchesCategory = !categoryFilter || 
+                                category.split(',').some(cat => cat.trim() === categoryFilter);
+          
+          if (matchesSearch && matchesYear && matchesCategory) {
+            // تأثير ظهور تدريجي بتأخير مختلف لكل عنصر
+            setTimeout(() => {
+              item.style.opacity = '1';
+              item.style.transform = 'translateY(0)';
+              item.style.display = 'block';
+            }, index * 30);
+            
+            visibleCount++;
+          } else {
+            // إخفاء العناصر غير المتطابقة
+            item.style.opacity = '0';
+            item.style.transform = 'translateY(10px)';
+            
+            setTimeout(() => {
+              item.style.display = 'none';
+            }, 300);
+          }
+        });
+        
+        // إعادة إظهار الحاوية
+        setTimeout(() => {
+          container.style.opacity = '1';
+        }, 400);
+      }, 150);
+      
+      // تحديث عداد النتائج بتأثير متحرك
+      const resultsCounter = document.getElementById('search-results-counter');
+      const noResultsMessage = document.getElementById('no-results-message');
+      
+      if (searchTerm !== '' || yearFilter !== '' || categoryFilter) {
+        resultsCounter.textContent = `تم العثور على ${visibleCount} مشروع`;
+        resultsCounter.classList.remove('hidden');
+      } else {
+        resultsCounter.classList.add('hidden');
+      }
+      
+      if (visibleCount === 0) {
+        noResultsMessage.classList.remove('hidden');
+      } else {
+        noResultsMessage.classList.add('hidden');
+      }
+    }
+  }
+  
+  function setupLoadMore() {
+    const loadMoreBtn = document.getElementById('load-more-btn');
+    loadMoreBtn.addEventListener('click', function() {
+      if (isLoading || !hasMoreItems) return;
+      
+      isLoading = true;
+      loadMoreBtn.textContent = 'جاري التحميل...';
+      
+      // زيادة رقم الصفحة
+      currentPage++;
+      
+      // طلب المزيد من المشاريع
+      fetch(`/api/portfolio/page/${currentPage}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            // إضافة المشاريع الجديدة
+            appendProjects(data.items);
+            
+            // تحديث حالة الزر
+            hasMoreItems = data.has_more;
+            if (!hasMoreItems) {
+              loadMoreBtn.textContent = 'لا توجد مشاريع أخرى';
+              loadMoreBtn.disabled = true;
+            } else {
+              loadMoreBtn.textContent = 'تحميل المزيد';
+            }
+          } else {
+            console.error('خطأ في تحميل المزيد من المشاريع:', data.message);
+            loadMoreBtn.textContent = 'حدث خطأ، حاول مرة أخرى';
+          }
+          
+          isLoading = false;
+        })
+        .catch(err => {
+          console.error('خطأ في طلب المزيد من المشاريع:', err);
+          loadMoreBtn.textContent = 'حدث خطأ، حاول مرة أخرى';
+          isLoading = false;
+        });
+    });
+  }
+  
+  function appendProjects(items) {
+    const container = document.getElementById('gallery-container');
+    
+    items.forEach(item => {
+      const projectDiv = document.createElement('div');
+      projectDiv.className = 'portfolio-item';
+      projectDiv.setAttribute('data-category', item.category);
+      projectDiv.setAttribute('data-id', item.id);
+      projectDiv.setAttribute('data-title', item.title);
+      projectDiv.setAttribute('data-description', item.description);
+      projectDiv.setAttribute('data-year', new Date(item.created_at).getFullYear());
+      
+      // بناء محتوى المشروع
+      projectDiv.innerHTML = `
+        <img src="${item.image_url}" alt="${item.title}" loading="lazy">
+        <div class="item-overlay">
+          <div class="item-stats">
+            <div class="item-stat">
+              <i class="fas fa-heart"></i>
+              <span>${item.likes_count || 0}</span>
+            </div>
+            <div class="item-stat">
+              <i class="fas fa-comment"></i>
+              <span>${item.comments_count || 0}</span>
+            </div>
+            <div class="item-stat">
+              <i class="fas fa-eye"></i>
+              <span>${item.views_count || 0}</span>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // إضافة للصفحة
+      container.appendChild(projectDiv);
+      
+      // إضافة معالج النقر لفتح النافذة المنبثقة بنمط انستاغرام
+      projectDiv.addEventListener('click', function() {
+        if (window.instagramGalleryModal) {
+          window.instagramGalleryModal.openModal(item.id);
+        } else {
+          console.error('لم يتم العثور على وحدة instagramGalleryModal');
+        }
+      });
+      
+      // تحديث قائمة المشاريع
+      portfolioItems.push(item.id);
+    });
+  }
+  
+  // تخزين بيانات المشاريع مسبقاً للوصول الفوري
+  const portfolioDataCache = {};
+  
+  function preloadPortfolioData() {
+    // تحميل بيانات المشاريع الظاهرة في الصفحة الحالية
+    document.querySelectorAll('.portfolio-item').forEach(item => {
+      const itemId = item.getAttribute('data-id');
+      if (itemId && !portfolioDataCache[itemId]) {
+        fetch(`/portfolio/${itemId}/detail`)
+          .then(res => res.json())
+          .then(data => {
+            if (!data.error) {
+              portfolioDataCache[itemId] = data;
+              
+              // تحميل الصورة مسبقاً
+              if (data.image_url) {
+                const img = new Image();
+                img.src = data.image_url;
+              }
+            }
+          })
+          .catch(err => {
+            console.error('خطأ في التحميل المسبق:', err);
+          });
+      }
+    });
+  }
+  
+  // استدعاء التحميل المسبق بعد تحميل الصفحة
+  document.addEventListener('DOMContentLoaded', function() {
+    preloadPortfolioData();
+    
+    // تنفيذ دالة setupGalleryItems من وحدة النافذة المنبثقة بنمط انستاغرام
+    setTimeout(function() {
+      if (window.instagramGalleryModal && typeof window.instagramGalleryModal.setupGalleryItems === 'function') {
+        window.instagramGalleryModal.setupGalleryItems();
+        console.log("تم تهيئة معالجات الأحداث لنظام النافذة المنبثقة بنمط انستاغرام");
+      }
+    }, 500); // ننتظر نصف ثانية للتأكد من تحميل وحدة النافذة المنبثقة
+  });
+  
+  function openPortfolioModal(itemId, direction = null) {
+    const modal = document.getElementById('portfolio-modal');
+    
+    // عرض المودال فوراً
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    currentItemId = itemId;
+    
+    // التحقق من وجود بيانات في الكاش
+    if (portfolioDataCache[itemId]) {
+      // استخدام البيانات المخزنة مسبقاً للعرض الفوري
+      displayPortfolioData(portfolioDataCache[itemId]);
+      
+      // تسجيل المشاهدة في الخلفية
+      if (!visitsTracker[itemId]) {
+        recordView(itemId);
+        visitsTracker[itemId] = true;
+      }
+    } else {
+      // عرض حالة التحميل
+      document.getElementById('modal-title').textContent = 'جاري التحميل...';
+      document.getElementById('modal-description').textContent = '';
+      
+      // إذا لم تكن البيانات مخزنة مسبقاً، قم بطلبها
+      fetch(`/portfolio/${itemId}/detail`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.error) {
+            console.error('خطأ في تحميل تفاصيل المشروع:', data);
+            return;
+          }
+          
+          // تخزين البيانات في الكاش للاستخدام اللاحق
+          portfolioDataCache[itemId] = data;
+          
+          // عرض البيانات
+          displayPortfolioData(data);
+          
+          // تسجيل المشاهدة
+          if (!visitsTracker[itemId]) {
+            recordView(itemId);
+            visitsTracker[itemId] = true;
+          }
+        })
+        .catch(err => {
+          console.error('خطأ في تحميل تفاصيل المشروع:', err);
+        });
+    }
+  }
+  
+  // دالة مساعدة لعرض بيانات المشروع
+  // متغيرات معرض الصور بالحجم الكامل
+  let currentGalleryImages = [];
+  let currentImageIndex = 0;
+  
+  // فتح معرض الصور بالحجم الكامل
+  function openFullscreenGallery() {
+    const fullscreenGallery = document.getElementById('fullscreen-gallery');
+    const fullscreenImage = document.getElementById('fullscreen-image');
+    const galleryThumbnails = document.getElementById('gallery-thumbnails');
+    
+    // تجهيز الصور
+    currentGalleryImages = [];
+    
+    // الصورة الرئيسية أولاً
+    const mainImage = document.getElementById('modal-image').src;
+    currentGalleryImages.push(mainImage);
+    
+    // البحث عن صور إضافية من الكاروسيل (سيتم تطويره لاحقاً)
+    // حاليًا نستخدم الصورة الرئيسية فقط
+    
+    // تعيين الصورة الحالية
+    fullscreenImage.src = mainImage;
+    currentImageIndex = 0;
+    
+    // تحديث عداد الصور
+    document.getElementById('current-image').textContent = '1';
+    document.getElementById('total-images').textContent = currentGalleryImages.length;
+    
+    // إضافة الصور المصغرة
+    galleryThumbnails.innerHTML = '';
+    currentGalleryImages.forEach((src, index) => {
+      const thumbnail = document.createElement('div');
+      thumbnail.className = `thumbnail ${index === 0 ? 'active' : ''}`;
+      thumbnail.innerHTML = `<img src="${src}" alt="صورة مصغرة ${index + 1}">`;
+      
+      // إضافة حدث النقر للانتقال إلى الصورة المحددة
+      thumbnail.addEventListener('click', function() {
+        currentImageIndex = index;
+        updateFullscreenGallery();
+      });
+      
+      galleryThumbnails.appendChild(thumbnail);
+    });
+    
+    // إظهار المعرض
+    fullscreenGallery.style.display = 'flex';
+    
+    // منع التمرير في الصفحة الخلفية
+    document.body.style.overflow = 'hidden';
+  }
+  
+  // إغلاق معرض الصور بالحجم الكامل
+  function closeFullscreenGallery() {
+    document.getElementById('fullscreen-gallery').style.display = 'none';
+    document.body.style.overflow = '';
+  }
+  
+  // التنقل بين الصور في المعرض
+  function navigateGallery(direction) {
+    if (currentGalleryImages.length <= 1) return;
+    
+    if (direction === 'next') {
+      currentImageIndex = (currentImageIndex + 1) % currentGalleryImages.length;
+    } else {
+      currentImageIndex = (currentImageIndex - 1 + currentGalleryImages.length) % currentGalleryImages.length;
+    }
+    
+    updateFullscreenGallery();
+  }
+  
+  // تحديث عرض المعرض بالحجم الكامل
+  function updateFullscreenGallery() {
+    const fullscreenImage = document.getElementById('fullscreen-image');
+    fullscreenImage.src = currentGalleryImages[currentImageIndex];
+    
+    // تحديث المؤشر النشط للصور المصغرة
+    document.querySelectorAll('.thumbnail').forEach((thumb, index) => {
+      if (index === currentImageIndex) {
+        thumb.classList.add('active');
+      } else {
+        thumb.classList.remove('active');
+      }
+    });
+    
+    // تحديث عداد الصور
+    document.getElementById('current-image').textContent = currentImageIndex + 1;
+  }
+  
+  function displayPortfolioData(data) {
+    document.getElementById('modal-title').textContent = data.title;
+    document.getElementById('modal-image').src = data.image_url;
+    document.getElementById('modal-category').textContent = data.category;
+    document.getElementById('modal-description').textContent = data.description;
+    document.getElementById('modal-date').textContent = formatDate(data.created_at);
+    document.getElementById('modal-likes').textContent = `${data.likes_count} إعجاب`;
+    document.getElementById('modal-views').textContent = `${data.views_count} مشاهدة`;
+    document.getElementById('modal-item-id').value = data.id;
+    document.getElementById('comment-portfolio-id').value = data.id;
+    
+    // تحديث زر الإعجاب
+    const likeButton = document.getElementById('like-button');
+    if (data.user_liked) {
+      likeButton.classList.add('active');
+      likeButton.querySelector('i').classList.remove('far');
+      likeButton.querySelector('i').classList.add('fas');
+      likeButton.querySelector('i').style.color = '#ef4444';
+    } else {
+      likeButton.classList.remove('active');
+      likeButton.querySelector('i').classList.remove('fas');
+      likeButton.querySelector('i').classList.add('far');
+      likeButton.querySelector('i').style.color = '';
+    }
+    
+    // رابط المشروع
+    const linkContainer = document.getElementById('modal-link-container');
+    if (data.link) {
+      linkContainer.style.display = 'block';
+      document.getElementById('modal-link').href = data.link;
+    } else {
+      linkContainer.style.display = 'none';
+    }
+    
+    // عرض التعليقات
+    displayComments(data.comments);
+  }
+  
+  function closeModal() {
+    const modal = document.getElementById('portfolio-modal');
+    const modalContainer = document.querySelector('.modal-container');
+    const fullscreenGallery = document.getElementById('fullscreen-gallery');
+    
+    // إذا كان المعرض بالحجم الكامل مفتوحًا، أغلقه أولاً
+    if (fullscreenGallery.style.display === 'flex') {
+      closeFullscreenGallery();
+      return;
+    }
+    
+    // إضافة تأثير خروج للمودال
+    modalContainer.classList.add('animate__animated', 'animate__zoomOut', 'animate__faster');
+    
+    // انتظار انتهاء التأثير قبل إخفاء المودال
+    setTimeout(() => {
+      modal.style.display = 'none';
+      document.body.style.overflow = '';
+      currentItemId = null;
+      
+      // إزالة فئات التأثير بعد الإخفاء
+      modalContainer.classList.remove('animate__animated', 'animate__zoomOut', 'animate__faster');
+      
+      // إعادة تعيين فئات التأثير الأصلية للظهور لاحقاً
+      modalContainer.classList.add('animate__animated', 'animate__zoomIn', 'animate__faster');
+    }, 300);
+  }
+  
+  function navigateProjects(direction) {
+    if (!currentItemId || portfolioItems.length <= 1) return;
+    
+    const currentIndex = portfolioItems.indexOf(currentItemId);
+    let newIndex;
+    
+    if (direction === 'prev') {
+      newIndex = (currentIndex - 1 + portfolioItems.length) % portfolioItems.length;
+    } else {
+      newIndex = (currentIndex + 1) % portfolioItems.length;
+    }
+    
+    // الحصول على معرف المشروع التالي
+    const nextItemId = portfolioItems[newIndex];
+    
+    // تنفيذ الانتقال فوراً
+    currentItemId = nextItemId;
+    
+    // إذا كانت البيانات متوفرة في الكاش، استخدمها فوراً
+    if (portfolioDataCache[nextItemId]) {
+      displayPortfolioData(portfolioDataCache[nextItemId]);
+      
+      // تسجيل المشاهدة في الخلفية
+      if (!visitsTracker[nextItemId]) {
+        recordView(nextItemId);
+        visitsTracker[nextItemId] = true;
+      }
+    } else {
+      // عرض حالة التحميل
+      document.getElementById('modal-title').textContent = 'جاري التحميل...';
+      
+      // إذا لم تكن البيانات متوفرة، قم بطلبها
+      fetch(`/portfolio/${nextItemId}/detail`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.error) {
+            console.error('خطأ في تحميل تفاصيل المشروع:', data);
+            return;
+          }
+          
+          // تخزين البيانات في الكاش للاستخدام اللاحق
+          portfolioDataCache[nextItemId] = data;
+          
+          // عرض البيانات
+          displayPortfolioData(data);
+          
+          // تسجيل المشاهدة
+          if (!visitsTracker[nextItemId]) {
+            recordView(nextItemId);
+            visitsTracker[nextItemId] = true;
+          }
+        })
+        .catch(err => {
+          console.error('خطأ في تحميل تفاصيل المشروع:', err);
+        });
+    }
+    
+    // تحميل المشاريع القريبة مسبقاً للانتقال السريع
+    preloadNeighborProjects(newIndex);
+  }
+  
+  // تحميل المشاريع المجاورة مسبقاً
+  function preloadNeighborProjects(currentIndex) {
+    if (portfolioItems.length <= 1) return;
+    
+    // حساب فهرس المشروع التالي والسابق
+    const nextIndex = (currentIndex + 1) % portfolioItems.length;
+    const prevIndex = (currentIndex - 1 + portfolioItems.length) % portfolioItems.length;
+    
+    // تحميل المشروع التالي
+    if (!portfolioDataCache[portfolioItems[nextIndex]]) {
+      fetch(`/portfolio/${portfolioItems[nextIndex]}/detail`)
+        .then(res => res.json())
+        .then(data => {
+          if (!data.error) {
+            portfolioDataCache[portfolioItems[nextIndex]] = data;
+            
+            // تحميل الصورة مسبقاً
+            if (data.image_url) {
+              const img = new Image();
+              img.src = data.image_url;
+            }
+          }
+        })
+        .catch(err => {
+          console.error('خطأ في التحميل المسبق:', err);
+        });
+    }
+    
+    // تحميل المشروع السابق
+    if (!portfolioDataCache[portfolioItems[prevIndex]]) {
+      fetch(`/portfolio/${portfolioItems[prevIndex]}/detail`)
+        .then(res => res.json())
+        .then(data => {
+          if (!data.error) {
+            portfolioDataCache[portfolioItems[prevIndex]] = data;
+            
+            // تحميل الصورة مسبقاً
+            if (data.image_url) {
+              const img = new Image();
+              img.src = data.image_url;
+            }
+          }
+        })
+        .catch(err => {
+          console.error('خطأ في التحميل المسبق:', err);
+        });
+    }
+  }
+  
+  function toggleLike(itemId) {
+    const likeButton = document.getElementById('like-button');
+    const likesCounter = document.getElementById('modal-likes');
+    
+    // الحصول على بصمة المتصفح ومعرف الجلسة
+    const fingerprint = getCookie('browser_fingerprint') || generateBrowserFingerprint();
+    const sessionId = getCookie('session_id') || ensureSessionId();
+    
+    // الإرسال بتنسيق JSON لتضمين معلومات بصمة المتصفح
+    fetch(`/portfolio/${itemId}/like`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        portfolio_id: itemId,
+        fingerprint: fingerprint,
+        session_id: sessionId
+      })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          // تحديث الواجهة
+          if (data.liked) {
+            likeButton.classList.add('active');
+            likeButton.querySelector('i').classList.remove('far');
+            likeButton.querySelector('i').classList.add('fas');
+            likeButton.querySelector('i').style.color = '#ef4444';
+            likeButton.querySelector('i').classList.add('heart-anim');
+            setTimeout(() => {
+              likeButton.querySelector('i').classList.remove('heart-anim');
+            }, 600);
+          } else {
+            likeButton.classList.remove('active');
+            likeButton.querySelector('i').classList.remove('fas');
+            likeButton.querySelector('i').classList.add('far');
+            likeButton.querySelector('i').style.color = '';
+          }
+          
+          // تحديث العداد
+          likesCounter.textContent = `${data.likes_count} إعجاب`;
+          
+          // تحديث العداد في شبكة المشاريع
+          const projectItem = document.querySelector(`.portfolio-item[data-id="${itemId}"]`);
+          if (projectItem) {
+            const likesDisplay = projectItem.querySelector('.item-stat:first-child span');
+            if (likesDisplay) {
+              likesDisplay.textContent = data.likes_count;
+            }
+          }
+        } else {
+          console.error('خطأ في تبديل الإعجاب:', data.message);
+        }
+      })
+      .catch(err => {
+        console.error('خطأ في طلب تبديل الإعجاب:', err);
+      });
+  }
+  
+  function submitComment() {
+    const portfolioId = document.getElementById('comment-portfolio-id').value;
+    const content = document.getElementById('comment-content').value.trim();
+    
+    if (!content) return;
+    
+    // الحصول على بصمة المتصفح ومعرف الجلسة
+    const fingerprint = getCookie('browser_fingerprint') || generateBrowserFingerprint();
+    const sessionId = getCookie('session_id') || ensureSessionId();
+    
+    // إرسال البيانات بتنسيق JSON
+    fetch(`/portfolio/${portfolioId}/comment`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        content: content,
+        fingerprint: fingerprint,
+        session_id: sessionId
+      })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          // مسح حقل التعليق
+          document.getElementById('comment-content').value = '';
+          
+          // إضافة التعليق للواجهة إذا تمت الموافقة عليه تلقائيًا
+          if (data.comment && data.comment.approved) {
+            const commentsContainer = document.getElementById('modal-comments');
+            const commentElement = createCommentElement(data.comment);
+            commentsContainer.prepend(commentElement);
+          } else {
+            alert('تم إرسال التعليق بنجاح وسيظهر بعد الموافقة عليه');
+          }
+        } else {
+          console.error('خطأ في إضافة التعليق:', data.message);
+          alert('حدث خطأ في إرسال التعليق. يرجى المحاولة مرة أخرى.');
+        }
+      })
+      .catch(err => {
+        console.error('خطأ في طلب إضافة التعليق:', err);
+        alert('حدث خطأ في إرسال التعليق. يرجى المحاولة مرة أخرى.');
+      });
+  }
+  
+  function displayComments(comments) {
+    const commentsContainer = document.getElementById('modal-comments');
+    commentsContainer.innerHTML = '';
+    
+    if (!comments || comments.length === 0) {
+      commentsContainer.innerHTML = '<p class="text-gray-400 text-center py-4">لا توجد تعليقات بعد. كن أول من يعلق!</p>';
+      return;
+    }
+    
+    comments.forEach(comment => {
+      const commentElement = createCommentElement(comment);
+      commentsContainer.appendChild(commentElement);
+    });
+  }
+  
+  function createCommentElement(comment) {
+    const commentDiv = document.createElement('div');
+    commentDiv.className = 'comment';
+    commentDiv.setAttribute('data-id', comment.id);
+    
+    commentDiv.innerHTML = `
+      <div class="comment-header">
+        <span class="comment-user">${comment.name || 'مستخدم'}</span>
+        <span class="comment-date">${formatDate(comment.created_at)}</span>
+      </div>
+      <div class="comment-content">${comment.content}</div>
+    `;
+    
+    return commentDiv;
+  }
+  
+  function recordView(itemId) {
+    // الحصول على بصمة المتصفح ومعرف الجلسة
+    const fingerprint = getCookie('browser_fingerprint') || generateBrowserFingerprint();
+    const sessionId = getCookie('session_id') || ensureSessionId();
+    
+    // إرسال البيانات بتنسيق JSON
+    fetch(`/portfolio/${itemId}/view`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        portfolio_id: itemId,
+        fingerprint: fingerprint,
+        session_id: sessionId
+      })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          // تحديث عداد المشاهدات في المودال
+          document.getElementById('modal-views').textContent = `${data.views_count} مشاهدة`;
+          
+          // تحديث عداد المشاهدات في شبكة المشاريع
+          const projectItem = document.querySelector(`.portfolio-item[data-id="${itemId}"]`);
+          if (projectItem) {
+            const viewsDisplay = projectItem.querySelector('.item-stat:last-child span');
+            if (viewsDisplay) {
+              viewsDisplay.textContent = data.views_count;
+            }
+          }
+        }
+      })
+      .catch(err => {
+        console.error('خطأ في تسجيل المشاهدة:', err);
+      });
+  }
+  
+  function formatDate(dateString) {
+    if (!dateString) return '';
+    
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ar-SA', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  }
+  
+  function getCSRFToken() {
+    // إذا كان الرمز موجود على العنصر meta
+    let token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    if (token) return token;
+    
+    // إذا كان الرمز موجود في الكوكيز
+    const csrfCookie = document.cookie.split('; ').find(row => row.startsWith('csrf_token='));
+    if (csrfCookie) {
+      return csrfCookie.split('=')[1];
+    }
+    
+    // إذا لم يتم العثور على الرمز
+    console.warn('CSRF token not found. Forms might not work correctly.');
+    return '';
+  }
+</script>
+{% endblock %}
+      <!-- Project 4 -->
+      <div class="gallery-item bg-gray-800 rounded-xl overflow-hidden" data-aos="fade-up" data-category="print" data-id="4">
+        <div class="relative overflow-hidden">
+          <img src="https://source.unsplash.com/600x400/?brochure,print" alt="تصميم مطبوعات" class="w-full h-60 object-cover">
+          <div class="absolute top-0 right-0 m-3 flex flex-wrap gap-2">
+            <span class="tag">#بروشور</span>
+            <span class="tag">#مطبوعات</span>
+          </div>
+        </div>
+        <div class="p-5">
+          <h3 class="text-xl font-bold text-white mb-2">بروشور تعريفي لشركة عقارية</h3>
+          <p class="text-gray-400 text-sm mb-4">تصميم بروشور احترافي يعرض خدمات ومميزات شركة عقارية رائدة في مجالها</p>
+          <div class="flex justify-between items-center">
+            <div class="flex space-x-3 space-x-reverse">
+              <button class="like-btn text-gray-400 hover:text-red-500 transition flex items-center gap-1" data-id="4">
+                <i class="far fa-heart"></i>
+                <span class="like-count text-xs" data-id="4">18</span>
+              </button>
+              <button class="comment-btn text-gray-400 hover:text-blue-500 transition flex items-center gap-1" data-id="4">
+                <i class="far fa-comment"></i>
+                <span class="comment-count text-xs" data-id="4">5</span>
+              </button>
+              <div class="view-btn text-gray-400 flex items-center gap-1">
+                <i class="far fa-eye"></i>
+                <span class="view-count text-xs" data-id="4">122</span>
+              </div>
+            </div>
+            <span class="text-purple-500 text-sm">2022</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Project 5 -->
+      <div class="gallery-item bg-gray-800 rounded-xl overflow-hidden" data-aos="fade-up" data-aos-delay="100" data-category="brand" data-id="5">
+        <div class="relative overflow-hidden">
+          <img src="https://source.unsplash.com/600x400/?branding,identity" alt="هوية بصرية" class="w-full h-60 object-cover">
+          <div class="absolute top-0 right-0 m-3 flex flex-wrap gap-2">
+            <span class="tag">#هوية_بصرية</span>
+            <span class="tag">#علامة_تجارية</span>
+          </div>
+        </div>
+        <div class="p-5">
+          <h3 class="text-xl font-bold text-white mb-2">هوية بصرية لمطعم فاخر</h3>
+          <p class="text-gray-400 text-sm mb-4">تصميم هوية بصرية متكاملة لمطعم فاخر تشمل الشعار والقوائم والمطبوعات وتصاميم السوشيال ميديا</p>
+          <div class="flex justify-between items-center">
+            <div class="flex space-x-3 space-x-reverse">
+              <button class="like-btn text-gray-400 hover:text-red-500 transition flex items-center gap-1" data-id="5">
+                <i class="far fa-heart"></i>
+                <span class="like-count text-xs" data-id="5">54</span>
+              </button>
+              <button class="comment-btn text-gray-400 hover:text-blue-500 transition flex items-center gap-1" data-id="5">
+                <i class="far fa-comment"></i>
+                <span class="comment-count text-xs" data-id="5">19</span>
+              </button>
+              <div class="view-btn text-gray-400 flex items-center gap-1">
+                <i class="far fa-eye"></i>
+                <span class="view-count text-xs" data-id="5">287</span>
+              </div>
+            </div>
+            <span class="text-purple-500 text-sm">2023</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Project 6 -->
+      <div class="gallery-item bg-gray-800 rounded-xl overflow-hidden" data-aos="fade-up" data-aos-delay="200" data-category="logo" data-id="6">
+        <div class="relative overflow-hidden">
+          <img src="https://source.unsplash.com/600x400/?logo,design" alt="تصميم شعار" class="w-full h-60 object-cover">
+          <div class="absolute top-0 right-0 m-3 flex flex-wrap gap-2">
+            <span class="tag">#شعار</span>
+            <span class="tag">#تصميم_جرافيك</span>
+          </div>
+        </div>
+        <div class="p-5">
+          <h3 class="text-xl font-bold text-white mb-2">شعار لمنصة تعليمية</h3>
+          <p class="text-gray-400 text-sm mb-4">تصميم شعار مبتكر لمنصة تعليمية إلكترونية يجمع بين البساطة والابتكار والرسالة التعليمية</p>
+          <div class="flex justify-between items-center">
+            <div class="flex space-x-3 space-x-reverse">
+              <button class="like-btn text-gray-400 hover:text-red-500 transition flex items-center gap-1" data-id="6">
+                <i class="far fa-heart"></i>
+                <span class="like-count text-xs" data-id="6">31</span>
+              </button>
+              <button class="comment-btn text-gray-400 hover:text-blue-500 transition flex items-center gap-1" data-id="6">
+                <i class="far fa-comment"></i>
+                <span class="comment-count text-xs" data-id="6">9</span>
+              </button>
+              <div class="view-btn text-gray-400 flex items-center gap-1">
+                <i class="far fa-eye"></i>
+                <span class="view-count text-xs" data-id="6">176</span>
+              </div>
+            </div>
+            <span class="text-purple-500 text-sm">2022</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Pagination -->
+    <div class="flex justify-center items-center gap-2 my-10">
+      <a href="#" class="pagination-item bg-gray-800 text-gray-400 hover:bg-gray-700">
+        <i class="fas fa-chevron-right"></i>
+      </a>
+      <a href="#" class="pagination-item active">1</a>
+      <a href="#" class="pagination-item bg-gray-800 text-white hover:bg-gray-700">2</a>
+      <a href="#" class="pagination-item bg-gray-800 text-white hover:bg-gray-700">3</a>
+      <span class="pagination-item bg-gray-800 text-white">...</span>
+      <a href="#" class="pagination-item bg-gray-800 text-white hover:bg-gray-700">7</a>
+      <a href="#" class="pagination-item bg-gray-800 text-gray-400 hover:bg-gray-700">
+        <i class="fas fa-chevron-left"></i>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- نافذة منبثقة بنمط إنستغرام -->
+<div id="instagram-modal" class="fixed inset-0 bg-black bg-opacity-90 z-50 hidden flex justify-center items-center backdrop-blur">
+  <button id="instagram-modal-close" class="absolute top-5 right-5 bg-black bg-opacity-70 text-white rounded-full w-10 h-10 flex items-center justify-center text-xl hover:bg-white hover:text-black transition-all z-50">
+    <i class="fas fa-times"></i>
+  </button>
+
+  <div class="instagram-modal-container w-11/12 max-w-6xl h-5/6 bg-gray-900 rounded-xl overflow-hidden shadow-2xl flex">
+    <!-- قسم الصورة (اليمين) -->
+    <div class="instagram-modal-image flex-1 bg-black flex items-center justify-center relative">
+      <img id="modal-image" src="" alt="صورة المشروع" class="max-w-full max-h-full object-contain">
+      
+      <!-- زر تكبير الصورة -->
+      <button id="fullscreen-btn" class="expand-image-btn">
+        <i class="fas fa-expand"></i>
+      </button>
+    </div>
+    
+    <!-- قسم المعلومات (اليسار) -->
+    <div class="instagram-modal-info w-80 md:w-96 flex flex-col bg-gray-900 border-r border-gray-800">
+      <!-- ترويسة الملف الشخصي -->
+      <div class="instagram-modal-header p-4 border-b border-gray-800 flex items-center justify-between">
+        <div class="modal-profile flex items-center">
+          <img src="/static/uploads/profile/profile.jpg" alt="الملف الشخصي" class="modal-profile-image w-10 h-10 rounded-full ml-3 object-cover">
+          <div class="modal-profile-name">
+            <h4 class="text-white text-sm font-bold">فيراس ديزاين</h4>
+            <p id="modal-category" class="text-gray-400 text-xs">فئة المشروع</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- محتوى المعلومات -->
+      <div class="instagram-modal-content p-4 border-b border-gray-800 flex-1 overflow-y-auto">
+        <!-- عنوان المشروع -->
+        <h3 id="modal-title" class="modal-title text-lg font-bold text-white mb-2">عنوان المشروع</h3>
+        
+        <!-- وصف المشروع -->
+        <div id="modal-description" class="modal-description text-gray-300 text-sm mb-4">وصف المشروع</div>
+        
+        <!-- رابط المشروع -->
+        <div id="modal-link-container" class="modal-link-container mb-3 hidden">
+          <a id="modal-link" href="#" target="_blank" class="modal-link text-blue-400 hover:text-blue-300 text-sm inline-flex items-center">
+            <i class="fas fa-external-link-alt ml-2"></i>زيارة المشروع
+          </a>
+        </div>
+        
+        <!-- معلومات التاريخ -->
+        <div class="modal-date-container text-gray-400 text-xs">
+          <p><i class="far fa-calendar-alt ml-1"></i> <span id="modal-date">التاريخ</span></p>
+        </div>
+      </div>
+      
+      <!-- إحصائيات المشروع -->
+      <div class="instagram-modal-footer p-4 border-t border-gray-800">
+        <div class="modal-stats flex justify-between items-center">
+          <div class="modal-stat flex items-center">
+            <button id="like-button" class="like-button text-xl ml-2">
+              <i class="far fa-heart"></i>
+            </button>
+            <span id="modal-likes" class="text-sm">0 إعجاب</span>
+          </div>
+          <div class="modal-stat flex items-center">
+            <i class="far fa-eye text-xl ml-2"></i>
+            <span id="modal-views" class="text-sm">0 مشاهدة</span>
+          </div>
+          <div class="modal-stat flex items-center">
+            <i class="far fa-comment text-xl ml-2"></i>
+            <span id="modal-comments" class="text-sm">0 تعليق</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- اترك رأيك -->
+<section class="py-16 px-6 bg-gray-800">
+  <div class="max-w-6xl mx-auto">
+    <div class="bg-gray-900 p-8 rounded-xl max-w-3xl mx-auto" data-aos="fade-up">
+      <h3 class="text-xl font-bold mb-4 text-center">شاركنا رأيك في أعمالنا</h3>
+      
+      <form id="testimonialForm" method="post" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-gray-400 mb-2">الاسم <span class="text-purple-500">*</span></label>
+            <input type="text" name="name" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white focus:border-yellow-400 focus:outline-none" required>
+          </div>
+          <div>
+            <label class="block text-gray-400 mb-2">الشركة</label>
+            <input type="text" name="company" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white focus:border-yellow-400 focus:outline-none">
+          </div>
+        </div>
+        
+        <div>
+          <label class="block text-gray-400 mb-2">التقييم</label>
+          <div class="flex text-2xl rating-select">
+            <i class="fas fa-star rating-star text-purple-500 cursor-pointer" data-value="1"></i>
+            <i class="fas fa-star rating-star text-purple-500 cursor-pointer" data-value="2"></i>
+            <i class="fas fa-star rating-star text-purple-500 cursor-pointer" data-value="3"></i>
+            <i class="fas fa-star rating-star text-purple-500 cursor-pointer" data-value="4"></i>
+            <i class="fas fa-star rating-star text-purple-500 cursor-pointer" data-value="5"></i>
+            <input type="hidden" name="rating" id="rating-input" value="5">
+          </div>
+        </div>
+        
+        <div>
+          <label class="block text-gray-400 mb-2">التعليق <span class="text-purple-500">*</span></label>
+          <textarea name="content" rows="4" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white focus:border-yellow-400 focus:outline-none" required></textarea>
+        </div>
+        
+        <div class="text-center">
+          <button type="submit" class="bg-yellow-400 hover:bg-yellow-300 text-black font-bold px-6 py-3 rounded-full transition">إرسال التقييم</button>
+        </div>
+        <div id="testimonial-message" class="mt-4 p-2 rounded text-center hidden"></div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- Testimonials -->
+<section class="py-16 px-6 bg-black">
+  <div class="max-w-6xl mx-auto">
+    <h2 class="text-3xl font-bold text-purple-500 text-center mb-12 flex items-center justify-center gap-3" data-aos="fade-up">
+      <lord-icon src="https://cdn.lordicon.com/hbvgknxo.json" trigger="loop" style="width:40px;height:40px"></lord-icon>
+      <span>آراء العملاء عن أعمالنا</span>
+    </h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Testimonial 1 -->
+      <div class="bg-gray-900 p-6 rounded-lg shadow-lg" data-aos="fade-up">
+        <div class="flex text-purple-500 mb-3">
+          <i class="fas fa-star"></i>
+          <i class="fas fa-star"></i>
+          <i class="fas fa-star"></i>
+          <i class="fas fa-star"></i>
+          <i class="fas fa-star"></i>
+        </div>
+        <p class="text-gray-300 mb-4">"تعاملت مع فراس في تصميم هوية بصرية كاملة لشركتي الناشئة، وكانت النتيجة أكثر من رائعة. الاحترافية في التعامل والإبداع في التصميم جعلني أتعامل معه بشكل مستمر."</p>
+        <div class="flex items-center justify-between">
+          <div>
+            <h4 class="text-lg font-bold">أحمد محمود</h4>
+            <p class="text-purple-500 text-sm">شركة تقنية المستقبل</p>
+          </div>
+          <div class="text-gray-500 text-sm">
+            2023-03-15
+          </div>
+        </div>
+      </div>
+      
+      <!-- Testimonial 2 -->
+      <div class="bg-gray-900 p-6 rounded-lg shadow-lg" data-aos="fade-up" data-aos-delay="100">
+        <div class="flex text-purple-500 mb-3">
+          <i class="fas fa-star"></i>
+          <i class="fas fa-star"></i>
+          <i class="fas fa-star"></i>
+          <i class="fas fa-star"></i>
+          <i class="fas fa-star"></i>
+        </div>
+        <p class="text-gray-300 mb-4">"كنت أبحث عن مصمم محترف لتصميم غلاف كتابي الأول، ووجدت ضالتي مع فراس. فهم احتياجاتي سريعاً وترجمها إلى تصميم جذاب عكس محتوى الكتاب بطريقة إبداعية."</p>
+        <div class="flex items-center justify-between">
+          <div>
+            <h4 class="text-lg font-bold">سارة أحمد</h4>
+            <p class="text-purple-500 text-sm">كاتبة</p>
+          </div>
+          <div class="text-gray-500 text-sm">
+            2023-02-20
+          </div>
+        </div>
+      </div>
+      
+      <!-- Testimonial 3 -->
+      <div class="bg-gray-900 p-6 rounded-lg shadow-lg" data-aos="fade-up" data-aos-delay="200">
+        <div class="flex text-purple-500 mb-3">
+          <i class="fas fa-star"></i>
+          <i class="fas fa-star"></i>
+          <i class="fas fa-star"></i>
+          <i class="fas fa-star"></i>
+          <i class="fas fa-star-half-alt"></i>
+        </div>
+        <p class="text-gray-300 mb-4">"تعاملت مع فراس في تصميم حملة إعلانية كاملة على منصات التواصل الاجتماعي، والنتائج كانت مذهلة. التصاميم الجذابة ساهمت في زيادة التفاعل والمبيعات بشكل ملحوظ."</p>
+        <div class="flex items-center justify-between">
+          <div>
+            <h4 class="text-lg font-bold">محمد خالد</h4>
+            <p class="text-purple-500 text-sm">مدير تسويق</p>
+          </div>
+          <div class="text-gray-500 text-sm">
+            2023-01-10
+          </div>
+        </div>
+      </div>
+    </div>
+    
+
+  </div>
+</section>
+
+<!-- Call to Action -->
+<section class="py-16 px-6 bg-gray-900">
+  <div class="max-w-4xl mx-auto text-center">
+    <h2 class="text-3xl font-bold text-purple-500 mb-4" data-aos="fade-up">هل لديك مشروع جديد؟</h2>
+    <p class="text-xl text-gray-300 mb-8" data-aos="fade-up" data-aos-delay="100">دعنا نساعدك في تحويل أفكارك إلى تصاميم إبداعية تعزز هويتك وتلفت انتباه جمهورك</p>
+    <div class="flex flex-wrap justify-center gap-4" data-aos="fade-up" data-aos-delay="200">
+      <a href="/#contact" class="bg-yellow-400 hover:bg-yellow-300 text-black px-8 py-3 rounded-full text-lg font-bold transition">تواصل معي الآن</a>
+      <a href="/#services" class="bg-gray-800 hover:bg-gray-700 text-white px-8 py-3 rounded-full text-lg font-bold transition">استكشف خدماتنا</a>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="bg-black py-10 px-4">
+  <div class="max-w-6xl mx-auto">
+    <div class="flex flex-col md:flex-row justify-between items-center">
+      <div class="mb-6 md:mb-0">
+        <h2 class="text-2xl font-bold text-purple-400">فراس للتصميم</h2>
+        <p class="text-gray-400 mt-2">تصاميم إبداعية تنقل رؤيتك إلى الواقع</p>
+      </div>
+      
+      <div class="flex flex-wrap justify-center gap-4">
+        <a href="/" class="text-gray-400 hover:text-purple-400 transition">الرئيسية</a>
+        <a href="/#about" class="text-gray-400 hover:text-purple-400 transition">من أنا</a>
+        <a href="/#services" class="text-gray-400 hover:text-purple-400 transition">الخدمات</a>
+        <a href="/portfolio" class="text-gray-400 hover:text-purple-400 transition">معرض الأعمال</a>
+        <a href="/#testimonials" class="text-gray-400 hover:text-purple-400 transition">آراء العملاء</a>
+        <a href="/#contact" class="text-gray-400 hover:text-purple-400 transition">تواصل معي</a>
+      </div>
+    </div>
+    
+    <hr class="border-gray-800 my-8">
+    
+    <div class="text-center text-gray-500 text-sm">
+      <p>جميع الحقوق محفوظة &copy; 2023 - فراس للتصميم</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+function toggleLanguage() {
+  window.location.href = '/en/portfolio';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Mobile menu toggle
+  const menuToggle = document.getElementById('menu-toggle');
+  const mobileMenu = document.getElementById('mobile-menu');
+  
+  if (menuToggle && mobileMenu) {
+    menuToggle.addEventListener('click', function() {
+      mobileMenu.classList.toggle('hidden');
+      // Change icon
+      const icon = menuToggle.querySelector('i');
+      if (icon) {
+        if (mobileMenu.classList.contains('hidden')) {
+          icon.classList.remove('fa-times');
+          icon.classList.add('fa-bars');
+        } else {
+          icon.classList.remove('fa-bars');
+          icon.classList.add('fa-times');
+        }
+      }
+    });
+  }
+  
+  // Filter buttons functionality
+  const filterButtons = document.querySelectorAll('.filter-item');
+  
+  filterButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      // Remove active class from all buttons
+      filterButtons.forEach(btn => btn.classList.remove('active'));
+      
+      // Add active class to clicked button
+      this.classList.add('active');
+    });
+  });
+  
+  // Rating stars functionality
+  const ratingStars = document.querySelectorAll('.rating-select i');
+  const ratingInput = document.getElementById('rating-input');
+  
+  ratingStars.forEach(star => {
+    star.addEventListener('click', function() {
+      const value = parseInt(this.dataset.value);
+      
+      // Reset all stars
+      ratingStars.forEach(s => {
+        s.classList.remove('fas');
+        s.classList.add('far');
+      });
+      
+      // Fill stars up to the clicked one
+      ratingStars.forEach(s => {
+        if (parseInt(s.dataset.value) <= value) {
+          s.classList.remove('far');
+          s.classList.add('fas');
+        }
+      });
+      
+      // Set the hidden input value
+      ratingInput.value = value;
+    });
+  });
+  
+  // Like button functionality
+  const likeButtons = document.querySelectorAll('.like-btn');
+  
+  likeButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const likeCount = this.querySelector('.like-count');
+      let count = parseInt(likeCount.textContent);
+      
+      if (this.classList.contains('liked')) {
+        this.classList.remove('liked');
+        this.querySelector('i').classList.remove('fas');
+        this.querySelector('i').classList.add('far');
+        likeCount.textContent = count - 1;
+        this.style.color = '';
+      } else {
+        this.classList.add('liked');
+        this.querySelector('i').classList.remove('far');
+        this.querySelector('i').classList.add('fas');
+        likeCount.textContent = count + 1;
+        this.style.color = '#ef4444';
+      }
+    });
+  });
+  
+  // Handle testimonial form submission via AJAX
+  const testimonialForm = document.getElementById('testimonialForm');
+  if (testimonialForm) {
+    testimonialForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const formData = new FormData(this);
+      const testimonialMessage = document.getElementById('testimonial-message');
+      
+      fetch('/add-testimonial', {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: formData
+      })
+      .then(response => {
+        if (response.redirected) {
+          // Handle redirect by checking flash messages in a hidden div
+          testimonialMessage.textContent = 'تم إرسال تقييمك بنجاح وهو قيد المراجعة من الإدارة. شكراً لك!';
+          testimonialMessage.className = 'mt-4 p-2 rounded bg-green-900 text-green-300 text-center';
+          testimonialMessage.classList.remove('hidden');
+          
+          // Clear form
+          testimonialForm.reset();
+          
+          // Hide message after a delay
+          setTimeout(() => {
+            testimonialMessage.classList.add('hidden');
+          }, 5000);
+          
+          return { success: true };
+        } else {
+          return response.json();
+        }
+      })
+      .then(data => {
+        if (data.success) {
+          // Clear form
+          testimonialForm.reset();
+          
+          // Reset stars to default (all 5 filled)
+          ratingStars.forEach(s => {
+            s.classList.remove('far');
+            s.classList.add('fas');
+          });
+          
+          // Show success message
+          testimonialMessage.textContent = 'تم إرسال تقييمك بنجاح وهو قيد المراجعة من الإدارة. شكراً لك!';
+          testimonialMessage.className = 'mt-4 p-2 rounded bg-green-900 text-green-300 text-center';
+          testimonialMessage.classList.remove('hidden');
+          
+          // Hide message after a delay
+          setTimeout(() => {
+            testimonialMessage.classList.add('hidden');
+          }, 5000);
+        } else {
+          testimonialMessage.textContent = data.message || 'حدث خطأ أثناء إرسال التقييم. الرجاء المحاولة مرة أخرى.';
+          testimonialMessage.className = 'mt-4 p-2 rounded bg-red-900 text-red-300 text-center';
+          testimonialMessage.classList.remove('hidden');
+        }
+      })
+      .catch(error => {
+        console.error('Error submitting testimonial:', error);
+        testimonialMessage.textContent = 'حدث خطأ في النظام. الرجاء المحاولة مرة أخرى.';
+        testimonialMessage.className = 'mt-4 p-2 rounded bg-red-900 text-red-300 text-center';
+        testimonialMessage.classList.remove('hidden');
+      });
+    });
+  }
+});
+</script>
+
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+  AOS.init({
+    duration: 800,
+    once: true
+  });
+</script>
+<!-- Project Details Modal -->
+<div id="project-details-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+  <div class="absolute inset-0 bg-black bg-opacity-80" id="project-modal-backdrop"></div>
+  <div class="bg-gray-900 rounded-xl p-6 w-full max-w-5xl relative z-10 max-h-[90vh] overflow-y-auto">
+    <button id="close-project-modal" class="absolute top-4 left-4 text-gray-400 hover:text-white">
+      <i class="fas fa-times"></i>
+    </button>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <!-- صور المشروع - القسم الأيمن -->
+      <div>
+        <!-- الصورة الرئيسية -->
+        <div class="mb-4">
+          <img id="project-main-image" src="" alt="" class="w-full h-auto rounded-lg shadow-lg">
+        </div>
+        
+        <!-- معرض صور الكاروسيل -->
+        <div id="project-carousel-container" class="mt-6">
+          <h4 class="text-white text-lg font-semibold mb-3">معرض الصور</h4>
+          <div id="project-carousel-gallery" class="grid grid-cols-3 sm:grid-cols-4 gap-2">
+            <!-- ستتم إضافة صور الكاروسيل هنا ديناميكيًا -->
+          </div>
+        </div>
+      </div>
+      
+      <!-- تفاصيل المشروع - القسم الأيسر -->
+      <div class="bg-gray-800 p-6 rounded-lg">
+        <h2 id="project-title" class="text-2xl font-bold text-white mb-4"></h2>
+        <div class="flex flex-wrap gap-2 mb-4" id="project-categories">
+          <!-- ستتم إضافة التصنيفات هنا ديناميكيًا -->
+        </div>
+        <div id="project-meta" class="flex items-center text-gray-400 text-sm mb-5">
+          <div class="ml-4">
+            <i class="far fa-calendar-alt ml-1"></i>
+            <span id="project-year"></span>
+          </div>
+          <div class="ml-4">
+            <i class="far fa-eye ml-1"></i>
+            <span id="project-views"></span> مشاهدة
+          </div>
+          <div>
+            <i class="far fa-heart ml-1"></i>
+            <span id="project-likes"></span> إعجاب
+          </div>
+        </div>
+        <div class="mb-8">
+          <h4 class="text-purple-400 text-lg font-semibold mb-2">وصف المشروع</h4>
+          <p id="project-description" class="text-gray-300 leading-relaxed"></p>
+        </div>
+        
+        <!-- أزرار التفاعل -->
+        <div class="flex space-x-2 space-x-reverse">
+          <button id="project-like-btn" class="bg-red-500 bg-opacity-10 hover:bg-opacity-20 text-red-400 px-4 py-2 rounded-lg transition flex items-center">
+            <i class="far fa-heart ml-2"></i> أعجبني
+          </button>
+          <button id="project-comment-btn" class="bg-blue-500 bg-opacity-10 hover:bg-opacity-20 text-blue-400 px-4 py-2 rounded-lg transition flex items-center">
+            <i class="far fa-comment ml-2"></i> تعليق
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- قسم التعليقات -->
+    <div class="mt-8 border-t border-gray-700 pt-6">
+      <h3 class="text-xl font-bold text-white mb-4">التعليقات</h3>
+      <div id="project-comments-container" class="max-h-60 overflow-y-auto mb-6">
+        <div id="project-comments-list" class="border border-gray-700 rounded-lg overflow-hidden">
+          <!-- Comments will be loaded here -->
+          <div class="text-center p-4 text-gray-400">جاري تحميل التعليقات...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Comment Modal -->
+<div id="comment-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+  <div class="absolute inset-0 bg-black bg-opacity-75" id="modal-backdrop"></div>
+  <div class="bg-gray-800 rounded-xl p-6 w-full max-w-md relative z-10 max-h-[90vh] overflow-y-auto">
+    <button id="close-modal" class="absolute top-4 left-4 text-gray-400 hover:text-white">
+      <i class="fas fa-times"></i>
+    </button>
+    <h3 class="text-2xl font-bold text-purple-400 mb-4">إضافة تعليق</h3>
+    <p id="modal-portfolio-title" class="text-white mb-5"></p>
+    
+    <form id="comment-form" class="comment-form space-y-4">
+      <input type="hidden" name="portfolio_id" id="portfolio-id-input">
+      
+      <div>
+        <label for="name" class="block text-gray-300 mb-1">الإسم *</label>
+        <input type="text" id="name" name="name" class="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:border-purple-400 transition" required>
+      </div>
+      
+      <div>
+        <label for="email" class="block text-gray-300 mb-1">البريد الإلكتروني *</label>
+        <input type="email" id="email" name="email" class="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:border-purple-400 transition" required>
+      </div>
+      
+      <div>
+        <label for="content" class="block text-gray-300 mb-1">التعليق *</label>
+        <textarea id="content" name="content" rows="4" class="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:border-purple-400 transition resize-none" required></textarea>
+      </div>
+      
+      <div id="form-message" class="hidden mt-4 p-2 rounded text-center"></div>
+      
+      <div class="flex justify-between items-center">
+        <button type="button" class="modal-close px-5 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md transition">
+          إلغاء
+        </button>
+        <button type="submit" class="px-5 py-2 bg-purple-500 hover:bg-purple-400 text-white font-bold rounded-md transition">
+          إرسال التعليق
+        </button>
+      </div>
+      
+      <p class="text-gray-400 text-xs text-center mt-4">
+        * سيتم مراجعة التعليق من قبل الإدارة قبل نشره
+      </p>
+    </form>
+  </div>
+</div>
+
+<!-- View Comments Modal -->
+<div id="view-comments-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+  <div class="absolute inset-0 bg-black bg-opacity-75" id="comments-modal-backdrop"></div>
+  <div class="bg-gray-800 rounded-xl p-6 w-full max-w-md relative z-10 max-h-[90vh] overflow-y-auto">
+    <button id="close-comments-modal" class="absolute top-4 left-4 text-gray-400 hover:text-white">
+      <i class="fas fa-times"></i>
+    </button>
+    <h3 class="text-2xl font-bold text-purple-400 mb-4">التعليقات</h3>
+    <p id="comments-portfolio-title" class="text-white mb-5"></p>
+    
+    <div id="comments-container" class="space-y-4 mb-6">
+      <div id="comments-list" class="max-h-60 overflow-y-auto">
+        <!-- Comments will be loaded here -->
+        <div class="text-center p-4 text-gray-400">
+          <i class="fas fa-spinner fa-spin text-xl"></i>
+          <p>جاري تحميل التعليقات...</p>
+        </div>
+      </div>
+    </div>
+    
+    <button id="add-comment-btn" class="w-full py-2 bg-purple-500 hover:bg-purple-400 text-white font-bold rounded-md transition">
+      إضافة تعليق جديد
+    </button>
+  </div>
+</div>
+
+<script>
+// Update comment buttons to show comment modal
+document.addEventListener('DOMContentLoaded', function() {
+  const commentButtons = document.querySelectorAll('.comment-btn');
+  const commentModal = document.getElementById('comment-modal');
+  const viewCommentsModal = document.getElementById('view-comments-modal');
+  const closeModal = document.getElementById('close-modal');
+  const closeCommentsModal = document.getElementById('close-comments-modal');
+  const modalBackdrop = document.getElementById('modal-backdrop');
+  const commentsModalBackdrop = document.getElementById('comments-modal-backdrop');
+  const cancelComment = document.getElementById('cancel-comment');
+  const portfolioIdInput = document.getElementById('portfolio-id-input');
+  const modalPortfolioTitle = document.getElementById('modal-portfolio-title');
+  const commentsPortfolioTitle = document.getElementById('comments-portfolio-title');
+  const addCommentBtn = document.getElementById('add-comment-btn');
+  
+  // Handle comment button click - Show view comments modal
+  commentButtons.forEach(button => {
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const portfolioItem = this.closest('.gallery-item');
+      const portfolioId = portfolioItem.dataset.id || '1'; // Fallback for static example
+      const portfolioTitle = portfolioItem.querySelector('h3').textContent;
+      
+      // Set portfolio info in view comments modal
+      commentsPortfolioTitle.textContent = portfolioTitle;
+      
+      // Set portfolio info for the comment form
+      portfolioIdInput.value = portfolioId;
+      modalPortfolioTitle.textContent = portfolioTitle;
+      
+      // Load comments
+      loadPortfolioComments(portfolioId);
+      
+      // Show view comments modal
+      viewCommentsModal.classList.remove('hidden');
+    });
+  });
+  
+  // Handle add comment button click from view comments modal
+  addCommentBtn.addEventListener('click', function() {
+    // Hide view comments modal and show comment form modal
+    viewCommentsModal.classList.add('hidden');
+    commentModal.classList.remove('hidden');
+  });
+  
+  // Close comment modal
+  function closeCommentModal() {
+    commentModal.classList.add('hidden');
+  }
+  
+  // Close view comments modal
+  function closeViewCommentsModal() {
+    viewCommentsModal.classList.add('hidden');
+  }
+  
+  closeModal.addEventListener('click', closeCommentModal);
+  modalBackdrop.addEventListener('click', closeCommentModal);
+  cancelComment.addEventListener('click', closeCommentModal);
+  
+  closeCommentsModal.addEventListener('click', closeViewCommentsModal);
+  commentsModalBackdrop.addEventListener('click', closeViewCommentsModal);
+  
+  // Load comments for a portfolio item
+  function loadPortfolioComments(portfolioId) {
+    const commentsList = document.getElementById('comments-list');
+    commentsList.innerHTML = `<div class="text-center p-4 text-gray-400">
+      <i class="fas fa-spinner fa-spin text-xl"></i>
+      <p>جاري تحميل التعليقات...</p>
+    </div>`;
+    
+    fetch(`/api/portfolio/${portfolioId}/comments`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          const comments = data.comments || [];
+          
+          if (comments.length === 0) {
+            commentsList.innerHTML = `<div class="text-center p-4 text-gray-400">
+              <p>لا توجد تعليقات بعد. كن أول من يعلق!</p>
+            </div>`;
+            return;
+          }
+          
+          commentsList.innerHTML = '';
+          comments.forEach(comment => {
+            const commentEl = document.createElement('div');
+            commentEl.className = 'border-b border-gray-700 p-4 last:border-0';
+            commentEl.innerHTML = `
+              <div class="flex justify-between mb-2">
+                <strong class="font-bold text-white">${comment.name}</strong>
+                <span class="text-gray-400 text-sm">${comment.created_at}</span>
+              </div>
+              <div class="text-gray-300">${comment.content}</div>
+            `;
+            commentsList.appendChild(commentEl);
+          });
+          
+          // Update comment count in the gallery item
+          const commentCountEl = document.querySelector(`.comment-count[data-id="${portfolioId}"]`);
+          if (commentCountEl) {
+            commentCountEl.textContent = comments.length;
+          }
+        } else {
+          commentsList.innerHTML = `<div class="text-center p-4 text-gray-400">
+            <p>حدث خطأ أثناء تحميل التعليقات. الرجاء المحاولة مرة أخرى.</p>
+          </div>`;
+        }
+      })
+      .catch(error => {
+        console.error('Error loading comments:', error);
+        commentsList.innerHTML = `<div class="text-center p-4 text-gray-400">
+          <p>حدث خطأ أثناء تحميل التعليقات. الرجاء المحاولة مرة أخرى.</p>
+        </div>`;
+      });
+  }
+  
+  // Handle comment form submission
+  const commentForm = document.getElementById('comment-form');
+  if (commentForm) {
+    commentForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const portfolioId = portfolioIdInput.value;
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const content = document.getElementById('content').value.trim();
+      const formMessage = commentForm.querySelector('.form-message');
+      
+      if (!name || !email || !content) {
+        formMessage.textContent = 'يرجى تعبئة جميع الحقول المطلوبة';
+        formMessage.className = 'mt-4 p-2 rounded bg-red-900 text-red-300';
+        formMessage.classList.remove('hidden');
+        return;
+      }
+      
+      // التحقق من صحة البريد الإلكتروني
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        formMessage.textContent = 'يرجى إدخال بريد إلكتروني صحيح';
+        formMessage.className = 'mt-4 p-2 rounded bg-red-900 text-red-300';
+        formMessage.classList.remove('hidden');
+        return;
+      }
+      
+      fetch(`/api/portfolio/${portfolioId}/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          content
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Clear form
+          document.getElementById('name').value = '';
+          document.getElementById('email').value = '';
+          document.getElementById('content').value = '';
+          
+          // Show success message
+          formMessage.textContent = 'تم إرسال تعليقك بنجاح وهو قيد المراجعة من الإدارة. شكراً لك!';
+          formMessage.className = 'mt-4 p-2 rounded bg-green-900 text-green-300 text-center';
+          formMessage.classList.remove('hidden');
+          
+          // Close modal after a delay
+          setTimeout(() => {
+            closeCommentModal();
+            formMessage.textContent = '';
+          }, 3000);
+        } else {
+          formMessage.textContent = data.message || 'حدث خطأ أثناء إرسال التعليق. الرجاء المحاولة مرة أخرى.';
+          formMessage.className = 'mt-4 p-2 rounded bg-red-900 text-red-300 text-center';
+          formMessage.classList.remove('hidden');
+        }
+      })
+      .catch(error => {
+        console.error('Error submitting comment:', error);
+        formMessage.textContent = 'حدث خطأ في النظام. الرجاء المحاولة مرة أخرى.';
+        formMessage.className = 'mt-4 p-2 rounded bg-red-900 text-red-300 text-center';
+        formMessage.classList.remove('hidden');
+      });
+    });
+  }
+});
+
+// تم إزالة وظيفة تغيير اللغة
+</script>
+</body>
+</html>

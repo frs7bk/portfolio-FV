@@ -1,0 +1,602 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}إحصائيات الزوار{% endblock %}
+{% block page_title %}إحصائيات الزوار{% endblock %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css">
+<style>
+    /* تصميم عام محسن */
+    .analytics-dashboard {
+        background-color: #f8f9fa;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+    }
+    
+    .dashboard-header {
+        margin-bottom: 2rem;
+        border-bottom: 1px solid #e9ecef;
+        padding-bottom: 1rem;
+    }
+    
+    .dashboard-title {
+        color: #495057;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    .dashboard-subtitle {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+    
+    /* بطاقات الإحصائيات المحسنة */
+    .stats-card {
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+        background-color: white;
+        border-right: 4px solid transparent;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .stats-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        height: 100%;
+        width: 4px;
+    }
+    
+    .stats-card.primary::before { background-color: #3b7ddd; }
+    .stats-card.success::before { background-color: #28a745; }
+    .stats-card.warning::before { background-color: #ffc107; }
+    .stats-card.info::before { background-color: #17a2b8; }
+    
+    .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    }
+    
+    .stats-card .icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        opacity: 0.8;
+        transition: transform 0.3s ease;
+    }
+    
+    .stats-card:hover .icon {
+        transform: scale(1.1);
+    }
+    
+    .stats-card .count {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.3rem;
+        background: linear-gradient(45deg, #3b7ddd, #6610f2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .stats-card .title {
+        font-size: 1rem;
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    .stats-card .trend {
+        margin-top: 0.5rem;
+        font-size: 0.8rem;
+    }
+
+    .trend-up {
+        color: #28a745;
+    }
+
+    .trend-down {
+        color: #dc3545;
+    }
+    
+    /* حاويات الرسوم البيانية المحسنة */
+    .chart-container {
+        position: relative;
+        margin: auto;
+        height: 330px;
+        width: 100%;
+    }
+    
+    .chart-card {
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .chart-card:hover {
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    }
+    
+    .chart-title {
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #e9ecef;
+        font-weight: 600;
+        color: #495057;
+    }
+    
+    /* شريط التصفية المحسن */
+    .filter-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 2rem;
+        background-color: white;
+        padding: 1rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .filter-btn {
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-weight: 500;
+        font-size: 0.9rem;
+        border: none;
+        background-color: #f1f3f5;
+        color: #495057;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .filter-btn:hover {
+        background-color: #e9ecef;
+    }
+    
+    .filter-btn.active {
+        background-color: #3b7ddd;
+        color: white;
+    }
+    
+    /* تحسين عناصر الزوار */
+    .visitor-item {
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+        background-color: white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        border-right: 3px solid transparent;
+    }
+    
+    .visitor-item:hover {
+        background-color: #f8f9fa;
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border-right-color: #3b7ddd;
+    }
+    
+    .ip-badge {
+        font-family: monospace;
+        background-color: #f1f3f5;
+        padding: 4px 10px;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        color: #495057;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        display: inline-block;
+    }
+    
+    .ip-badge:hover {
+        background-color: #e9ecef;
+    }
+    
+    .device-icon {
+        margin-right: 5px;
+        transition: transform 0.2s ease;
+    }
+    
+    .visitor-item:hover .device-icon {
+        transform: scale(1.1);
+    }
+    
+    .device-mobile {
+        color: #28a745;
+    }
+    
+    .device-desktop {
+        color: #007bff;
+    }
+    
+    .device-tablet {
+        color: #fd7e14;
+    }
+    
+    .device-bot {
+        color: #dc3545;
+    }
+    
+    /* تحسين المؤشرات والشارات */
+    .badge.bg-primary {
+        background-color: #3b7ddd !important;
+        padding: 5px 10px;
+        border-radius: 50px;
+        font-weight: 500;
+    }
+    
+    .badge.bg-danger {
+        background-color: #dc3545 !important;
+        padding: 5px 10px;
+        border-radius: 50px;
+        font-weight: 500;
+    }
+    
+    .visitor-item {
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        transition: background-color 0.2s;
+    }
+    
+    .visitor-item:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .ip-badge {
+        font-family: monospace;
+        background-color: #f1f1f1;
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 0.9rem;
+    }
+    
+    .device-icon {
+        margin-right: 5px;
+    }
+    
+    .browser-icon {
+        width: 16px;
+        height: 16px;
+        margin-right: 5px;
+        vertical-align: middle;
+    }
+    
+    .device-mobile {
+        color: #28a745;
+    }
+    
+    .device-desktop {
+        color: #007bff;
+    }
+    
+    .device-tablet {
+        color: #fd7e14;
+    }
+    
+    .device-bot {
+        color: #dc3545;
+    }
+    
+    .pagination-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<div class="container-fluid py-4">
+    <div class="analytics-dashboard animate__animated animate__fadeIn">
+        <div class="dashboard-header">
+            <h1 class="h3 mb-2 dashboard-title">إحصائيات الزوار التفصيلية</h1>
+            <p class="dashboard-subtitle">تحليل شامل لزوار الموقع وتوزيعهم حسب الأجهزة والمتصفحات</p>
+        </div>
+        
+        <!-- شريط الفلترة -->
+        <div class="filter-bar">
+            <a href="{{ url_for('analytics.visitors_dashboard', days=1) }}" class="filter-btn {{ 'active' if days == 1 else '' }}">آخر 24 ساعة</a>
+            <a href="{{ url_for('analytics.visitors_dashboard', days=7) }}" class="filter-btn {{ 'active' if days == 7 else '' }}">آخر 7 أيام</a>
+            <a href="{{ url_for('analytics.visitors_dashboard', days=30) }}" class="filter-btn {{ 'active' if days == 30 else '' }}">آخر 30 يوم</a>
+            <a href="{{ url_for('analytics.visitors_dashboard', days=90) }}" class="filter-btn {{ 'active' if days == 90 else '' }}">آخر 3 أشهر</a>
+            <a href="{{ url_for('analytics.visitors_dashboard', days=0) }}" class="filter-btn {{ 'active' if days == 0 else '' }}">كل الوقت</a>
+            <span class="ms-auto text-muted">آخر تحديث: {{ date_time }}</span>
+        </div>
+        
+        <!-- بطاقات الإحصائيات -->
+        <div class="row">
+            <!-- إجمالي الزوار -->
+            <div class="col-md-3">
+                <div class="stats-card primary animate__animated animate__fadeInUp">
+                    <div class="icon text-primary">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="count" id="total-visitors">{{ stats.total_visitors }}</div>
+                    <div class="title">إجمالي الزوار</div>
+                    <div class="trend trend-up">
+                        <i class="fas fa-arrow-up"></i> 14% زيادة
+                    </div>
+                </div>
+            </div>
+            
+            <!-- الزوار الحقيقيين (بدون بوتات) -->
+            <div class="col-md-3">
+                <div class="stats-card success animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
+                    <div class="icon text-success">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                    <div class="count" id="real-visitors">{{ stats.non_bot_visitors }}</div>
+                    <div class="title">الزوار الحقيقيين</div>
+                    <div class="trend trend-up">
+                        <i class="fas fa-arrow-up"></i> 10% زيادة
+                    </div>
+                </div>
+            </div>
+            
+            <!-- عدد مشاهدات الصفحات -->
+            <div class="col-md-3">
+                <div class="stats-card info animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+                    <div class="icon text-info">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                    <div class="count" id="total-pageviews">{{ stats.total_page_views }}</div>
+                    <div class="title">مشاهدات الصفحات</div>
+                    <div class="trend trend-up">
+                        <i class="fas fa-arrow-up"></i> 16% زيادة
+                    </div>
+                </div>
+            </div>
+            
+            <!-- متوسط الصفحات لكل زائر -->
+            <div class="col-md-3">
+                <div class="stats-card warning animate__animated animate__fadeInUp" style="animation-delay: 0.3s;">
+                    <div class="icon text-warning">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="count" id="pages-per-visitor">{{ stats.pages_per_visitor }}</div>
+                    <div class="title">صفحات / زائر</div>
+                    <div class="trend trend-up">
+                        <i class="fas fa-arrow-up"></i> 5% زيادة
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- الرسوم البيانية -->
+        <div class="row mt-4">
+            <!-- توزيع الأجهزة -->
+            <div class="col-md-4 animate__animated animate__fadeInUp" style="animation-delay: 0.4s;">
+                <div class="chart-card">
+                    <h5 class="chart-title">
+                        <i class="fas fa-mobile-alt me-2"></i> توزيع الأجهزة
+                    </h5>
+                    <div class="chart-container">
+                        <canvas id="devicesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- توزيع المتصفحات -->
+            <div class="col-md-4 animate__animated animate__fadeInUp" style="animation-delay: 0.5s;">
+                <div class="chart-card">
+                    <h5 class="chart-title">
+                        <i class="fas fa-globe me-2"></i> توزيع المتصفحات
+                    </h5>
+                    <div class="chart-container">
+                        <canvas id="browsersChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- توزيع أنظمة التشغيل -->
+            <div class="col-md-4 animate__animated animate__fadeInUp" style="animation-delay: 0.6s;">
+                <div class="chart-card">
+                    <h5 class="chart-title">
+                        <i class="fas fa-laptop-code me-2"></i> أنظمة التشغيل
+                    </h5>
+                    <div class="chart-container">
+                        <canvas id="osChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <!-- الصفحات الأكثر زيارة -->
+            <div class="col-md-6 animate__animated animate__fadeInUp" style="animation-delay: 0.7s;">
+                <div class="chart-card">
+                    <h5 class="chart-title">
+                        <i class="fas fa-fire me-2"></i> الصفحات الأكثر زيارة
+                    </h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>الصفحة</th>
+                                    <th><i class="fas fa-eye text-primary me-1"></i> المشاهدات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="top-pages">
+                                {% for page in stats.top_pages %}
+                                <tr class="animate__animated animate__fadeIn">
+                                    <td>
+                                        <a href="{{ page.url }}" target="_blank" title="{{ page.url }}" class="text-decoration-none">
+                                            {% if page.title %}
+                                                {{ page.title }}
+                                            {% else %}
+                                                <code>{{ page.url }}</code>
+                                            {% endif %}
+                                        </a>
+                                    </td>
+                                    <td><b>{{ page.count }}</b></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- آخر الزوار -->
+            <div class="col-md-6 animate__animated animate__fadeInUp" style="animation-delay: 0.8s;">
+                <div class="chart-card">
+                    <h5 class="chart-title">
+                        <i class="fas fa-user-clock me-2"></i> آخر الزوار
+                    </h5>
+                    <div class="list-group">
+                        {% for visitor in latest_visitors %}
+                        <div class="visitor-item animate__animated animate__fadeIn" style="animation-delay: calc(0.8s + {{ loop.index0 * 0.1 }}s);">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>
+                                    <span class="ip-badge">
+                                        <a href="{{ url_for('analytics.visitor_detail', visitor_id=visitor.id) }}" class="text-decoration-none">
+                                            {{ visitor.ip_address }}
+                                        </a>
+                                    </span>
+                                    
+                                    {% if visitor.is_bot %}
+                                    <span class="badge bg-danger">بوت</span>
+                                    {% endif %}
+                                    
+                                    {% if visitor.user_id %}
+                                    <span class="badge bg-primary">مستخدم مسجل</span>
+                                    {% endif %}
+                                </span>
+                                <small class="text-muted">
+                                    <i class="far fa-clock me-1"></i> {{ visitor.last_visit.strftime('%Y-%m-%d %H:%M') }}
+                                </small>
+                            </div>
+                            <div class="mt-2">
+                                <span class="me-3">
+                                    <i class="fas fa-{% if visitor.device == 'mobile' %}mobile-alt device-mobile{% elif visitor.device == 'tablet' %}tablet-alt device-tablet{% elif visitor.device == 'desktop' %}desktop device-desktop{% elif visitor.device == 'bot' %}robot device-bot{% else %}question-circle{% endif %} device-icon"></i>
+                                    {{ visitor.device }}
+                                </span>
+                                <span class="me-3">
+                                    <i class="fab fa-{% if 'chrome' in visitor.browser|lower %}chrome{% elif 'firefox' in visitor.browser|lower %}firefox{% elif 'safari' in visitor.browser|lower %}safari{% elif 'edge' in visitor.browser|lower %}edge{% elif 'ie' in visitor.browser|lower or 'explorer' in visitor.browser|lower %}internet-explorer{% else %}globe{% endif %}"></i>
+                                    {{ visitor.browser }}
+                                </span>
+                                <span>
+                                    <i class="fab fa-{% if 'windows' in visitor.os|lower %}windows{% elif 'mac' in visitor.os|lower or 'ios' in visitor.os|lower %}apple{% elif 'android' in visitor.os|lower %}android{% elif 'linux' in visitor.os|lower %}linux{% else %}globe{% endif %}"></i>
+                                    {{ visitor.os }}
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{{ url_for('analytics.ip_lookup') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-search me-1"></i> بحث عن عنوان IP
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // بيانات الرسوم البيانية
+        const stats = {{ stats|tojson|safe }};
+        
+        // ألوان للرسوم البيانية
+        const colors = [
+            '#4e73df',
+            '#1cc88a',
+            '#36b9cc',
+            '#f6c23e',
+            '#e74a3b',
+            '#fd7e14',
+            '#6f42c1',
+            '#20c997',
+            '#6c757d',
+            '#17a2b8'
+        ];
+        
+        // رسم بياني للأجهزة
+        const devicesData = stats.devices || {};
+        const devicesCtx = document.getElementById('devicesChart').getContext('2d');
+        new Chart(devicesCtx, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(devicesData),
+                datasets: [{
+                    data: Object.values(devicesData),
+                    backgroundColor: colors.slice(0, Object.keys(devicesData).length),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                    }
+                }
+            }
+        });
+        
+        // رسم بياني للمتصفحات
+        const browsersData = stats.browsers || {};
+        const browsersCtx = document.getElementById('browsersChart').getContext('2d');
+        new Chart(browsersCtx, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(browsersData),
+                datasets: [{
+                    data: Object.values(browsersData),
+                    backgroundColor: colors.slice(0, Object.keys(browsersData).length),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                    }
+                }
+            }
+        });
+        
+        // رسم بياني لأنظمة التشغيل
+        const osData = stats.operating_systems || {};
+        const osCtx = document.getElementById('osChart').getContext('2d');
+        new Chart(osCtx, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(osData),
+                datasets: [{
+                    data: Object.values(osData),
+                    backgroundColor: colors.slice(0, Object.keys(osData).length),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

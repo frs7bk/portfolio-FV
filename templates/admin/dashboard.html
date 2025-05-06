@@ -1,0 +1,329 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}لوحة التحكم - موقع فراس{% endblock %}
+
+{% block page_title %}لوحة التحكم{% endblock %}
+
+{% block admin_content %}
+<!-- إحصائيات لوحة التحكم -->
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-4">
+  <div class="col">
+    <div class="stats-card text-center position-relative">
+      <div class="icon">
+        <i class="fas fa-briefcase"></i>
+      </div>
+      <div class="number">{{ services_count }}</div>
+      <div class="label">الخدمات</div>
+      <a href="{{ url_for('admin_service_content') }}" class="stretched-link" title="إدارة الخدمات"></a>
+    </div>
+  </div>
+  <div class="col">
+    <div class="stats-card text-center position-relative">
+      <div class="icon">
+        <i class="fas fa-layer-group"></i>
+      </div>
+      <div class="number">{{ sections_count }}</div>
+      <div class="label">الأقسام</div>
+      <a href="{{ url_for('admin_content') }}" class="stretched-link" title="إدارة الأقسام"></a>
+    </div>
+  </div>
+  <div class="col">
+    <div class="stats-card text-center position-relative">
+      <div class="icon">
+        <i class="fas fa-file-alt"></i>
+      </div>
+      <div class="number">{{ contents_count }}</div>
+      <div class="label">عناصر المحتوى</div>
+      <a href="{{ url_for('admin_content') }}" class="stretched-link" title="إدارة المحتوى"></a>
+    </div>
+  </div>
+  <div class="col">
+    <div class="stats-card text-center position-relative">
+      {% if pending_testimonials > 0 %}
+      <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+        {{ pending_testimonials }}
+        <span class="visually-hidden">تقييمات جديدة</span>
+      </span>
+      {% endif %}
+      <div class="icon">
+        <i class="fas fa-comments"></i>
+      </div>
+      <div class="number">{{ testimonials_count }}</div>
+      <div class="label">التقييمات</div>
+      <a href="{{ url_for('admin_testimonials') }}" class="stretched-link" title="إدارة التقييمات"></a>
+    </div>
+  </div>
+  <div class="col">
+    <div class="stats-card text-center position-relative">
+      {% if pending_portfolio_comments > 0 %}
+      <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+        {{ pending_portfolio_comments }}
+        <span class="visually-hidden">تعليقات جديدة</span>
+      </span>
+      {% endif %}
+      <div class="icon">
+        <i class="fas fa-comment-alt"></i>
+      </div>
+      <div class="number">{{ pending_portfolio_comments }}</div>
+      <div class="label">تعليقات في الانتظار</div>
+      <a href="{{ url_for('admin_portfolio_comments') }}" class="stretched-link" title="إدارة التعليقات"></a>
+    </div>
+  </div>
+  <div class="col">
+    <div class="stats-card text-center position-relative">
+      <div class="icon">
+        <i class="fas fa-share-alt"></i>
+      </div>
+      <div class="number">{{ active_social_media_count }}/{{ social_media_count }}</div>
+      <div class="label">وسائل التواصل الاجتماعي</div>
+      <a href="{{ url_for('admin_social_media') }}" class="stretched-link" title="إدارة وسائل التواصل"></a>
+    </div>
+  </div>
+</div>
+
+<!-- الإجراءات السريعة -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card border-secondary">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0 gradient-text"><i class="fas fa-bolt me-2"></i> إجراءات سريعة</h6>
+      </div>
+      <div class="card-body">
+        <div class="d-flex flex-wrap gap-2">
+          <a href="{{ url_for('admin_content') }}" class="btn btn-primary">
+            <i class="fas fa-edit me-1"></i> تعديل المحتوى
+          </a>
+          <a href="{{ url_for('admin_add_service') }}" class="btn btn-primary">
+            <i class="fas fa-plus-circle me-1"></i> إضافة خدمة جديدة
+          </a>
+          <a href="{{ url_for('admin_profile') }}" class="btn btn-primary">
+            <i class="fas fa-user-cog me-1"></i> الملف الشخصي
+          </a>
+          <a href="{{ url_for('admin_portfolio_management') }}" class="btn btn-primary">
+            <i class="fas fa-images me-1"></i> معرض الأعمال
+          </a>
+          <a href="/" target="_blank" class="btn btn-outline-primary">
+            <i class="fas fa-eye me-1"></i> معاينة الموقع
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- محتوى الموقع الرئيسي -->
+<div class="row">
+  <div class="col-12 mb-4">
+    <div class="content-card">
+      <h5 class="card-title d-flex justify-content-between">
+        <span><i class="fas fa-th-large me-2"></i> محتوى الصفحة الرئيسية</span>
+        <button class="btn btn-sm btn-outline-primary refresh-content">
+          <i class="fas fa-sync-alt"></i> تحديث
+        </button>
+      </h5>
+      <div class="p-3 rounded">
+        <div class="row g-4">
+          <!-- قسم الترحيب -->
+          <div class="col-md-6">
+            <div class="card h-100">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 gradient-text"><i class="fas fa-home me-2"></i> قسم الترحيب</h6>
+                <a href="{{ url_for('admin_edit_content', section_id=1) }}" class="btn btn-sm btn-outline-primary">
+                  <i class="fas fa-edit"></i> تعديل
+                </a>
+              </div>
+              <div class="card-body">
+                <h5 class="gradient-text">العنوان الرئيسي</h5>
+                <p class="text-light mb-3">مرحباً بك في معرض أعمال فراس</p>
+                <h5 class="gradient-text">الوصف</h5>
+                <p class="text-muted">خبرة في التصميم الجرافيكي والهوية البصرية</p>
+                <hr class="border-secondary">
+                <a href="/" target="_blank" class="btn btn-sm btn-outline-light">
+                  <i class="fas fa-eye me-1"></i> عرض في الموقع
+                </a>
+              </div>
+            </div>
+          </div>
+          
+          <!-- من أنا -->
+          <div class="col-md-6">
+            <div class="card h-100">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 gradient-text"><i class="fas fa-user me-2"></i> قسم من أنا</h6>
+                <a href="{{ url_for('admin_edit_content', section_id=2) }}" class="btn btn-sm btn-outline-primary">
+                  <i class="fas fa-edit"></i> تعديل
+                </a>
+              </div>
+              <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                  <div class="flex-shrink-0">
+                    <img src="https://source.unsplash.com/400x300/?about,person" class="rounded-circle" width="60" height="60" alt="صورة شخصية">
+                  </div>
+                  <div class="flex-grow-1 ms-3">
+                    <h5 class="gradient-text">من أنا؟</h5>
+                    <p class="text-muted small mb-0">أنا <strong class="text-light">فراس</strong>، مصمم جرافيك جزائري متخصص في تقديم حلول بصرية عالية الاحترافية.</p>
+                  </div>
+                </div>
+                <hr class="border-secondary">
+                <a href="/#about" target="_blank" class="btn btn-sm btn-outline-light">
+                  <i class="fas fa-eye me-1"></i> عرض في الموقع
+                </a>
+              </div>
+            </div>
+          </div>
+          
+          <!-- الخدمات -->
+          <div class="col-md-12">
+            <div class="card">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 gradient-text"><i class="fas fa-briefcase me-2"></i> الخدمات ({{ services_count }})</h6>
+                <a href="{{ url_for('admin_service_content') }}" class="btn btn-sm btn-outline-primary">
+                  <i class="fas fa-cog"></i> إدارة الخدمات
+                </a>
+              </div>
+              <div class="card-body p-0">
+                <div class="table-responsive">
+                  <table class="table table-dark table-hover mb-0">
+                    <thead>
+                      <tr>
+                        <th scope="col" width="50">#</th>
+                        <th scope="col">الخدمة</th>
+                        <th scope="col">الوصف</th>
+                        <th scope="col" width="100">الإجراءات</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for service in services %}
+                      <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ service.title }}</td>
+                        <td class="text-muted small">{{ service.subtitle }}</td>
+                        <td>
+                          <a href="{{ url_for('admin_edit_service', service_type=service.service_type) }}" class="btn btn-sm btn-outline-info">
+                            <i class="fas fa-edit"></i>
+                          </a>
+                          <a href="/service/{{ service.service_type }}" target="_blank" class="btn btn-sm btn-outline-light">
+                            <i class="fas fa-eye"></i>
+                          </a>
+                        </td>
+                      </tr>
+                      {% else %}
+                      <tr>
+                        <td colspan="4" class="text-center py-3">
+                          <p class="text-muted mb-0">لا توجد خدمات حالياً.</p>
+                          <a href="{{ url_for('admin_add_service') }}" class="btn btn-sm btn-primary mt-2">
+                            <i class="fas fa-plus"></i> إضافة خدمة جديدة
+                          </a>
+                        </td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- صف النشاط الأخير والإجراءات السريعة -->
+<div class="row">
+  <div class="col-md-7 mb-4">
+    <div class="content-card">
+      <h5 class="card-title">
+        <i class="fas fa-history me-2"></i>
+        النشاط الأخير
+      </h5>
+      <div class="p-3 rounded">
+        {% if pending_portfolio_comments %}
+        <div class="activity-item d-flex align-items-start mb-3">
+          <div class="activity-icon bg-info text-white rounded-circle p-2 me-3">
+            <i class="fas fa-comment-alt"></i>
+          </div>
+          <div>
+            <div class="activity-title">تعليقات جديدة على معرض الأعمال</div>
+            <div class="text-muted small">{{ pending_portfolio_comments }} تعليق في انتظار الموافقة</div>
+          </div>
+        </div>
+        {% endif %}
+        
+        {% if pending_testimonials > 0 %}
+        <div class="activity-item d-flex align-items-start mb-3">
+          <div class="activity-icon bg-primary text-white rounded-circle p-2 me-3">
+            <i class="fas fa-comment-alt"></i>
+          </div>
+          <div>
+            <div class="activity-title">تقييمات جديدة في الانتظار</div>
+            <div class="text-muted small">{{ pending_testimonials }} تقييم في انتظار الموافقة</div>
+          </div>
+        </div>
+        {% endif %}
+        
+        <div class="activity-item d-flex align-items-start mb-3">
+          <div class="activity-icon bg-success text-white rounded-circle p-2 me-3">
+            <i class="fas fa-user"></i>
+          </div>
+          <div>
+            <div class="activity-title">تم تسجيل الدخول إلى لوحة التحكم</div>
+            <div class="text-muted small">منذ دقائق</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-5 mb-4">
+    <div class="content-card">
+      <h5 class="card-title">
+        <i class="fas fa-bolt me-2"></i>
+        إجراءات سريعة
+      </h5>
+      <div class="d-grid gap-2">
+        <a href="{{ url_for('admin_add_service') }}" class="btn btn-primary d-flex justify-content-between align-items-center">
+          <span><i class="fas fa-plus me-2"></i> إضافة خدمة جديدة</span>
+          <i class="fas fa-chevron-left"></i>
+        </a>
+        <a href="{{ url_for('admin_portfolio_management') }}" class="btn btn-info d-flex justify-content-between align-items-center">
+          <span><i class="fas fa-images me-2"></i> إدارة معرض الأعمال</span>
+          <i class="fas fa-chevron-left"></i>
+        </a>
+        <a href="{{ url_for('admin_content') }}" class="btn btn-outline-light d-flex justify-content-between align-items-center">
+          <span><i class="fas fa-edit me-2"></i> تعديل محتوى الموقع</span>
+          <i class="fas fa-chevron-left"></i>
+        </a>
+        <a href="{{ url_for('admin_testimonials') }}" class="btn btn-outline-light d-flex justify-content-between align-items-center">
+          <span><i class="fas fa-comments me-2"></i> مراجعة التقييمات</span>
+          <i class="fas fa-chevron-left"></i>
+        </a>
+        {% if pending_testimonials > 0 %}
+        <a href="{{ url_for('admin_testimonials') }}" class="btn btn-primary d-flex justify-content-between align-items-center">
+          <span><i class="fas fa-exclamation-circle me-2"></i> {{ pending_testimonials }} تقييمات بانتظار المراجعة</span>
+          <i class="fas fa-chevron-left"></i>
+        </a>
+        {% endif %}
+        <a href="{{ url_for('admin_portfolio_comments') }}" class="btn btn-outline-light d-flex justify-content-between align-items-center">
+          <span><i class="fas fa-comment-alt me-2"></i> مراجعة تعليقات معرض الأعمال</span>
+          <i class="fas fa-chevron-left"></i>
+        </a>
+        {% if pending_portfolio_comments > 0 %}
+        <a href="{{ url_for('admin_portfolio_comments') }}" class="btn btn-info d-flex justify-content-between align-items-center">
+          <span><i class="fas fa-exclamation-circle me-2"></i> {{ pending_portfolio_comments }} تعليقات بانتظار المراجعة</span>
+          <i class="fas fa-chevron-left"></i>
+        </a>
+        {% endif %}
+        <a href="{{ url_for('admin_profile') }}" class="btn btn-outline-light d-flex justify-content-between align-items-center">
+          <span><i class="fas fa-user-cog me-2"></i> إعدادات الحساب</span>
+          <i class="fas fa-chevron-left"></i>
+        </a>
+        <a href="/" class="btn btn-outline-primary d-flex justify-content-between align-items-center">
+          <span><i class="fas fa-eye me-2"></i> معاينة الموقع</span>
+          <i class="fas fa-chevron-left"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

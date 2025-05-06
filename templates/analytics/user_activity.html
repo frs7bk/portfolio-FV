@@ -1,0 +1,350 @@
+{% extends "admin/admin_layout.html" %}
+
+{% block title %}نشاطات المستخدم{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    .activity-timeline {
+        position: relative;
+        padding-right: 30px;
+    }
+    
+    .activity-timeline::before {
+        content: '';
+        position: absolute;
+        right: 14px;
+        top: 0;
+        height: 100%;
+        width: 2px;
+        background-color: #e9ecef;
+    }
+    
+    .activity-item {
+        position: relative;
+        padding-right: 35px;
+        margin-bottom: 1.5rem;
+    }
+    
+    .activity-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .activity-icon {
+        position: absolute;
+        right: -15px;
+        top: 0;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background-color: #f8f9fa;
+        border: 2px solid #e9ecef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1;
+    }
+    
+    .activity-icon i {
+        font-size: 14px;
+    }
+    
+    .activity-icon.view {
+        background-color: #cff4fc;
+        border-color: #0dcaf0;
+        color: #0dcaf0;
+    }
+    
+    .activity-icon.like {
+        background-color: #d1e7dd;
+        border-color: #198754;
+        color: #198754;
+    }
+    
+    .activity-icon.comment {
+        background-color: #fff3cd;
+        border-color: #ffc107;
+        color: #ffc107;
+    }
+    
+    .activity-icon.login {
+        background-color: #cfe2ff;
+        border-color: #0d6efd;
+        color: #0d6efd;
+    }
+    
+    .activity-content {
+        background-color: #fff;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        padding: 1rem;
+    }
+    
+    .activity-time {
+        color: #6c757d;
+        font-size: 0.875rem;
+    }
+    
+    .activity-details {
+        margin-top: 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    .user-info-card {
+        background-color: #fff;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .user-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">نشاطات المستخدم</h1>
+        <a href="{{ url_for('analytics.dashboard') }}" class="btn btn-outline-primary">
+            <i class="fas fa-chart-line me-2"></i> العودة إلى لوحة الإحصائيات
+        </a>
+    </div>
+    
+    <!-- معلومات المستخدم -->
+    <div class="user-info-card">
+        <div class="row align-items-center">
+            <div class="col-md-2 text-center">
+                {% if user.avatar_url %}
+                <img src="{{ user.avatar_url }}" alt="{{ user.username }}" class="user-avatar">
+                {% else %}
+                <div class="user-avatar d-flex align-items-center justify-content-center bg-primary text-white">
+                    <span style="font-size: 2rem;">{{ user.username[0]|upper }}</span>
+                </div>
+                {% endif %}
+            </div>
+            <div class="col-md-6">
+                <h4>{{ user.display_name or user.username }}</h4>
+                <p class="text-muted mb-1">{{ user.email }}</p>
+                <p class="text-muted mb-0">
+                    <span class="badge {% if user.is_admin() %}bg-danger{% else %}bg-info{% endif %}">
+                        {% if user.is_admin() %}مدير{% else %}مستخدم{% endif %}
+                    </span>
+                    <span class="badge {% if user.is_active %}bg-success{% else %}bg-warning{% endif %} ms-1">
+                        {% if user.is_active %}نشط{% else %}غير نشط{% endif %}
+                    </span>
+                </p>
+            </div>
+            <div class="col-md-4">
+                <div class="row text-center g-2">
+                    <div class="col-4">
+                        <div class="p-3 border rounded">
+                            <div class="h4 mb-0" id="likes-count">
+                                {{ activities|selectattr('activity_type', 'equalto', 'like')|list|length }}
+                            </div>
+                            <div class="small text-muted">إعجابات</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-3 border rounded">
+                            <div class="h4 mb-0" id="comments-count">
+                                {{ activities|selectattr('activity_type', 'equalto', 'comment')|list|length }}
+                            </div>
+                            <div class="small text-muted">تعليقات</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-3 border rounded">
+                            <div class="h4 mb-0" id="views-count">
+                                {{ activities|selectattr('activity_type', 'equalto', 'view')|list|length }}
+                            </div>
+                            <div class="small text-muted">مشاهدات</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- تصفية النشاطات -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-3">
+                    <h5 class="mb-0">تصفية النشاطات</h5>
+                </div>
+                <div class="col-md-9">
+                    <div class="d-flex flex-wrap gap-2">
+                        <button class="btn btn-sm btn-outline-primary filter-btn active" data-filter="all">
+                            الكل
+                        </button>
+                        <button class="btn btn-sm btn-outline-info filter-btn" data-filter="view">
+                            <i class="fas fa-eye me-1"></i> المشاهدات
+                        </button>
+                        <button class="btn btn-sm btn-outline-success filter-btn" data-filter="like">
+                            <i class="fas fa-heart me-1"></i> الإعجابات
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning filter-btn" data-filter="comment">
+                            <i class="fas fa-comment me-1"></i> التعليقات
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary filter-btn" data-filter="login">
+                            <i class="fas fa-sign-in-alt me-1"></i> تسجيل الدخول
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- قائمة النشاطات -->
+    <div class="activity-timeline">
+        {% for activity in activities %}
+        <div class="activity-item" data-activity-type="{{ activity.activity_type }}">
+            <div class="activity-icon {{ activity.activity_type.split('_')[0] }}">
+                {% if 'view' in activity.activity_type %}
+                <i class="fas fa-eye"></i>
+                {% elif 'like' in activity.activity_type %}
+                <i class="fas fa-heart"></i>
+                {% elif 'comment' in activity.activity_type %}
+                <i class="fas fa-comment"></i>
+                {% elif 'login' in activity.activity_type %}
+                <i class="fas fa-sign-in-alt"></i>
+                {% else %}
+                <i class="fas fa-circle"></i>
+                {% endif %}
+            </div>
+            
+            <div class="activity-content">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">
+                        {% if 'view' in activity.activity_type %}
+                            <span class="text-info">شاهد</span>
+                            {% if activity.resource_type == 'portfolio' %}
+                                <span>مشروع</span>
+                            {% elif activity.resource_type == 'page' %}
+                                <span>صفحة</span>
+                            {% endif %}
+                        {% elif 'like' in activity.activity_type %}
+                            <span class="text-success">أعجب بـ</span>
+                            {% if activity.resource_type == 'portfolio' %}
+                                <span>مشروع</span>
+                            {% elif activity.resource_type == 'comment' %}
+                                <span>تعليق</span>
+                            {% endif %}
+                        {% elif 'comment' in activity.activity_type %}
+                            <span class="text-warning">علق على</span>
+                            <span>مشروع</span>
+                        {% elif activity.activity_type == 'login' %}
+                            <span class="text-primary">قام بتسجيل الدخول</span>
+                        {% elif activity.activity_type == 'register' %}
+                            <span class="text-primary">قام بإنشاء حساب</span>
+                        {% else %}
+                            <span>{{ activity.activity_type }}</span>
+                        {% endif %}
+                        
+                        {% if activity.resource_id %}
+                            <a href="#" class="text-decoration-none">ID: {{ activity.resource_id }}</a>
+                        {% endif %}
+                    </h6>
+                    <span class="activity-time">{{ activity.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                </div>
+                
+                <div class="activity-details">
+                    {% if activity.details %}
+                        {% if 'comment' in activity.activity_type and activity.details|tojson|from_json.content %}
+                            <div class="mt-2 p-2 bg-light rounded">
+                                <small>{{ activity.details|tojson|from_json.content }}</small>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                    
+                    <div class="mt-2 d-flex justify-content-between align-items-center">
+                        <small class="text-muted">IP: {{ activity.ip_address or 'غير معروف' }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            لا توجد نشاطات مسجلة لهذا المستخدم.
+        </div>
+        {% endfor %}
+    </div>
+    
+    {% if activities|length > 10 %}
+    <div class="d-flex justify-content-center mt-4">
+        <button class="btn btn-outline-primary load-more-btn">
+            <i class="fas fa-sync-alt me-2"></i> تحميل المزيد
+        </button>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // تصفية النشاطات
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const activityItems = document.querySelectorAll('.activity-item');
+        
+        filterButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // إزالة الحالة النشطة من جميع الأزرار
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                // إضافة الحالة النشطة للزر المضغوط
+                this.classList.add('active');
+                
+                const filter = this.getAttribute('data-filter');
+                
+                activityItems.forEach(item => {
+                    if (filter === 'all') {
+                        item.style.display = 'block';
+                    } else {
+                        const activityType = item.getAttribute('data-activity-type');
+                        if (activityType.includes(filter)) {
+                            item.style.display = 'block';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    }
+                });
+            });
+        });
+        
+        // عرض أول 10 نشاطات فقط عند التحميل
+        let visibleCount = 10;
+        if (activityItems.length > visibleCount) {
+            for (let i = visibleCount; i < activityItems.length; i++) {
+                activityItems[i].style.display = 'none';
+            }
+            
+            // زر تحميل المزيد
+            const loadMoreBtn = document.querySelector('.load-more-btn');
+            if (loadMoreBtn) {
+                loadMoreBtn.addEventListener('click', function() {
+                    let newVisibleCount = visibleCount + 10;
+                    
+                    // عرض النشاطات الإضافية
+                    for (let i = visibleCount; i < newVisibleCount && i < activityItems.length; i++) {
+                        activityItems[i].style.display = 'block';
+                    }
+                    
+                    visibleCount = newVisibleCount;
+                    
+                    // إخفاء الزر إذا تم عرض جميع النشاطات
+                    if (visibleCount >= activityItems.length) {
+                        loadMoreBtn.style.display = 'none';
+                    }
+                });
+            }
+        }
+    });
+</script>
+{% endblock %}

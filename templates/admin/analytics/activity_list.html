@@ -1,0 +1,145 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}قائمة النشاطات | لوحة التحكم{% endblock %}
+
+{% block page_title %}قائمة النشاطات{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+  <div class="btn-toolbar mb-2 mb-md-0">
+    <div class="btn-group me-2">
+      <button id="refreshBtn" class="btn btn-sm btn-outline-secondary">
+        <i class="fas fa-sync-alt"></i> تحديث
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-12">
+    <div class="card shadow">
+      <div class="card-header">
+        <h5 class="card-title mb-0">آخر النشاطات المسجلة على الموقع</h5>
+      </div>
+      <div class="card-body">
+        <div class="mb-3">
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            يتم تسجيل جميع النشاطات الهامة للمستخدمين والزوار على الموقع
+          </div>
+        </div>
+        
+        <div class="table-responsive">
+          <table class="table table-striped table-hover table-sm">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>نوع النشاط</th>
+                <th>المستخدم</th>
+                <th>التفاصيل</th>
+                <th>التاريخ والوقت</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for activity in activities.items %}
+              <tr>
+                <td>{{ activity.id }}</td>
+                <td>
+                  {% if activity.activity_type == 'view_portfolio' %}
+                    <span class="badge bg-info">مشاهدة مشروع</span>
+                  {% elif activity.activity_type == 'like_portfolio' %}
+                    <span class="badge bg-primary">إعجاب بمشروع</span>
+                  {% elif activity.activity_type == 'comment_portfolio' %}
+                    <span class="badge bg-success">تعليق على مشروع</span>
+                  {% elif activity.activity_type == 'like_comment' %}
+                    <span class="badge bg-warning">إعجاب بتعليق</span>
+                  {% elif activity.activity_type == 'login' %}
+                    <span class="badge bg-secondary">تسجيل دخول</span>
+                  {% elif activity.activity_type == 'register' %}
+                    <span class="badge bg-dark">تسجيل حساب جديد</span>
+                  {% elif activity.activity_type == 'contact_form' %}
+                    <span class="badge bg-danger">استخدام نموذج التواصل</span>
+                  {% else %}
+                    <span class="badge bg-light text-dark">{{ activity.activity_type }}</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if activity.user_id %}
+                    <a href="{{ url_for('analytics.user_activity', user_id=activity.user_id) }}">
+                      {{ activity.user.username if activity.user else 'مستخدم محذوف' }}
+                    </a>
+                  {% else %}
+                    <span class="text-muted">زائر</span>
+                  {% endif %}
+                </td>
+                <td>{{ activity.details }}</td>
+                <td class="text-nowrap">{{ activity.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="5" class="text-center py-4">
+                  <div class="alert alert-secondary">
+                    لا توجد نشاطات مسجلة بعد.
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        
+        <nav aria-label="Page navigation">
+          <ul class="pagination justify-content-center mt-4">
+            {% if activities.has_prev %}
+              <li class="page-item">
+                <a class="page-link" href="{{ url_for('analytics.activity_list', page=activities.prev_num) }}">السابق</a>
+              </li>
+            {% else %}
+              <li class="page-item disabled">
+                <a class="page-link" href="#" tabindex="-1">السابق</a>
+              </li>
+            {% endif %}
+            
+            {% for page_num in activities.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+              {% if page_num %}
+                {% if page_num == activities.page %}
+                  <li class="page-item active">
+                    <a class="page-link" href="#">{{ page_num }}</a>
+                  </li>
+                {% else %}
+                  <li class="page-item">
+                    <a class="page-link" href="{{ url_for('analytics.activity_list', page=page_num) }}">{{ page_num }}</a>
+                  </li>
+                {% endif %}
+              {% else %}
+                <li class="page-item disabled">
+                  <a class="page-link" href="#">...</a>
+                </li>
+              {% endif %}
+            {% endfor %}
+            
+            {% if activities.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="{{ url_for('analytics.activity_list', page=activities.next_num) }}">التالي</a>
+              </li>
+            {% else %}
+              <li class="page-item disabled">
+                <a class="page-link" href="#" tabindex="-1">التالي</a>
+              </li>
+            {% endif %}
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // زر تحديث الصفحة
+    document.getElementById('refreshBtn').addEventListener('click', function() {
+      window.location.reload();
+    });
+  });
+</script>
+{% endblock %}

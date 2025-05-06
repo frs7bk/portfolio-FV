@@ -1,0 +1,81 @@
+<!-- قالب جديد لتضمين ملفات السكريبت العامة -->
+<script>
+    // فحص الصفحة الحالية والحاجة لتحميل سكريبت النوافذ المنبثقة
+    (function() {
+        // تحديد صفحات المعرض
+        const isPortfolioPage = window.location.pathname.includes('/instagram') || 
+                                window.location.pathname.includes('/portfolio');
+        
+        // إذا كنا في صفحة المعرض، نقوم بتحميل سكريبت إصلاح النوافذ المنبثقة
+        if (isPortfolioPage) {
+            console.log("تحميل إصلاح النوافذ المنبثقة في معرض الأعمال");
+            
+            // إضافة السكريبت فقط إذا لم يتم تحميله من قبل
+            if (!document.querySelector('script[src*="portfolio-modal-fix.js"]')) {
+                const script = document.createElement('script');
+                script.src = '/static/js/portfolio-modal-fix.js';
+                script.defer = true;
+                document.head.appendChild(script);
+                
+                // إضافة سكريبت إضافي للتأكد من تحميل السكريبت
+                setTimeout(function() {
+                    console.log("التحقق من تحميل إصلاح النوافذ المنبثقة...");
+                    if (typeof window.openPortfolioModal !== 'function') {
+                        console.log("لم يتم تحميل الإصلاح بشكل صحيح، إعادة المحاولة...");
+                        const script2 = document.createElement('script');
+                        script2.innerHTML = `
+                            // وظيفة بديلة إذا لم يتم تحميل السكريبت الأصلي
+                            window.openPortfolioModal = function(itemId) {
+                                console.log("فتح المشروع بالمعرف:", itemId);
+                                
+                                fetch('/instagram/api/portfolio/' + itemId + '/details')
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.success) {
+                                            // فتح المودال
+                                            var modal = document.getElementById('portfolio-modal');
+                                            if (modal) {
+                                                modal.style.display = 'block';
+                                                document.body.style.overflow = 'hidden';
+                                                
+                                                // تعيين البيانات
+                                                var img = document.getElementById('modal-image');
+                                                if (img) img.src = data.item.image_url;
+                                                
+                                                var title = document.getElementById('modal-title');
+                                                if (title) title.textContent = data.item.title;
+                                                
+                                                var cat = document.getElementById('modal-category');
+                                                if (cat) cat.textContent = data.item.category;
+                                                
+                                                var desc = document.getElementById('modal-description');
+                                                if (desc) desc.innerHTML = data.item.description;
+                                            }
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('خطأ في تحميل تفاصيل المشروع:', error);
+                                    });
+                            };
+                            
+                            // التأكد من وجود معالج لإغلاق المودال
+                            document.addEventListener('DOMContentLoaded', function() {
+                                var closeBtn = document.getElementById('close-modal');
+                                if (closeBtn) {
+                                    closeBtn.addEventListener('click', function() {
+                                        var modal = document.getElementById('portfolio-modal');
+                                        if (modal) {
+                                            modal.style.display = 'none';
+                                            document.body.style.overflow = '';
+                                        }
+                                    });
+                                }
+                            });
+                        `;
+                        document.head.appendChild(script2);
+                    }
+                }, 1000);
+            }
+        }
+    })();
+</script>

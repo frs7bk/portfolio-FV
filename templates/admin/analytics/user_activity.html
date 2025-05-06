@@ -1,0 +1,123 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}نشاطات المستخدم | لوحة التحكم{% endblock %}
+
+{% block page_title %}نشاطات المستخدم {{ user.username }}{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+  <div class="btn-toolbar mb-2 mb-md-0">
+    <div class="btn-group me-2">
+      <a href="{{ url_for('analytics.activity_list') }}" class="btn btn-sm btn-outline-secondary">
+        <i class="fas fa-arrow-right"></i> العودة إلى قائمة النشاطات
+      </a>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-4">
+    <div class="card mb-4 shadow">
+      <div class="card-header">
+        <h5 class="card-title mb-0">معلومات المستخدم</h5>
+      </div>
+      <div class="card-body">
+        {% if user.avatar %}
+        <div class="text-center mb-3">
+          <img src="{{ url_for('static', filename='uploads/avatars/' + user.avatar) }}" alt="{{ user.username }}" class="img-fluid rounded-circle" style="width: 120px; height: 120px; object-fit: cover;">
+        </div>
+        {% endif %}
+        
+        <div class="mb-3">
+          <h5 class="font-weight-bold">{{ user.username }}</h5>
+          <p class="text-muted">{{ user.email }}</p>
+        </div>
+        
+        <div class="mb-0">
+          <strong>تاريخ التسجيل:</strong>
+          <p>{{ user.created_at.strftime('%Y-%m-%d') }}</p>
+        </div>
+        
+        <div class="mb-0">
+          <strong>الحالة:</strong>
+          <p>
+            {% if user.is_active %}
+              <span class="badge bg-success">نشط</span>
+            {% else %}
+              <span class="badge bg-danger">غير نشط</span>
+            {% endif %}
+          </p>
+        </div>
+        
+        <div class="mb-0">
+          <strong>دور المستخدم:</strong>
+          <p>
+            {% if user.is_admin %}
+              <span class="badge bg-primary">مسؤول</span>
+            {% else %}
+              <span class="badge bg-secondary">مستخدم عادي</span>
+            {% endif %}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-8">
+    <div class="card shadow">
+      <div class="card-header">
+        <h5 class="card-title mb-0">قائمة النشاطات</h5>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-striped table-hover table-sm">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>نوع النشاط</th>
+                <th>التفاصيل</th>
+                <th>التاريخ والوقت</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for activity in activities %}
+              <tr>
+                <td>{{ activity.id }}</td>
+                <td>
+                  {% if activity.activity_type == 'view_portfolio' %}
+                    <span class="badge bg-info">مشاهدة مشروع</span>
+                  {% elif activity.activity_type == 'like_portfolio' %}
+                    <span class="badge bg-primary">إعجاب بمشروع</span>
+                  {% elif activity.activity_type == 'comment_portfolio' %}
+                    <span class="badge bg-success">تعليق على مشروع</span>
+                  {% elif activity.activity_type == 'like_comment' %}
+                    <span class="badge bg-warning">إعجاب بتعليق</span>
+                  {% elif activity.activity_type == 'login' %}
+                    <span class="badge bg-secondary">تسجيل دخول</span>
+                  {% elif activity.activity_type == 'register' %}
+                    <span class="badge bg-dark">تسجيل حساب جديد</span>
+                  {% elif activity.activity_type == 'contact_form' %}
+                    <span class="badge bg-danger">استخدام نموذج التواصل</span>
+                  {% else %}
+                    <span class="badge bg-light text-dark">{{ activity.activity_type }}</span>
+                  {% endif %}
+                </td>
+                <td>{{ activity.details }}</td>
+                <td class="text-nowrap">{{ activity.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="4" class="text-center py-4">
+                  <div class="alert alert-secondary">
+                    لا توجد نشاطات مسجلة لهذا المستخدم.
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

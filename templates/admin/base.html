@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>{% block title %}لوحة الإدارة - موقع فراس{% endblock %}</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}?v={{ range(1000, 9999) | random }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/loading-animations.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/unified-animations.css') }}?v={{ range(1000, 9999) | random }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-unified.css') }}?v={{ range(1000, 9999) | random }}">
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@lordicon/element@1.0.0/lord-icon-element.min.js"></script>
+  <script src="https://cdn.ckeditor.com/ckeditor5/34.1.0/classic/ckeditor.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+      background-color: #0f1116;
+      color: #fff;
+      direction: rtl;
+      overflow-x: hidden;
+    }
+    
+    /* تأثيرات خلفية مثل الموقع الأساسي */
+    .bg-pattern {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      opacity: 0.1;
+      pointer-events: none;
+    }
+    
+    .bg-gradient {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(circle at 0% 0%, rgba(99, 102, 241, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 100% 0%, rgba(139, 92, 246, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 50% 100%, rgba(59, 130, 246, 0.05) 0%, transparent 50%);
+      z-index: -2;
+      pointer-events: none;
+    }
+    
+    /* دعم تأثير الحركة المستمرة */
+    @keyframes floatingAnimation {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0); }
+    }
+    
+    .floating {
+      animation: floatingAnimation 7s ease-in-out infinite;
+    }
+  </style>
+  {% block head_extra %}{% endblock %}
+</head>
+<body>
+  <!-- تأثيرات خلفية -->
+  <div class="bg-pattern"></div>
+  <div class="bg-gradient"></div>
+  
+  {% block content %}{% endblock %}
+  
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+  <script src="{{ url_for('static', filename='js/admin.js') }}?v={{ range(1000, 9999) | random }}"></script>
+  <script src="{{ url_for('static', filename='js/loading-animations.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/portfolio-form.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/admin-notifications.js') }}"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // تهيئة تأثيرات AOS عند وجودها
+      if (typeof AOS !== 'undefined') {
+        AOS.init({
+          duration: 1200,
+          once: false
+        });
+      }
+      
+      // إضافة تأثير التنبيهات المتحركة
+      const alerts = document.querySelectorAll('.alert');
+      alerts.forEach(alert => {
+        alert.classList.add('animate__animated', 'animate__fadeInRight');
+        alert.addEventListener('close.bs.alert', function() {
+          this.classList.remove('animate__fadeInRight');
+          this.classList.add('animate__fadeOutRight');
+        });
+      });
+    });
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

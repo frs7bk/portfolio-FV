@@ -1,0 +1,164 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}إضافة مشروع جديد | لوحة التحكم{% endblock %}
+
+{% block head_extra %}
+<style>
+  .form-loading {
+    opacity: 0.7;
+    pointer-events: none;
+  }
+  .spinner-border {
+    width: 1rem;
+    height: 1rem;
+    margin-left: 0.5rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row">
+    <!-- Sidebar -->
+    {% include 'admin/sidebar.html' %}
+    
+    <!-- Main Content -->
+    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">
+          <i class="fas fa-plus-circle me-2"></i>
+          إضافة مشروع جديد
+        </h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+          <a href="{{ url_for('portfolio.admin_portfolio_management') }}" class="btn btn-sm btn-secondary">
+            <i class="fas fa-arrow-right me-1"></i>
+            العودة إلى معرض الأعمال
+          </a>
+        </div>
+      </div>
+
+      {% include 'admin/flash_messages.html' %}
+
+      <!-- Add Portfolio Item Form -->
+      <div class="card bg-dark border-secondary mb-4">
+        <div class="card-body">
+          <form action="{{ url_for('portfolio.add_portfolio_item') }}" method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="form_submitted" value="1">
+            
+            <div class="row g-3">
+              <div class="col-md-6 mb-3">
+                <label for="title" class="form-label">عنوان المشروع *</label>
+                <input type="text" class="form-control bg-dark text-white border-secondary" id="title" name="title" required>
+                <div class="invalid-feedback">
+                  يرجى إدخال عنوان للمشروع
+                </div>
+              </div>
+              
+              <div class="col-md-6 mb-3">
+                <label for="title_en" class="form-label">عنوان المشروع (بالإنجليزية)</label>
+                <input type="text" class="form-control bg-dark text-white border-secondary" id="title_en" name="title_en">
+              </div>
+              
+              <div class="col-md-6 mb-3">
+                <label for="category" class="form-label">الفئة *</label>
+                <input type="text" class="form-control bg-dark text-white border-secondary" id="category" name="category" required>
+                <div class="invalid-feedback">
+                  يرجى إدخال فئة المشروع
+                </div>
+                <div class="form-text text-muted">
+                  مثال: تصميم، برمجة، تسويق، الخ.
+                </div>
+              </div>
+              
+              <div class="col-md-6 mb-3">
+                <label for="link" class="form-label">رابط المشروع</label>
+                <input type="url" class="form-control bg-dark text-white border-secondary" id="link" name="link">
+              </div>
+              
+              <div class="col-12 mb-3">
+                <label for="description" class="form-label">وصف المشروع *</label>
+                <textarea class="form-control bg-dark text-white border-secondary" id="description" name="description" rows="4" required></textarea>
+                <div class="invalid-feedback">
+                  يرجى إدخال وصف للمشروع
+                </div>
+              </div>
+              
+              <div class="col-12 mb-3">
+                <label for="description_en" class="form-label">وصف المشروع (بالإنجليزية)</label>
+                <textarea class="form-control bg-dark text-white border-secondary" id="description_en" name="description_en" rows="4"></textarea>
+              </div>
+              
+              <div class="col-12 mb-3">
+                <label for="image" class="form-label">صورة المشروع *</label>
+                <input class="form-control bg-dark text-white border-secondary" type="file" id="image" name="image" accept="image/*" required>
+                <div class="invalid-feedback">
+                  يرجى اختيار صورة للمشروع
+                </div>
+                <div class="form-text text-muted">
+                  الصورة المميزة للمشروع. يفضل أن تكون بأبعاد مناسبة (1200×800 بكسل).
+                </div>
+              </div>
+              
+              <div class="col-12 mt-3">
+                <button type="submit" class="btn btn-primary submit-btn">
+                  <i class="fas fa-save me-1"></i>
+                  حفظ المشروع
+                </button>
+                <a href="{{ url_for('portfolio.admin_portfolio_management') }}" class="btn btn-secondary ms-2">
+                  <i class="fas fa-times me-1"></i>
+                  إلغاء
+                </a>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // تعطيل التحقق المضمن للمتصفح ثم استخدام التحقق اليدوي
+  var forms = document.querySelectorAll('.needs-validation');
+  
+  // نمنع تسجيل الحدث أكثر من مرة
+  if (!window.formValidationInitialized) {
+    window.formValidationInitialized = true;
+    
+    console.log('Form validation initialized');
+    
+    Array.prototype.forEach.call(forms, function(form) {
+      form.addEventListener('submit', function(event) {
+        console.log('Form submission event triggered');
+        
+        if (!form.checkValidity()) {
+          event.preventDefault();
+          event.stopPropagation();
+          console.log('Form is invalid, preventing submission');
+        } else {
+          console.log('Form is valid, proceeding with submission');
+          
+          // إظهار مؤشر التحميل وتعطيل الزر
+          var submitBtn = form.querySelector('.submit-btn');
+          if (submitBtn) {
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> جاري الحفظ...';
+            submitBtn.disabled = true;
+          }
+          
+          // عرض أنيميشن التحميل إذا كان متاحًا
+          if (window.loadingAnimation) {
+            window.loadingAnimation.show();
+          }
+        }
+        
+        form.classList.add('was-validated');
+      }, false);
+    });
+  }
+});
+</script>
+{% endblock %}

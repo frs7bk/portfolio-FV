@@ -1,0 +1,119 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}إعدادات تيليجرام | لوحة التحكم{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="row">
+    <div class="col-12">
+      <div class="card bg-dark shadow-soft border-light mb-4">
+        <div class="card-header bg-dark pb-0 text-right">
+          <div class="d-flex align-items-center justify-content-between">
+            <h5 class="mb-0 text-white">إعدادات تيليجرام</h5>
+          </div>
+        </div>
+        <div class="card-body px-4 py-4">
+          <div class="alert alert-info" role="alert">
+            <h4 class="alert-heading mb-1">معلومات عن تكامل تيليجرام</h4>
+            <p class="mb-2">يتيح لك تكامل تيليجرام تلقي إشعارات مباشرة عن:</p>
+            <ul class="list-unstyled mb-0">
+              <li><i class="fas fa-check-circle text-success me-2"></i> الزوار الجدد على الموقع</li>
+              <li><i class="fas fa-check-circle text-success me-2"></i> رسائل جديدة من نموذج التواصل</li>
+              <li><i class="fas fa-check-circle text-success me-2"></i> طلبات خدمة جديدة</li>
+              <li><i class="fas fa-check-circle text-success me-2"></i> تعليقات وإعجابات جديدة</li>
+              <li><i class="fas fa-check-circle text-success me-2"></i> شهادات عملاء جديدة</li>
+            </ul>
+          </div>
+
+          <div class="row">
+            <div class="col-md-12 mb-4">
+              <div class="d-flex bg-dark rounded p-3 mb-3 border">
+                <div>
+                  <h6 class="text-white mb-2">حالة التكامل مع تيليجرام:</h6>
+                  
+                  {% if telegram_token and telegram_chat_id %}
+                    <div class="badge bg-success mb-0 d-inline-flex align-items-center">
+                      <i class="fas fa-check-circle me-1"></i> مفعل
+                    </div>
+                  {% else %}
+                    <div class="badge bg-warning mb-0 d-inline-flex align-items-center">
+                      <i class="fas fa-exclamation-circle me-1"></i> غير مفعل
+                    </div>
+                    <p class="text-white mt-2 small">يتطلب التفعيل وجود متغيرات البيئة TELEGRAM_BOT_TOKEN و TELEGRAM_CHAT_ID</p>
+                  {% endif %}
+                </div>
+              </div>
+              
+              <div class="mt-4">
+                <h6 class="text-white">اختبار الاتصال بتيليجرام</h6>
+                <p class="text-white-50">اضغط على الزر أدناه لإرسال رسالة اختبار والتحقق من أن الإعدادات تعمل بشكل صحيح.</p>
+                <button id="testTelegramBtn" class="btn btn-primary btn-sm">
+                  <i class="fas fa-paper-plane me-1"></i> إرسال رسالة اختبار
+                </button>
+                <div id="telegramTestResult" class="mt-2" style="display: none;"></div>
+              </div>
+            </div>
+            
+            <div class="col-md-12">
+              <div class="accordion" id="telegramInstructionsAccordion">
+                <div class="accordion-item bg-dark border border-secondary">
+                  <h2 class="accordion-header" id="headingOne">
+                    <button class="accordion-button collapsed bg-dark text-white" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                      <i class="fas fa-info-circle me-2"></i> كيفية إعداد بوت تيليجرام
+                    </button>
+                  </h2>
+                  <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#telegramInstructionsAccordion">
+                    <div class="accordion-body">
+                      <ol class="mb-0">
+                        <li class="mb-2">تحدث مع @BotFather على تيليجرام لإنشاء بوت جديد باستخدام الأمر /newbot</li>
+                        <li class="mb-2">اتبع التعليمات لإنشاء البوت واحصل على توكن API</li>
+                        <li class="mb-2">اضبط متغير البيئة TELEGRAM_BOT_TOKEN بالقيمة التي حصلت عليها</li>
+                        <li class="mb-2">ابدأ محادثة مع البوت الذي أنشأته</li>
+                        <li class="mb-2">للحصول على معرف المحادثة، قم بزيارة <a href="https://api.telegram.org/bot<token>/getUpdates" target="_blank" class="text-info">https://api.telegram.org/bot&lt;token&gt;/getUpdates</a> (استبدل &lt;token&gt; بتوكن البوت الخاص بك)</li>
+                        <li>اضبط متغير البيئة TELEGRAM_CHAT_ID بقيمة معرف المحادثة (chat_id في الاستجابة)</li>
+                      </ol>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+  // اختبار الاتصال بتيليجرام
+  $("#testTelegramBtn").click(function() {
+    const $btn = $(this);
+    const $result = $("#telegramTestResult");
+    
+    $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i> جاري الاختبار...');
+    $result.hide();
+    
+    $.ajax({
+      url: "{{ url_for('test_telegram_connection') }}",
+      type: "POST",
+      success: function(response) {
+        $btn.prop('disabled', false).html('<i class="fas fa-paper-plane me-1"></i> إرسال رسالة اختبار');
+        
+        if (response.success) {
+          $result.html('<div class="alert alert-success mb-0"><i class="fas fa-check-circle me-1"></i> ' + response.message + '</div>').show();
+        } else {
+          $result.html('<div class="alert alert-danger mb-0"><i class="fas fa-exclamation-circle me-1"></i> ' + response.message + '</div>').show();
+        }
+      },
+      error: function() {
+        $btn.prop('disabled', false).html('<i class="fas fa-paper-plane me-1"></i> إرسال رسالة اختبار');
+        $result.html('<div class="alert alert-danger mb-0"><i class="fas fa-exclamation-circle me-1"></i> حدث خطأ أثناء الاتصال بالخادم.</div>').show();
+      }
+    });
+  });
+});
+</script>
+{% endblock %}

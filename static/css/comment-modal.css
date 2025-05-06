@@ -1,0 +1,164 @@
+/* أنماط نافذة التعليقات المنبثقة */
+.comment-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    visibility: hidden;
+}
+
+.comment-modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.comment-modal-container {
+    background-color: white;
+    border-radius: 8px;
+    max-width: 500px;
+    width: 90%;
+    padding: 20px;
+    position: relative;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    direction: rtl;
+}
+
+.comment-modal-close {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    font-size: 24px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #777;
+}
+
+.comment-modal-close:hover {
+    color: #333;
+}
+
+.comment-modal h3 {
+    margin-top: 0;
+    color: #333;
+    font-size: 20px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.comment-form-group {
+    margin-bottom: 15px;
+    width: 100%;
+}
+
+.comment-form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #444;
+}
+
+.comment-form-group input,
+.comment-form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.comment-form-group textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+.comment-form-group small {
+    display: block;
+    color: #777;
+    margin-top: 5px;
+    font-size: 12px;
+}
+
+.comment-form-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.comment-btn {
+    padding: 8px 15px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: background 0.3s;
+}
+
+.comment-btn-cancel {
+    background-color: #f1f1f1;
+    color: #555;
+}
+
+.comment-btn-cancel:hover {
+    background-color: #e5e5e5;
+}
+
+.comment-btn-submit {
+    background-color: #007bff;
+    color: white;
+}
+
+.comment-btn-submit:hover {
+    background-color: #0069d9;
+}
+
+.comment-message {
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    display: none;
+}
+
+.comment-message.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.comment-message.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.comment-message.info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+/* تحسينات للهواتف المحمولة */
+@media (max-width: 576px) {
+    .comment-modal-container {
+        width: 95%;
+        padding: 15px;
+    }
+    
+    .comment-form-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .comment-btn {
+        width: 100%;
+    }
+}

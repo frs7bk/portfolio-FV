@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>الملف الشخصي | الموقع</title>
+  
+  <!-- Bootstrap RTL CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.rtl.min.css">
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  
+  <style>
+    body {
+      background-color: #121212;
+      color: #f8f9fa;
+      font-family: 'Cairo', sans-serif;
+    }
+    
+    .profile-container {
+      margin: 50px auto;
+    }
+    
+    .page-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .page-header h1 {
+      font-weight: bold;
+      color: #f8f9fa;
+    }
+    
+    .profile-card {
+      background-color: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 30px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+      margin-bottom: 30px;
+    }
+    
+    .avatar-container {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    .avatar {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 5px solid #f59e0b;
+    }
+    
+    .form-control {
+      background-color: #2d2d2d;
+      border-color: #444;
+      color: #f8f9fa;
+    }
+    
+    .form-control:focus {
+      background-color: #2d2d2d;
+      border-color: #f59e0b;
+      color: #f8f9fa;
+      box-shadow: 0 0 0 0.25rem rgba(245, 158, 11, 0.25);
+    }
+    
+    .btn-primary {
+      background-color: #f59e0b;
+      border-color: #f59e0b;
+    }
+    
+    .btn-primary:hover {
+      background-color: #d97706;
+      border-color: #d97706;
+    }
+    
+    .nav-tabs {
+      border-bottom-color: #444;
+    }
+    
+    .nav-tabs .nav-link {
+      color: #aaa;
+      border: none;
+    }
+    
+    .nav-tabs .nav-link:hover {
+      color: #f8f9fa;
+      border-color: transparent;
+    }
+    
+    .nav-tabs .nav-link.active {
+      color: #f59e0b;
+      background-color: transparent;
+      border-bottom: 2px solid #f59e0b;
+    }
+    
+    .activity-item {
+      background-color: #2d2d2d;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 10px;
+    }
+    
+    .activity-time {
+      font-size: 0.85rem;
+      color: #888;
+    }
+    
+    .activity-icon {
+      background-color: #333;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 15px;
+    }
+    
+    .activity-login { color: #22c55e; }
+    .activity-logout { color: #ef4444; }
+    .activity-update { color: #3b82f6; }
+    .activity-view { color: #a855f7; }
+    .activity-comment { color: #f59e0b; }
+  </style>
+</head>
+<body>
+  <div class="container profile-container">
+    <div class="page-header">
+      <h1><i class="fas fa-user-circle me-2"></i>الملف الشخصي</h1>
+    </div>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}" role="alert">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+    
+    <div class="row">
+      <div class="col-md-4">
+        <div class="profile-card">
+          <div class="avatar-container">
+            <img src="{{ url_for('static', filename=user.avatar_url if user.avatar_url else 'uploads/default_avatar.png') }}" alt="{{ user.display_name }}" class="avatar mb-3">
+            <h4>{{ user.display_name or user.username }}</h4>
+            <p class="text-muted">{{ user.email }}</p>
+            
+            <!-- Avatar Upload Form -->
+            <form action="{{ url_for('auth.upload_avatar') }}" method="POST" enctype="multipart/form-data" class="mt-3">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <div class="mb-3">
+                <input class="form-control form-control-sm" type="file" id="avatar" name="avatar" accept="image/*">
+              </div>
+              <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-camera me-1"></i> تغيير الصورة</button>
+            </form>
+          </div>
+          
+          <div class="border-top border-secondary pt-3 mt-3">
+            <div class="mb-2">
+              <strong><i class="fas fa-calendar-alt me-2"></i>تاريخ التسجيل:</strong>
+              <span class="text-muted">{{ user.created_at.strftime('%Y-%m-%d') }}</span>
+            </div>
+            
+            <div class="mb-2">
+              <strong><i class="fas fa-envelope-open me-2"></i>حالة البريد:</strong>
+              {% if user.email_verified %}
+                <span class="text-success"><i class="fas fa-check-circle me-1"></i>مفعل</span>
+              {% else %}
+                <span class="text-warning"><i class="fas fa-exclamation-circle me-1"></i>غير مفعل</span>
+                <a href="{{ url_for('auth.resend_verification') }}" class="btn btn-sm btn-warning ms-2">إعادة إرسال رمز التفعيل</a>
+              {% endif %}
+            </div>
+            
+            <div class="mb-2">
+              <strong><i class="fas fa-user-tag me-2"></i>نوع الحساب:</strong>
+              <span class="badge bg-info">{{ user.get_role_name() }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-8">
+        <ul class="nav nav-tabs mb-4" id="profileTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="true">
+              <i class="fas fa-user-edit me-1"></i> تعديل الملف الشخصي
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="activity-tab" data-bs-toggle="tab" data-bs-target="#activity" type="button" role="tab" aria-controls="activity" aria-selected="false">
+              <i class="fas fa-history me-1"></i> سجل النشاطات
+            </button>
+          </li>
+        </ul>
+        
+        <div class="tab-content" id="profileTabsContent">
+          <!-- Profile Edit Tab -->
+          <div class="tab-pane fade show active" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+            <div class="profile-card">
+              <h4 class="mb-4"><i class="fas fa-user-edit me-2"></i>تعديل معلومات الملف الشخصي</h4>
+              
+              <form action="{{ url_for('auth.update_profile') }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
+                <div class="mb-3">
+                  <label for="display_name" class="form-label">الاسم الظاهر</label>
+                  <input type="text" class="form-control" id="display_name" name="display_name" value="{{ user.display_name or '' }}">
+                  <small class="text-muted">الاسم الذي سيظهر للآخرين</small>
+                </div>
+                
+                <div class="mb-3">
+                  <label for="bio" class="form-label">نبذة شخصية</label>
+                  <textarea class="form-control" id="bio" name="bio" rows="3">{{ user.bio or '' }}</textarea>
+                  <small class="text-muted">اكتب نبذة قصيرة عن نفسك (اختياري)</small>
+                </div>
+                
+                <div class="mb-3">
+                  <label for="current_password" class="form-label">كلمة المرور الحالية</label>
+                  <input type="password" class="form-control" id="current_password" name="current_password">
+                  <small class="text-muted">مطلوب فقط إذا كنت تريد تغيير كلمة المرور</small>
+                </div>
+                
+                <div class="mb-3">
+                  <label for="new_password" class="form-label">كلمة المرور الجديدة</label>
+                  <input type="password" class="form-control" id="new_password" name="new_password">
+                  <small class="text-muted">اترك الحقل فارغاً إذا كنت لا تريد تغيير كلمة المرور</small>
+                </div>
+                
+                <div class="mb-3">
+                  <label for="confirm_password" class="form-label">تأكيد كلمة المرور الجديدة</label>
+                  <input type="password" class="form-control" id="confirm_password" name="confirm_password">
+                </div>
+                
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>حفظ التغييرات</button>
+              </form>
+            </div>
+          </div>
+          
+          <!-- Activity Tab -->
+          <div class="tab-pane fade" id="activity" role="tabpanel" aria-labelledby="activity-tab">
+            <div class="profile-card">
+              <h4 class="mb-4"><i class="fas fa-history me-2"></i>سجل النشاطات الأخيرة</h4>
+              
+              {% if activities %}
+                {% for activity in activities %}
+                  <div class="activity-item d-flex">
+                    <div class="activity-icon">
+                      {% if activity.activity_type == 'login' %}
+                        <i class="fas fa-sign-in-alt activity-login"></i>
+                      {% elif activity.activity_type == 'logout' %}
+                        <i class="fas fa-sign-out-alt activity-logout"></i>
+                      {% elif activity.activity_type == 'update_profile' %}
+                        <i class="fas fa-user-edit activity-update"></i>
+                      {% elif activity.activity_type == 'update_avatar' %}
+                        <i class="fas fa-camera activity-update"></i>
+                      {% elif activity.activity_type == 'password_reset' %}
+                        <i class="fas fa-key activity-update"></i>
+                      {% elif activity.activity_type == 'view_project' %}
+                        <i class="fas fa-eye activity-view"></i>
+                      {% elif activity.activity_type == 'add_comment' %}
+                        <i class="fas fa-comment activity-comment"></i>
+                      {% else %}
+                        <i class="fas fa-history"></i>
+                      {% endif %}
+                    </div>
+                    <div class="flex-grow-1">
+                      <div class="d-flex justify-content-between">
+                        <strong>
+                          {% if activity.activity_type == 'login' %}
+                            تسجيل الدخول
+                          {% elif activity.activity_type == 'logout' %}
+                            تسجيل الخروج
+                          {% elif activity.activity_type == 'update_profile' %}
+                            تحديث الملف الشخصي
+                          {% elif activity.activity_type == 'update_avatar' %}
+                            تغيير الصورة الشخصية
+                          {% elif activity.activity_type == 'password_reset' %}
+                            إعادة تعيين كلمة المرور
+                          {% elif activity.activity_type == 'view_project' %}
+                            مشاهدة مشروع
+                          {% elif activity.activity_type == 'add_comment' %}
+                            إضافة تعليق
+                          {% else %}
+                            {{ activity.activity_type }}
+                          {% endif %}
+                        </strong>
+                        <span class="activity-time">{{ activity.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                      </div>
+                      <div class="text-muted">
+                        {% if activity.details %}
+                          <small>{{ activity.get_details_summary() }}</small>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+              {% else %}
+                <div class="text-center text-muted py-5">
+                  <i class="fas fa-history fa-3x mb-3"></i>
+                  <p>لا توجد أنشطة مسجلة بعد</p>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="text-center mt-4">
+      <a href="{{ url_for('index') }}" class="btn btn-outline-light"><i class="fas fa-arrow-right me-2"></i> العودة إلى الموقع</a>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

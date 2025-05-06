@@ -1,0 +1,513 @@
+{% extends "admin/admin_layout.html" %}
+
+{% block title %}إحصائيات الموقع{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    .stats-card {
+        background-color: #fff;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+        transition: transform 0.3s, box-shadow 0.3s;
+        height: 100%;
+    }
+    .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .stats-icon {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        margin-bottom: 1rem;
+    }
+    .stats-icon i {
+        font-size: 1.5rem;
+        color: #fff;
+    }
+    .stats-value {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+    .stats-label {
+        font-size: 0.875rem;
+        color: #64748b;
+    }
+    .chart-container {
+        background-color: #fff;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    .filter-control {
+        display: flex;
+        align-items: center;
+        background-color: #fff;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    .filter-control label {
+        margin-left: 0.5rem;
+        margin-bottom: 0;
+    }
+    .table-container {
+        background-color: #fff;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    .bg-primary-light {
+        background-color: rgba(13, 110, 253, 0.1);
+    }
+    .bg-success-light {
+        background-color: rgba(25, 135, 84, 0.1);
+    }
+    .bg-info-light {
+        background-color: rgba(13, 202, 240, 0.1);
+    }
+    .bg-warning-light {
+        background-color: rgba(255, 193, 7, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">لوحة الإحصائيات</h1>
+        <div class="filter-control">
+            <label for="time-period">الفترة الزمنية:</label>
+            <select id="time-period" class="form-select form-select-sm">
+                <option value="7">آخر 7 أيام</option>
+                <option value="30" selected>آخر 30 يوم</option>
+                <option value="90">آخر 3 أشهر</option>
+                <option value="180">آخر 6 أشهر</option>
+                <option value="365">آخر سنة</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- الإحصائيات العامة -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6 col-lg-3">
+            <div class="stats-card">
+                <div class="stats-icon bg-primary">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stats-value text-primary" id="total-users">{{ total_users }}</div>
+                <div class="stats-label">إجمالي المستخدمين</div>
+                <div class="progress mt-3" style="height: 6px;">
+                    <div class="progress-bar bg-primary" role="progressbar" style="width: {{ (user_stats.new_users_count / total_users * 100) if total_users > 0 else 0 }}%;" aria-valuenow="{{ user_stats.new_users_count }}" aria-valuemin="0" aria-valuemax="{{ total_users }}"></div>
+                </div>
+                <div class="text-muted small mt-1">{{ user_stats.new_users_count }} مستخدم جديد</div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="stats-card">
+                <div class="stats-icon bg-info">
+                    <i class="fas fa-eye"></i>
+                </div>
+                <div class="stats-value text-info" id="total-views">{{ total_views }}</div>
+                <div class="stats-label">إجمالي المشاهدات</div>
+                <div class="progress mt-3" style="height: 6px;">
+                    <div class="progress-bar bg-info" role="progressbar" style="width: 100%;" aria-valuenow="{{ total_views }}" aria-valuemin="0" aria-valuemax="{{ total_views }}"></div>
+                </div>
+                <div class="text-muted small mt-1">جميع الصفحات والمشاريع</div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="stats-card">
+                <div class="stats-icon bg-success">
+                    <i class="fas fa-heart"></i>
+                </div>
+                <div class="stats-value text-success" id="total-likes">{{ total_likes }}</div>
+                <div class="stats-label">إجمالي الإعجابات</div>
+                <div class="progress mt-3" style="height: 6px;">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: 100%;" aria-valuenow="{{ total_likes }}" aria-valuemin="0" aria-valuemax="{{ total_likes }}"></div>
+                </div>
+                <div class="text-muted small mt-1">من المستخدمين والزوار</div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="stats-card">
+                <div class="stats-icon bg-warning">
+                    <i class="fas fa-comment"></i>
+                </div>
+                <div class="stats-value text-warning" id="total-comments">{{ total_comments }}</div>
+                <div class="stats-label">إجمالي التعليقات</div>
+                <div class="progress mt-3" style="height: 6px;">
+                    <div class="progress-bar bg-warning" role="progressbar" style="width: 100%;" aria-valuenow="{{ total_comments }}" aria-valuemin="0" aria-valuemax="{{ total_comments }}"></div>
+                </div>
+                <div class="text-muted small mt-1">على جميع المشاريع</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- إحصائيات المستخدمين والنشاطات -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-8">
+            <div class="chart-container h-100">
+                <h5 class="mb-4">النشاطات على مدار الوقت</h5>
+                <div class="mb-3 btn-group btn-group-sm">
+                    <button type="button" class="btn btn-outline-primary active chart-type-btn" data-type="line">خطي</button>
+                    <button type="button" class="btn btn-outline-primary chart-type-btn" data-type="bar">أعمدة</button>
+                </div>
+                <div style="height: 300px;">
+                    <canvas id="time-chart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="chart-container h-100">
+                <h5 class="mb-4">توزيع النشاطات</h5>
+                <div style="height: 300px;">
+                    <canvas id="activities-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- المشاريع الأكثر مشاهدة والأكثر إعجاباً -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="table-container">
+                <h5 class="mb-3"><i class="fas fa-eye text-info me-2"></i> الأكثر مشاهدة</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>المشروع</th>
+                                <th>المشاهدات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="most-viewed-table">
+                            {% for item in portfolio_stats.most_viewed %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('view_portfolio_item', portfolio_id=item.id) }}" class="text-decoration-none">{{ item.title }}</a>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info-light text-info">{{ item.views }}</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="table-container">
+                <h5 class="mb-3"><i class="fas fa-heart text-danger me-2"></i> الأكثر إعجاباً</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>المشروع</th>
+                                <th>الإعجابات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="most-liked-table">
+                            {% for item in portfolio_stats.most_liked %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('view_portfolio_item', portfolio_id=item.id) }}" class="text-decoration-none">{{ item.title }}</a>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success-light text-success">{{ item.likes }}</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="table-container">
+                <h5 class="mb-3"><i class="fas fa-comment text-warning me-2"></i> الأكثر تعليقاً</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>المشروع</th>
+                                <th>التعليقات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="most-commented-table">
+                            {% for item in portfolio_stats.most_commented %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('view_portfolio_item', portfolio_id=item.id) }}" class="text-decoration-none">{{ item.title }}</a>
+                                </td>
+                                <td>
+                                    <span class="badge bg-warning-light text-warning">{{ item.comments }}</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- المستخدمين الأكثر نشاطاً -->
+    <div class="chart-container mb-4">
+        <h5 class="mb-3"><i class="fas fa-user-check text-primary me-2"></i> المستخدمين الأكثر نشاطاً</h5>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>المستخدم</th>
+                        <th>عدد النشاطات</th>
+                        <th>نوع النشاط</th>
+                        <th>تفاصيل</th>
+                    </tr>
+                </thead>
+                <tbody id="most-active-users-table">
+                    {% for user in user_stats.most_active_users %}
+                    <tr>
+                        <td>{{ user.display_name }}</td>
+                        <td>
+                            <span class="badge bg-primary">{{ user.activity_count }}</span>
+                        </td>
+                        <td>
+                            <div class="progress" style="height: 10px; width: 100px;">
+                                <div class="progress-bar bg-info" role="progressbar" style="width: 33%;"></div>
+                                <div class="progress-bar bg-success" role="progressbar" style="width: 33%;"></div>
+                                <div class="progress-bar bg-warning" role="progressbar" style="width: 34%;"></div>
+                            </div>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('analytics.user_activity', user_id=user.id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-chart-line me-1"></i>عرض التفاصيل
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+    // البيانات من الخادم
+    const chartData = {{ chart_data|safe }};
+    
+    // تهيئة الرسوم البيانية
+    document.addEventListener('DOMContentLoaded', function() {
+        // رسم بياني للنشاطات على مدار الوقت
+        const timeChartCtx = document.getElementById('time-chart').getContext('2d');
+        const timeChart = new Chart(timeChartCtx, {
+            type: 'line',
+            data: {
+                labels: chartData.labels,
+                datasets: chartData.datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        
+        // رسم بياني لتوزيع النشاطات
+        const activitiesChartCtx = document.getElementById('activities-chart').getContext('2d');
+        const activitiesChart = new Chart(activitiesChartCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['المشاهدات', 'الإعجابات', 'التعليقات'],
+                datasets: [{
+                    data: [{{ total_views }}, {{ total_likes }}, {{ total_comments }}],
+                    backgroundColor: [
+                        'rgba(13, 202, 240, 0.8)',
+                        'rgba(25, 135, 84, 0.8)',
+                        'rgba(255, 193, 7, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(13, 202, 240, 1)',
+                        'rgba(25, 135, 84, 1)',
+                        'rgba(255, 193, 7, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    }
+                }
+            }
+        });
+        
+        // تغيير نوع الرسم البياني
+        document.querySelectorAll('.chart-type-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.chart-type-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                const chartType = this.getAttribute('data-type');
+                timeChart.config.type = chartType;
+                timeChart.update();
+            });
+        });
+        
+        // تغيير فترة الإحصائيات
+        document.getElementById('time-period').addEventListener('change', function() {
+            const days = this.value;
+            
+            // تحديث البيانات من الخادم
+            fetch(`/analytics/api/chart-data?days=${days}`)
+                .then(response => response.json())
+                .then(data => {
+                    // تحديث الرسم البياني للنشاطات
+                    timeChart.data.labels = data.labels;
+                    timeChart.data.datasets = data.datasets;
+                    timeChart.update();
+                    
+                    // تحديث الإحصائيات الأخرى
+                    Promise.all([
+                        fetch(`/analytics/api/portfolio-stats?days=${days}`).then(res => res.json()),
+                        fetch(`/analytics/api/user-stats?days=${days}`).then(res => res.json()),
+                        fetch(`/analytics/api/activity-stats?days=${days}`).then(res => res.json())
+                    ]).then(([portfolioStats, userStats, activityStats]) => {
+                        // تحديث الجداول
+                        updateMostViewedTable(portfolioStats.most_viewed);
+                        updateMostLikedTable(portfolioStats.most_liked);
+                        updateMostCommentedTable(portfolioStats.most_commented);
+                        updateMostActiveUsersTable(userStats.most_active_users);
+                        
+                        // تحديث الإحصائيات العامة
+                        if (activityStats.activities_by_type) {
+                            const viewsCount = activityStats.activities_by_type.view || 0;
+                            const likesCount = activityStats.activities_by_type.like || 0;
+                            const commentsCount = activityStats.activities_by_type.comment || 0;
+                            
+                            // تحديث رسم توزيع النشاطات
+                            activitiesChart.data.datasets[0].data = [viewsCount, likesCount, commentsCount];
+                            activitiesChart.update();
+                        }
+                    });
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        });
+        
+        // وظائف تحديث الجداول
+        function updateMostViewedTable(data) {
+            const table = document.getElementById('most-viewed-table');
+            table.innerHTML = '';
+            
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <a href="/portfolio/view/${item.id}" class="text-decoration-none">${item.title}</a>
+                    </td>
+                    <td>
+                        <span class="badge bg-info-light text-info">${item.views}</span>
+                    </td>
+                `;
+                table.appendChild(row);
+            });
+        }
+        
+        function updateMostLikedTable(data) {
+            const table = document.getElementById('most-liked-table');
+            table.innerHTML = '';
+            
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <a href="/portfolio/view/${item.id}" class="text-decoration-none">${item.title}</a>
+                    </td>
+                    <td>
+                        <span class="badge bg-success-light text-success">${item.likes}</span>
+                    </td>
+                `;
+                table.appendChild(row);
+            });
+        }
+        
+        function updateMostCommentedTable(data) {
+            const table = document.getElementById('most-commented-table');
+            table.innerHTML = '';
+            
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <a href="/portfolio/view/${item.id}" class="text-decoration-none">${item.title}</a>
+                    </td>
+                    <td>
+                        <span class="badge bg-warning-light text-warning">${item.comments}</span>
+                    </td>
+                `;
+                table.appendChild(row);
+            });
+        }
+        
+        function updateMostActiveUsersTable(data) {
+            const table = document.getElementById('most-active-users-table');
+            table.innerHTML = '';
+            
+            data.forEach(user => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${user.display_name}</td>
+                    <td>
+                        <span class="badge bg-primary">${user.activity_count}</span>
+                    </td>
+                    <td>
+                        <div class="progress" style="height: 10px; width: 100px;">
+                            <div class="progress-bar bg-info" role="progressbar" style="width: 33%;"></div>
+                            <div class="progress-bar bg-success" role="progressbar" style="width: 33%;"></div>
+                            <div class="progress-bar bg-warning" role="progressbar" style="width: 34%;"></div>
+                        </div>
+                    </td>
+                    <td>
+                        <a href="/analytics/user/${user.id}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-chart-line me-1"></i>عرض التفاصيل
+                        </a>
+                    </td>
+                `;
+                table.appendChild(row);
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,87 @@
+<!-- نموذج طلب الخدمة -->
+<div class="service-order-section mt-5 p-4 rounded bg-light">
+    <h3 class="mb-4 text-primary">طلب الخدمة</h3>
+    
+    <!-- حاوية الرسائل -->
+    <div class="message-container"></div>
+    
+    <form id="service-request-form" class="needs-validation" novalidate>
+        <input type="hidden" name="service_type" value="{{ service.service_type }}" />
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        
+        <div class="row g-3">
+            <div class="col-md-6 mb-3">
+                <label for="name" class="form-label">الاسم الكامل <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="name" name="name" required>
+                <div class="invalid-feedback">
+                    يرجى إدخال الاسم الكامل
+                </div>
+            </div>
+            
+            <div class="col-md-6 mb-3">
+                <label for="email" class="form-label">البريد الإلكتروني <span class="text-danger">*</span></label>
+                <input type="email" class="form-control" id="email" name="email" required>
+                <div class="invalid-feedback">
+                    يرجى إدخال بريد إلكتروني صحيح
+                </div>
+            </div>
+            
+            <div class="col-md-6 mb-3">
+                <label for="phone" class="form-label">رقم الهاتف</label>
+                <input type="tel" class="form-control" id="phone" name="phone">
+                <div class="form-text">اختياري، لكن يفضل للتواصل السريع</div>
+            </div>
+            
+            <div class="col-md-6 mb-3">
+                <label for="budget" class="form-label">الميزانية المتوقعة</label>
+                <input type="text" class="form-control" id="budget" name="budget">
+                <div class="form-text">مثال: 5000-10000 دج</div>
+            </div>
+            
+            <div class="col-md-12 mb-3">
+                <label for="timeline" class="form-label">المدة الزمنية المتوقعة</label>
+                <input type="text" class="form-control" id="timeline" name="timeline">
+                <div class="form-text">مثال: خلال أسبوع، عاجل، خلال شهر</div>
+            </div>
+            
+            <div class="col-md-12 mb-3">
+                <label for="details" class="form-label">تفاصيل الطلب <span class="text-danger">*</span></label>
+                <textarea class="form-control" id="details" name="details" rows="5" required></textarea>
+                <div class="invalid-feedback">
+                    يرجى إدخال تفاصيل الطلب
+                </div>
+            </div>
+            
+            <div class="col-12 mt-4">
+                <button type="submit" class="btn btn-primary px-5">
+                    <i class="fas fa-paper-plane me-2"></i> إرسال الطلب
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- إضافة سكريبت معالجة النموذج -->
+<script src="/static/js/service-request.js"></script>
+
+<script>
+    // التحقق من صحة النموذج باستخدام Bootstrap
+    (function() {
+        'use strict';
+        
+        // جلب جميع النماذج التي تحتاج للتحقق من صحتها
+        var forms = document.querySelectorAll('.needs-validation');
+        
+        // التحقق من صحة كل حقل عند محاولة الإرسال
+        Array.prototype.slice.call(forms).forEach(function(form) {
+            form.addEventListener('submit', function(event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                
+                form.classList.add('was-validated');
+            }, false);
+        });
+    })();
+</script>
